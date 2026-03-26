@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  orders    Order[]
+
+  @@map("users")
+}
+
+model Product {
+  id           String      @id @default(uuid())
+  name         String
+  description  String
+  price        Decimal     @db.Decimal(10, 2)
+  imageUrl     String      @map("image_url")
+  images       String[]    @default([])
+  sku          String?
+  stock        Int         @default(0)
+  category     String
+  specifications Json?     @default("{}")
+  manualUrl    String?     @map("manual_url")
+  isBestSeller Boolean     @default(false) @map("is_best_seller")
+  isActive     Boolean     @default(true) @map("is_active")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  orderItems   OrderItem[]
+
+  @@map("products")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id                  String        @id @default(uuid())
+  userId              String?       @map("user_id")
+  user                User?         @relation(fields: [userId], references: [id])
+  customerName        String        @map("customer_name")
+  email               String
+  phone               String?
+  totalAmount         Decimal       @db.Decimal(10, 2) @map("total_amount")
+  subtotal            Decimal       @db.Decimal(10, 2)
+  gst                 Decimal       @db.Decimal(10, 2)
+  shippingCost        Decimal       @db.Decimal(10, 2) @map("shipping_cost")
+  discountAmount      Decimal       @db.Decimal(10, 2) @default(0) @map("discount_amount")
+  couponCode          String?       @map("coupon_code")
+  stripePaymentIntent String?       @unique @map("stripe_payment_intent")
+  stripeSessionId     String?       @map("stripe_session_id")
+  status              OrderStatus   @default(PENDING)
+  paymentStatus       PaymentStatus @default(PENDING) @map("payment_status")
+  shippingAddress     Json          @map("shipping_address")
+  trackingNumber      String?       @map("tracking_number")
+  notes               String?
+  isGuest             Boolean       @default(false) @map("is_guest")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  items               OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String   @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("order_items")
+}
+
+model Testimonial {
+  id           String   @id @default(uuid())
+  content      String
+  rating       Int      @default(5)
+  authorName   String   @map("author_name")
+  authorAvatar String?  @map("author_avatar")
+  isApproved   Boolean  @default(false) @map("is_approved")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("testimonials")
+}
+
+model MarketingContent {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  title       String?
+  subtitle    String?
+  content     String?
+  imageUrl    String?  @map("image_url")
+  linkUrl     String?  @map("link_url")
+  linkText    String?  @map("link_text")
+  isActive    Boolean  @default(true) @map("is_active")
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("marketing_content")
+}
+
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  source    String   @default("popup") // popup, newsletter, checkout
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("subscribers")
+}
+
+model MarketingSettings {
+  id                 String    @id @default(uuid())
+  popupEnabled       Boolean   @default(true) @map("popup_enabled")
+  popupHeadline      String    @default("GET 10% OFF YOUR FIRST ORDER") @map("popup_headline")
+  popupSubtext       String    @default("Join our community and get exclusive offers on water purification products.") @map("popup_subtext")
+  discountCode       String    @default("CLEANWATER10") @map("discount_code")
+  discountPercentage Int       @default(10) @map("discount_percentage")
+  popupDelay         Int       @default(5) @map("popup_delay") // seconds
+  startDate          DateTime? @map("start_date")
+  endDate            DateTime? @map("end_date")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  @@map("marketing_settings")
+}
+
+model Coupon {
+  id               String    @id @default(uuid())
+  code             String    @unique
+  description      String?
+  discountType     String    @default("percentage") @map("discount_type") // "percentage" or "fixed"
+  discountValue    Decimal   @db.Decimal(10, 2) @map("discount_value") // percentage (e.g. 10) or fixed amount (e.g. 25.00)
+  minOrderAmount   Decimal?  @db.Decimal(10, 2) @map("min_order_amount")
+  maxDiscountAmount Decimal? @db.Decimal(10, 2) @map("max_discount_amount") // cap for percentage discounts
+  maxUses          Int?      @map("max_uses")
+  usedCount        Int       @default(0) @map("used_count")
+  isActive         Boolean   @default(true) @map("is_active")
+  startDate        DateTime? @map("start_date")
+  endDate          DateTime? @map("end_date")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("coupons")
+}

@@ -1,0 +1,5 @@
+export { HeroSection } from './hero-section'
+export { BestSellers } from './best-sellers'
+export { TestimonialsSection } from './testimonials-section'
+export { FeaturedCategories } from './featured-categories'
+export { NewsletterSection } from './newsletter-section'

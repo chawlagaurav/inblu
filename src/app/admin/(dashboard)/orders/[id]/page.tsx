@@ -10,6 +10,8 @@ import { OrderActions } from '@/components/admin/order-actions'
 import prisma from '@/lib/prisma'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Order Details - Admin',
   description: 'View and manage order',

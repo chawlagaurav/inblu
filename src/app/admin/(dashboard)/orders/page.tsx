@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import prisma from '@/lib/prisma'
 import { OrdersList } from '@/components/admin/orders-list'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Orders - Admin',
   description: 'Manage your orders',

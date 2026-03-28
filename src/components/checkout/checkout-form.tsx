@@ -414,10 +414,6 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
             </>
           )}
         </Button>
-
-        <p className="text-center text-sm text-slate-500">
-          Secure checkout powered by Stripe
-        </p>
       </form>
     </FadeIn>
   )

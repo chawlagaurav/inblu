@@ -54,6 +54,7 @@ interface Order {
   paymentStatus: string
   isGuest: boolean
   createdAt: string
+  shippingAddress: Record<string, string> | null
   items: OrderItem[]
   user: { name: string | null; email: string } | null
 }
@@ -467,6 +468,9 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         <SortIcon field="status" />
                       </span>
                     </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
+                      Shipping Address
+                    </th>
                     <th
                       className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-sky-600"
                       onClick={() => handleSort('date')}
@@ -518,6 +522,19 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         <Badge className={statusColors[order.status]}>
                           {order.status}
                         </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        {order.shippingAddress ? (
+                          <div className="text-sm text-slate-600 max-w-[200px]">
+                            <p className="truncate">{order.shippingAddress.address}</p>
+                            {order.shippingAddress.apartment && <p className="truncate">{order.shippingAddress.apartment}</p>}
+                            <p className="truncate text-slate-400">
+                              {[order.shippingAddress.city, order.shippingAddress.state, order.shippingAddress.postcode].filter(Boolean).join(', ')}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400">—</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-sm text-slate-500">
                         {formatDate(order.createdAt)}

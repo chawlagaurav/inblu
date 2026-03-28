@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Search, Mail, Phone, ShoppingBag, DollarSign, Users, UserX } from 'lucide-react'
+import { Search, Mail, Phone, ShoppingBag, DollarSign, Users, UserX, Download, MapPin } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -39,7 +39,9 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
           id: true,
           totalAmount: true,
           createdAt: true,
-        }
+          shippingAddress: true,
+        },
+        orderBy: { createdAt: 'desc' as const },
       },
     },
     orderBy: { createdAt: 'desc' },
@@ -66,6 +68,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
     phone: string | null
     orders: typeof guestOrders
     totalSpent: number
+    address: Record<string, string> | null
   }>()
 
   guestOrders.forEach(order => {
@@ -80,6 +83,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
         phone: order.phone,
         orders: [order],
         totalSpent: Number(order.totalAmount),
+        address: order.shippingAddress as Record<string, string> | null,
       })
     }
   })
@@ -101,6 +105,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
         totalSpent: c.orders.reduce((sum, o) => sum + Number(o.totalAmount), 0),
         lastOrder: c.orders[0]?.createdAt,
         createdAt: c.createdAt,
+        address: (c.orders[0]?.shippingAddress as Record<string, string> | null) || null,
       }))
     : typeFilter === 'guests'
     ? guestCustomers.map(c => ({
@@ -113,6 +118,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
         totalSpent: c.totalSpent,
         lastOrder: c.orders[0]?.createdAt,
         createdAt: c.orders[c.orders.length - 1]?.createdAt,
+        address: c.address,
       }))
     : [
         ...registeredCustomers.map(c => ({
@@ -125,6 +131,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
           totalSpent: c.orders.reduce((sum, o) => sum + Number(o.totalAmount), 0),
           lastOrder: c.orders[0]?.createdAt,
           createdAt: c.createdAt,
+          address: (c.orders[0]?.shippingAddress as Record<string, string> | null) || null,
         })),
         ...guestCustomers.map(c => ({
           type: 'guest' as const,
@@ -136,15 +143,28 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
           totalSpent: c.totalSpent,
           lastOrder: c.orders[0]?.createdAt,
           createdAt: c.orders[c.orders.length - 1]?.createdAt,
+          address: c.address,
         })),
       ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
 
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Customers</h1>
-          <p className="text-slate-500 mt-1">Manage your customers</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Customers</h1>
+            <p className="text-slate-500 mt-1">Manage your customers</p>
+          </div>
+          <a
+            href={`/api/admin/customers/export?${new URLSearchParams({
+              ...(searchQuery ? { search: searchQuery } : {}),
+              ...(typeFilter !== 'all' ? { type: typeFilter } : {}),
+            }).toString()}`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Export to Excel
+          </a>
         </div>
       </FadeIn>
 
@@ -246,6 +266,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Type</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Orders</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Total Spent</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Shipping Address</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Last Order</th>
                     </tr>
                   </thead>
@@ -285,6 +306,19 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
                             <DollarSign className="h-4 w-4 text-green-600" />
                             {formatCurrency(customer.totalSpent)}
                           </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          {customer.address ? (
+                            <div className="text-sm text-slate-600 max-w-[200px]">
+                              <p className="truncate">{customer.address.address}</p>
+                              {customer.address.apartment && <p className="truncate">{customer.address.apartment}</p>}
+                              <p className="truncate text-slate-400">
+                                {[customer.address.city, customer.address.state, customer.address.postcode].filter(Boolean).join(', ')}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-slate-400">&mdash;</span>
+                          )}
                         </td>
                         <td className="py-3 px-4 text-sm text-slate-500">
                           {customer.lastOrder ? formatDate(customer.lastOrder) : 'No orders'}

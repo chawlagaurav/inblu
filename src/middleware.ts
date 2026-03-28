@@ -35,8 +35,8 @@ export async function middleware(request: NextRequest) {
 
   // Protected admin routes - require authentication and admin role
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    // Allow access to admin login page without authentication
-    if (request.nextUrl.pathname === '/admin/login') {
+    // Allow access to admin login and forgot-password without authentication
+    if (request.nextUrl.pathname === '/admin/login' || request.nextUrl.pathname === '/admin/forgot-password') {
       return supabaseResponse
     }
     
@@ -70,9 +70,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from auth pages (except callback and reset-password)
   if (request.nextUrl.pathname.startsWith('/auth')) {
-    if (user && !request.nextUrl.pathname.includes('/callback')) {
+    if (user && !request.nextUrl.pathname.includes('/callback') && !request.nextUrl.pathname.includes('/reset-password')) {
       const redirect = request.nextUrl.searchParams.get('redirect') || '/'
       return NextResponse.redirect(new URL(redirect, request.url))
     }

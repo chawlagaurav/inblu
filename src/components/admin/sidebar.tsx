@@ -12,7 +12,8 @@ import {
   Megaphone,
   BarChart3,
   Warehouse,
-  Mail
+  Mail,
+  Tag
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Inventory', href: '/admin/inventory', icon: Warehouse },
+  { name: 'Coupons', href: '/admin/coupons', icon: Tag },
   { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
   { name: 'Emails / Invoices', href: '/admin/emails', icon: Mail },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },

@@ -51,6 +51,7 @@ export default async function AdminOrdersPage() {
       price: Number(i.price),
       product: { name: i.product.name },
     })),
+    shippingAddress: o.shippingAddress as Record<string, string> | null,
     user: o.user ? { name: o.user.name, email: o.user.email } : null,
   }))
 

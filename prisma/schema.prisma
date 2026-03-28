@@ -181,3 +181,26 @@ model Coupon {
 
   @@map("coupons")
 }
+
+enum EnquiryStatus {
+  NEW
+  IN_PROGRESS
+  LEAD
+  CONVERTED
+  RESOLVED
+}
+
+model Enquiry {
+  id         String        @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String
+  status     EnquiryStatus @default(NEW)
+  resolvedAt DateTime?     @map("resolved_at")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@map("enquiries")
+}

@@ -6,14 +6,15 @@ import { Phone, Mail, MapPin, Clock, Send, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { FadeIn, FadeInOnScroll } from '@/components/motion'
+import { toast } from 'sonner'
 
 const contactInfo = [
   {
     icon: Phone,
     title: 'Phone',
-    details: '1800 123 456',
+    details: '+61 431 318 665',
     subtext: 'Mon-Fri 9am-6pm AEST',
-    href: 'tel:1800123456',
+    href: 'tel:+61 431 318 665',
   },
   {
     icon: Mail,
@@ -25,9 +26,9 @@ const contactInfo = [
   {
     icon: MapPin,
     title: 'Address',
-    details: '123 Water Street',
-    subtext: 'Sydney NSW 2000, Australia',
-    href: 'https://maps.google.com',
+    details: '8R5C+W4 Marsden Park',
+    subtext: 'New South Wales, Australia',
+    href: 'https://maps.app.goo.gl/KiXj1Q9iVubCU47K8',
   },
   {
     icon: Clock,
@@ -53,12 +54,27 @@ export default function ContactPage() {
     e.preventDefault()
     setSubmitting(true)
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    setSubmitting(false)
-    setSubmitted(true)
-    setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
+    try {
+      const res = await fetch('/api/enquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to submit')
+      }
+
+      setSubmitted(true)
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
+      toast.success('Your message has been sent successfully!')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Something went wrong'
+      toast.error(message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -122,11 +138,11 @@ export default function ContactPage() {
                     For urgent installation or service issues, call our priority support line.
                   </p>
                   <a 
-                    href="tel:1800999888" 
+                    href="tel:+61431318665" 
                     className="inline-flex items-center gap-2 text-sky-600 font-semibold hover:text-sky-700"
                   >
                     <Phone className="h-4 w-4" />
-                    1800 999 888 (Priority Line)
+                    +61431318665 (Priority Line)
                   </a>
                 </div>
               </div>

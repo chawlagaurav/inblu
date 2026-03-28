@@ -13,7 +13,8 @@ import {
   BarChart3,
   Warehouse,
   Mail,
-  Tag
+  Tag,
+  MessageSquareText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -25,8 +26,8 @@ const navigation = [
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Inventory', href: '/admin/inventory', icon: Warehouse },
   { name: 'Coupons', href: '/admin/coupons', icon: Tag },
+  { name: 'Enquiries', href: '/admin/enquiries', icon: MessageSquareText },
   { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
-  { name: 'Emails / Invoices', href: '/admin/emails', icon: Mail },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]

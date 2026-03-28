@@ -41,8 +41,8 @@ export function AnnouncementBar() {
 
   return (
     <div className="relative bg-sky-600 text-white text-sm">
-      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-2">
-        <span className="text-center font-medium">{banner.text}</span>
+      <div className="max-w-7xl mx-auto pl-4 pr-10 py-2 flex items-center justify-center gap-2">
+        <span className="text-center font-medium truncate">{banner.text}</span>
         {banner.link && (
           <Link
             href={banner.link}
@@ -54,7 +54,7 @@ export function AnnouncementBar() {
         )}
         <button
           onClick={handleDismiss}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-sky-700 rounded transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-sky-700 rounded transition-colors"
           aria-label="Dismiss announcement"
         >
           <X className="h-3.5 w-3.5" />

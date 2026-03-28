@@ -86,16 +86,10 @@ export function Header() {
   }
 
   return (
+    <>
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-sky-100">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-        {/* Logo */}
-        <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5">
-            <span className="text-2xl font-bold text-sky-600">Inblu</span>
-          </Link>
-        </div>
-
-        {/* Mobile menu button */}
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+        {/* Mobile: Hamburger (left) */}
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -105,6 +99,55 @@ export function Header() {
             <span className="sr-only">Open main menu</span>
             <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
+        </div>
+
+        {/* Logo */}
+        <div className="flex lg:flex-1">
+          <Link href="/" className="-m-1.5 p-1.5">
+            <span className="text-2xl font-bold text-sky-600">Inblu</span>
+          </Link>
+        </div>
+
+        {/* Mobile: Cart + Profile (right) */}
+        <div className="flex items-center gap-1 lg:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-9 w-9"
+            onClick={() => setSearchOpen(true)}
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-9 w-9"
+            onClick={() => setIsOpen(true)}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {itemCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-sky-500 text-[10px] text-white flex items-center justify-center font-medium">
+                {itemCount}
+              </span>
+            )}
+          </Button>
+          {loading ? (
+            <Button variant="ghost" size="icon" disabled className="h-9 w-9">
+              <User className="h-5 w-5" />
+            </Button>
+          ) : user ? (
+            <Link href="/profile">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/auth/login">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Desktop navigation */}
@@ -241,131 +284,128 @@ export function Header() {
           </Button>
         </div>
       </nav>
+    </header>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm lg:hidden"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-sky-100 lg:hidden"
-            >
-              <div className="flex items-center justify-between">
-                <Link href="/" className="-m-1.5 p-1.5" onClick={() => setMobileMenuOpen(false)}>
-                  <span className="text-2xl font-bold text-sky-600">Inblu</span>
-                </Link>
-                <button
-                  type="button"
-                  className="-m-2.5 rounded-xl p-2.5 text-slate-700"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span className="sr-only">Close menu</span>
-                  <X className="h-6 w-6" aria-hidden="true" />
-                </button>
+    {/* Mobile menu - rendered outside header to escape stacking context */}
+    <AnimatePresence>
+      {mobileMenuOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'tween', duration: 0.25, ease: 'easeInOut' }}
+            className="fixed inset-0 z-[60] w-full h-full overflow-y-auto bg-white lg:hidden"
+          >
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-sky-100">
+              <Link href="/" className="-m-1.5 p-1.5" onClick={() => setMobileMenuOpen(false)}>
+                <span className="text-2xl font-bold text-sky-600">Inblu</span>
+              </Link>
+              <button
+                type="button"
+                className="rounded-xl p-2 text-slate-400 hover:text-slate-600 hover:bg-sky-50 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className="sr-only">Close menu</span>
+                <X className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
+
+            {/* Navigation links */}
+            <div className="px-4 py-4">
+              <div className="space-y-1">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-xl px-3 py-3 text-base font-semibold text-slate-700 hover:bg-sky-50 transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
               </div>
-              <div className="mt-6 flow-root">
-                <div className="-my-6 divide-y divide-sky-100">
-                  <div className="space-y-2 py-6">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="-mx-3 block rounded-xl px-3 py-2 text-base font-semibold leading-7 text-slate-700 hover:bg-sky-50"
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                    
-                    {/* Support Section in Mobile */}
-                    <div className="pt-4 border-t border-sky-100">
-                      <p className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Support</p>
-                      {supportItems.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="-mx-3 flex items-center gap-3 rounded-xl px-3 py-2 text-base font-semibold leading-7 text-slate-700 hover:bg-sky-50"
-                        >
-                          <item.icon className="h-5 w-5 text-sky-500" />
-                          {item.name}
-                        </Link>
-                      ))}
+              
+              {/* Support Section */}
+              <div className="mt-4 pt-4 border-t border-sky-100">
+                <p className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Support</p>
+                <div className="space-y-1">
+                  {supportItems.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-slate-700 hover:bg-sky-50 transition-colors"
+                    >
+                      <item.icon className="h-5 w-5 text-sky-500" />
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Account section */}
+              <div className="mt-4 pt-4 border-t border-sky-100">
+                {user ? (
+                  <div className="space-y-1">
+                    <div className="px-3 py-2 mb-1">
+                      <p className="text-xs text-slate-500">Signed in as</p>
+                      <p className="text-sm font-medium text-slate-900 truncate">{user.email}</p>
                     </div>
-                  </div>
-                  <div className="py-6 space-y-2">
-                    {user ? (
-                      <>
-                        <div className="px-3 py-2 border-b border-sky-100 mb-2">
-                          <p className="text-xs text-slate-500">Signed in as</p>
-                          <p className="text-sm font-medium text-slate-900 truncate">{user.email}</p>
-                        </div>
-                        <Link
-                          href="/profile"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="-mx-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-base font-semibold leading-7 text-slate-700 hover:bg-sky-50"
-                        >
-                          <User className="h-5 w-5" />
-                          Profile
-                        </Link>
-                        <Link
-                          href="/profile#orders"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="-mx-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-base font-semibold leading-7 text-slate-700 hover:bg-sky-50"
-                        >
-                          <Package className="h-5 w-5" />
-                          Orders
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setMobileMenuOpen(false)
-                            handleLogout()
-                          }}
-                          className="-mx-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-base font-semibold leading-7 text-red-600 hover:bg-red-50 w-full"
-                        >
-                          <LogOut className="h-5 w-5" />
-                          Log out
-                        </button>
-                      </>
-                    ) : (
-                      <Link
-                        href="/auth/login"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="-mx-3 block rounded-xl px-3 py-2.5 text-base font-semibold leading-7 text-slate-700 hover:bg-sky-50"
-                      >
-                        Log in
-                      </Link>
-                    )}
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-slate-700 hover:bg-sky-50 transition-colors"
+                    >
+                      <User className="h-5 w-5 text-sky-500" />
+                      Profile
+                    </Link>
+                    <Link
+                      href="/profile#orders"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-slate-700 hover:bg-sky-50 transition-colors"
+                    >
+                      <Package className="h-5 w-5 text-sky-500" />
+                      Orders
+                    </Link>
                     <button
                       onClick={() => {
                         setMobileMenuOpen(false)
-                        setIsOpen(true)
+                        handleLogout()
                       }}
-                      className="-mx-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-base font-semibold leading-7 text-slate-700 hover:bg-sky-50 w-full"
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-red-600 hover:bg-red-50 w-full transition-colors"
                     >
-                      <ShoppingCart className="h-5 w-5" />
-                      Cart {itemCount > 0 && `(${itemCount})`}
+                      <LogOut className="h-5 w-5" />
+                      Log out
                     </button>
                   </div>
+                  ) : (
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-slate-700 hover:bg-sky-50 transition-colors"
+                    >
+                      <User className="h-5 w-5 text-sky-500" />
+                      Log in
+                    </Link>
+                  )}
                 </div>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
 
-      {/* Search Modal */}
-      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
-    </header>
+    {/* Search Modal */}
+    <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
   )
 }

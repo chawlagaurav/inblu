@@ -5,29 +5,29 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Shipping Policy | Inblu',
-  description: 'Learn about our shipping options, delivery times, and coverage across Australia.',
+  description: 'Learn about our shipping rates, delivery estimates, and coverage across Australia.',
 }
 
 const shippingInfo = [
   {
     icon: Truck,
-    title: 'Free Delivery',
-    description: 'Free delivery on all water purifier orders across Australia.',
+    title: 'Free Standard Shipping',
+    description: 'Free standard shipping on all orders across Australia.',
   },
   {
     icon: Clock,
-    title: 'Delivery Time',
-    description: '2-5 business days for metro areas, 5-10 days for regional areas.',
+    title: 'Fast Delivery',
+    description: 'Standard delivery in 3-8 business days, express in 1-3 business days.',
   },
   {
     icon: MapPin,
-    title: 'Coverage',
-    description: 'We deliver to all Australian states and territories.',
+    title: 'Australian Coverage',
+    description: 'We deliver to the majority of territories within the Australian continent.',
   },
   {
     icon: Package,
-    title: 'Professional Installation',
-    description: 'Free professional installation included with all purifiers.',
+    title: 'Quick Handling',
+    description: 'Most packages shipped within 24 hours except weekends and holidays.',
   },
 ]
 
@@ -42,7 +42,7 @@ export default function ShippingPage() {
                 Shipping Policy
               </h1>
               <p className="mt-4 text-lg text-slate-600">
-                Fast, reliable delivery across Australia with free installation.
+                Shipping rates and delivery estimates
               </p>
             </div>
           </FadeIn>
@@ -69,37 +69,78 @@ export default function ShippingPage() {
 
           <FadeInOnScroll delay={0.1}>
             <div className="prose prose-slate max-w-none">
-              <h2>Delivery Information</h2>
-              <p>
-                All orders are processed within 1-2 business days. Once your order has been shipped, 
-                you will receive a confirmation email with tracking information.
-              </p>
-
-              <h3>Delivery Times</h3>
+              <h2>Shipping Rates</h2>
+              <div className="overflow-x-auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Shipping Method</th>
+                      <th>Estimated Delivery Time</th>
+                      <th>Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Standard Shipping</td>
+                      <td>3-8 Business Days</td>
+                      <td>Free</td>
+                    </tr>
+                    <tr>
+                      <td>Express Shipping</td>
+                      <td>1-3 Business Days</td>
+                      <td>$14.99 AUD</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <ul>
-                <li><strong>Metro Areas (Sydney, Melbourne, Brisbane, Perth, Adelaide):</strong> 2-5 business days</li>
-                <li><strong>Regional Areas:</strong> 5-10 business days</li>
-                <li><strong>Remote Areas:</strong> 10-15 business days</li>
+                <li>Shipping charges for your order will be calculated and displayed at checkout.</li>
+                <li>The Delivery Time is calculated based on the shipping date, not the order date. The actual shipping date can be delayed due to invalid shipping address, weekends/holidays, etc.</li>
               </ul>
 
-              <h3>Free Installation</h3>
+              <h3>Handling Time</h3>
               <p>
-                All water purifiers come with free professional installation by our certified technicians. 
-                After your order is delivered, our team will contact you within 24-48 hours to schedule 
-                a convenient installation time.
+                We need 24h to 48h to prepare your order. Most packages will be shipped out within 24 hours except weekends and holidays.
               </p>
 
-              <h3>Order Tracking</h3>
+              <h3>Track Your Order</h3>
               <p>
-                Once your order is shipped, you&apos;ll receive a tracking number via email. You can track 
-                your delivery status through our carrier&apos;s website or by logging into your Inblu account.
+                Once your order is shipped, you will receive an email from us containing the tracking information. Tracking information is also available in your &quot;Order Details&quot; page.
               </p>
 
-              <h3>Delivery Issues</h3>
+              <h3>Shipping Origin</h3>
               <p>
-                If you experience any issues with your delivery, please contact our support team at 
-                <a href="mailto:support@inblu.com.au" className="text-sky-600"> support@inblu.com.au</a> or 
-                call us at <a href="tel:1800123456" className="text-sky-600">1800 123 456</a>.
+                The package will be shipped from one of our AU warehouses closest to your location. If you have any questions, you can contact our customer service via LiveChat or email to{' '}
+                <a href="mailto:support@inblu.com.au" className="text-sky-600">support@inblu.com.au</a>, we will reply to you as soon as possible!
+              </p>
+
+              <h3>Shipping Areas</h3>
+              <p>
+                The products can be delivered to the majority of territories within the Australian continent, excluding its surrounding islands.
+              </p>
+
+              <h3>International Shipping</h3>
+              <p>
+                We are sorry that the international shipping service is not supported for the time being.
+              </p>
+
+              <h3>Shipping Carriers</h3>
+              <p>
+                We work with 2 carriers to make sure your order will arrive on time: eParcel, Fastway.
+              </p>
+              <p>
+                <strong>Note:</strong> We don&apos;t accept requests to specify a certain carrier to deliver the package.
+              </p>
+
+              <h3>Delivery Time Exceeded</h3>
+              <p>
+                If your order is delayed, please contact us via email{' '}
+                <a href="mailto:support@inblu.com.au" className="text-sky-600">support@inblu.com.au</a>, we will check the situation with the transportation company in time. Thanks for your understanding and support.
+              </p>
+
+              <h3>Sales Tax</h3>
+              <p>
+                The sales tax will be collected in accordance with Australian tax laws. Customers with delivery addresses within Australia will be charged a standard rate of 10% GST at checkout. All taxes collected will be reported and filed to the ATO on time.
               </p>
             </div>
           </FadeInOnScroll>

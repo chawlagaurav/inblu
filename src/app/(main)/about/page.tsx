@@ -43,7 +43,7 @@ export default function AboutPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 to-white py-20 sm:py-28">
+      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeIn>
             <div className="mx-auto max-w-2xl text-center">
@@ -63,8 +63,8 @@ export default function AboutPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <FadeInOnScroll>
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-sky-100">
-                <div className="absolute inset-0 bg-gradient-to-br from-sky-200 to-sky-300 flex items-center justify-center">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-blue-100">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
                   <span className="text-8xl font-bold text-white/50">I</span>
                 </div>
               </div>
@@ -109,9 +109,9 @@ export default function AboutPage() {
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value) => (
               <StaggerItem key={value.title}>
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-sky-100 h-full">
-                  <div className="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center mb-4">
-                    <value.icon className="h-6 w-6 text-sky-600" />
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-100 h-full">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                    <value.icon className="h-6 w-6 text-blue-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-2">
                     {value.title}
@@ -133,7 +133,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               {stats.map((stat) => (
                 <div key={stat.label} className="space-y-2">
-                  <p className="text-4xl font-bold text-sky-600">{stat.value}</p>
+                  <p className="text-4xl font-bold text-blue-600">{stat.value}</p>
                   <p className="text-sm text-slate-600">{stat.label}</p>
                 </div>
               ))}
@@ -143,17 +143,17 @@ export default function AboutPage() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-sky-500 to-sky-600">
+      <section className="py-16 sm:py-24 bg-gradient-to-br from-blue-500 to-blue-600">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeInOnScroll>
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold text-white sm:text-4xl mb-6">
                 Our Mission
               </h2>
-              <p className="text-lg text-sky-100 leading-relaxed mb-8">
+              <p className="text-lg text-blue-100 leading-relaxed mb-8">
                 To make pure, healthy drinking water accessible to every Australian home. We champion quality, innovation, and exceptional service. We&apos;re not just selling water filters – we&apos;re helping families live healthier lives.
               </p>
-              <Button asChild size="lg" className="bg-white text-sky-600 hover:bg-sky-50">
+              <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
                 <Link href="/products">
                   Explore Our Collection
                   <ArrowRight className="h-4 w-4 ml-2" />

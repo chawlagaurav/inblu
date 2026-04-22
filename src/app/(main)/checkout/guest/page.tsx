@@ -28,8 +28,8 @@ export default function GuestCheckoutPage() {
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-sky-100 rounded-full">
-                    <User className="h-5 w-5 text-sky-600" />
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <User className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
                     <p className="font-medium text-slate-900">Already have an account?</p>

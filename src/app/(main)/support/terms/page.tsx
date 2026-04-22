@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="bg-white min-h-screen">
-      <section className="bg-gradient-to-b from-sky-50 to-white py-16 sm:py-24">
+      <section className="bg-gradient-to-b from-blue-50 to-white py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           <FadeIn>
             <div className="text-center mb-12">
@@ -80,7 +80,7 @@ export default function TermsPage() {
 
               <h2>6. Returns and Refunds</h2>
               <p>
-                Please refer to our <a href="/support/returns" className="text-sky-600">Returns & Refunds Policy</a> for 
+                Please refer to our <a href="/support/returns" className="text-blue-600">Returns & Refunds Policy</a> for 
                 detailed information about our return process.
               </p>
 
@@ -126,8 +126,8 @@ export default function TermsPage() {
                 If you have any questions about these Terms & Conditions, please contact us at:
               </p>
               <ul>
-                <li>Email: <a href="mailto:legal@inblu.com.au" className="text-sky-600">legal@inblu.com.au</a></li>
-                <li>Phone: <a href="tel:1800123456" className="text-sky-600">1800 123 456</a></li>
+                <li>Email: <a href="mailto:legal@inblu.com.au" className="text-blue-600">legal@inblu.com.au</a></li>
+                <li>Phone: <a href="tel:1800123456" className="text-blue-600">1800 123 456</a></li>
                 <li>Address: 123 Water Street, Sydney NSW 2000, Australia</li>
               </ul>
             </div>

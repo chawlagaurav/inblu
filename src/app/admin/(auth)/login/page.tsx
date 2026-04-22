@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AdminLoginForm } from '@/components/admin/login-form'
@@ -35,7 +36,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-sky-600">Inblu Admin</h1>
+          <Image src="/inblutextlogo.png" alt="Inblu Admin" width={240} height={96} className="h-20 w-auto mx-auto" />
           <p className="text-slate-500 mt-2">Sign in to access the admin dashboard</p>
         </div>
         

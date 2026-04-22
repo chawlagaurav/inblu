@@ -67,8 +67,8 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center">
-                <Package className="h-6 w-6 text-sky-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{totalProducts}</p>
@@ -154,7 +154,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-sky-100">
+                    <tr className="border-b border-blue-100">
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Product</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Category</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Price</th>
@@ -165,10 +165,10 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                   </thead>
                   <tbody>
                     {products.map((product) => (
-                      <tr key={product.id} className="border-b border-sky-50 hover:bg-sky-50/50 transition-colors">
+                      <tr key={product.id} className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-lg overflow-hidden bg-sky-100 flex-shrink-0">
+                            <div className="h-12 w-12 rounded-lg overflow-hidden bg-blue-100 flex-shrink-0">
                               {product.imageUrl ? (
                                 <Image
                                   src={product.imageUrl}
@@ -179,7 +179,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                                 />
                               ) : (
                                 <div className="h-full w-full flex items-center justify-center">
-                                  <Package className="h-6 w-6 text-sky-400" />
+                                  <Package className="h-6 w-6 text-blue-400" />
                                 </div>
                               )}
                             </div>
@@ -196,7 +196,18 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-600">{product.category}</td>
+                        <td className="py-3 px-4 text-sm text-slate-600">
+                          <div className="flex flex-wrap gap-1">
+                            {product.categories && product.categories.length > 0
+                              ? product.categories.map((cat: string) => (
+                                  <span key={cat} className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                                    {cat}
+                                  </span>
+                                ))
+                              : <span>{product.category}</span>
+                            }
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-sm font-medium text-slate-900">
                           {formatCurrency(Number(product.price))}
                         </td>

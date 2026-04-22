@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -75,8 +76,9 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <Link href="/" className="text-2xl font-bold text-sky-600 mb-4 block">
-          Inblu
+        <Link href="/" className="mb-4 inline-flex flex-col items-center">
+          <Image src="/inblutextlogo.png" alt="Inblu" width={240} height={96} className="h-24 w-auto object-contain" />
+          <span className="text-2xl font-bold text-blue-600 mt-1">Inblu</span>
         </Link>
         <CardTitle>Welcome back</CardTitle>
         <CardDescription>Sign in to your account to continue</CardDescription>
@@ -143,7 +145,7 @@ export function LoginForm() {
               <Label htmlFor="password">Password</Label>
               <Link
                 href="/auth/forgot-password"
-                className="text-sm text-sky-600 hover:text-sky-700"
+                className="text-sm text-blue-600 hover:text-blue-700"
               >
                 Forgot password?
               </Link>
@@ -188,7 +190,7 @@ export function LoginForm() {
 
         <p className="text-center text-sm text-slate-500">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/signup" className="text-sky-600 hover:text-sky-700 font-medium">
+          <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
             Sign up
           </Link>
         </p>

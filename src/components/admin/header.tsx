@@ -21,10 +21,10 @@ export function AdminHeader({ user }: AdminHeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-sky-100">
+    <header className="sticky top-0 z-40 bg-white border-b border-blue-100">
       <div className="flex items-center justify-between h-16 px-6">
         {/* Mobile menu button */}
-        <button className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-sky-50">
+        <button className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-blue-50">
           <Menu className="h-6 w-6" />
         </button>
 
@@ -42,7 +42,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
           {/* User menu */}
           <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-sky-100 text-sky-700 text-sm">
+              <AvatarFallback className="bg-blue-100 text-blue-700 text-sm">
                 {user.email?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>

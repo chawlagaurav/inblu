@@ -18,7 +18,7 @@ export function StripeProvider({ children, clientSecret }: StripeProviderProps) 
     appearance: {
       theme: 'stripe',
       variables: {
-        colorPrimary: '#0ea5e9',
+        colorPrimary: '#0a508e',
         colorBackground: '#ffffff',
         colorText: '#1e293b',
         colorDanger: '#ef4444',
@@ -33,7 +33,7 @@ export function StripeProvider({ children, clientSecret }: StripeProviderProps) 
           padding: '12px',
         },
         '.Input:focus': {
-          border: '2px solid #0ea5e9',
+          border: '2px solid #0a508e',
           boxShadow: 'none',
         },
         '.Label': {
@@ -46,8 +46,8 @@ export function StripeProvider({ children, clientSecret }: StripeProviderProps) 
           border: '1px solid #e2e8f0',
         },
         '.Tab--selected': {
-          borderColor: '#0ea5e9',
-          backgroundColor: '#f0f9ff',
+          borderColor: '#0a508e',
+          backgroundColor: '#eef4fb',
         },
       },
     },

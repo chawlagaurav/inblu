@@ -7,6 +7,7 @@ export interface Product {
   images: string[]
   stock: number
   category: string
+  categories: string[]
   isBestSeller: boolean
   manualUrl?: string
   createdAt: Date

@@ -58,7 +58,7 @@ export default function AdminSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Store className="h-5 w-5 text-sky-600" />
+                <Store className="h-5 w-5 text-blue-600" />
                 Store Information
               </CardTitle>
               <CardDescription>Basic store details</CardDescription>
@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-sky-600" />
+                <CreditCard className="h-5 w-5 text-blue-600" />
                 Payment Settings
               </CardTitle>
               <CardDescription>Configure payment and tax</CardDescription>
@@ -171,7 +171,7 @@ export default function AdminSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-sky-600" />
+                <Shield className="h-5 w-5 text-blue-600" />
                 Inventory Settings
               </CardTitle>
               <CardDescription>Stock management preferences</CardDescription>
@@ -200,7 +200,7 @@ export default function AdminSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-sky-600" />
+                <Bell className="h-5 w-5 text-blue-600" />
                 Notifications
               </CardTitle>
               <CardDescription>Email and alert preferences</CardDescription>
@@ -213,7 +213,7 @@ export default function AdminSettingsPage() {
                   name="emailNotifications"
                   checked={settings.emailNotifications}
                   onChange={handleChange}
-                  className="rounded border-sky-300 text-sky-600 focus:ring-sky-500"
+                  className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                 />
                 <div>
                   <Label htmlFor="emailNotifications">Email Notifications</Label>
@@ -227,7 +227,7 @@ export default function AdminSettingsPage() {
                   name="newOrderAlerts"
                   checked={settings.newOrderAlerts}
                   onChange={handleChange}
-                  className="rounded border-sky-300 text-sky-600 focus:ring-sky-500"
+                  className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                 />
                 <div>
                   <Label htmlFor="newOrderAlerts">New Order Alerts</Label>
@@ -241,7 +241,7 @@ export default function AdminSettingsPage() {
                   name="lowStockAlerts"
                   checked={settings.lowStockAlerts}
                   onChange={handleChange}
-                  className="rounded border-sky-300 text-sky-600 focus:ring-sky-500"
+                  className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                 />
                 <div>
                   <Label htmlFor="lowStockAlerts">Low Stock Alerts</Label>

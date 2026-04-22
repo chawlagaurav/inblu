@@ -173,8 +173,8 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
         <StaggerItem>
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center">
-                <Users className="h-6 w-6 text-sky-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{totalRegistered + totalGuests}</p>
@@ -260,7 +260,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-sky-100">
+                    <tr className="border-b border-blue-100">
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Customer</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Contact</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Type</th>
@@ -272,7 +272,7 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
                   </thead>
                   <tbody>
                     {allCustomers.map((customer) => (
-                      <tr key={customer.id} className="border-b border-sky-50 hover:bg-sky-50/50 transition-colors">
+                      <tr key={customer.id} className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors">
                         <td className="py-3 px-4">
                           <p className="font-medium text-slate-900">{customer.name}</p>
                         </td>

@@ -73,7 +73,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
           <div>
             <Link
               href="/admin/orders"
-              className="inline-flex items-center text-sm text-slate-500 hover:text-sky-600 mb-2"
+              className="inline-flex items-center text-sm text-slate-500 hover:text-blue-600 mb-2"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back to Orders
@@ -112,7 +112,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                 <div className="space-y-4">
                   {order.items.map((item) => (
                     <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-                      <div className="h-16 w-16 bg-sky-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="h-16 w-16 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                         {item.product.imageUrl ? (
                           <img
                             src={item.product.imageUrl}
@@ -120,7 +120,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                             className="h-full w-full object-cover rounded-xl"
                           />
                         ) : (
-                          <Package className="h-8 w-8 text-sky-400" />
+                          <Package className="h-8 w-8 text-blue-400" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -252,7 +252,15 @@ export default async function OrderDetailsPage({ params }: PageProps) {
         {/* Sidebar - Actions */}
         <div className="space-y-6">
           <FadeIn delay={0.1}>
-            <OrderActions order={order} />
+            <OrderActions order={{
+              id: order.id,
+              status: order.status,
+              paymentStatus: order.paymentStatus,
+              trackingNumber: order.trackingNumber,
+              notes: order.notes,
+              customerName: order.customerName,
+              email: order.email,
+            }} />
           </FadeIn>
 
           {/* Order Timeline */}

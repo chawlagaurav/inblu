@@ -47,13 +47,16 @@ model Product {
   sku          String?
   stock        Int         @default(0)
   category     String
+  categories   String[]    @default([])
   specifications Json?     @default("{}")
   manualUrl    String?     @map("manual_url")
+  serviceTenureMonths Int   @default(6) @map("service_tenure_months")
   isBestSeller Boolean     @default(false) @map("is_best_seller")
   isActive     Boolean     @default(true) @map("is_active")
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   orderItems   OrderItem[]
+  inventoryTransactions InventoryTransaction[]
 
   @@map("products")
 }
@@ -86,6 +89,7 @@ model Order {
   shippingAddress     Json          @map("shipping_address")
   trackingNumber      String?       @map("tracking_number")
   notes               String?
+  deliveredAt         DateTime? @map("delivered_at")
   isGuest             Boolean       @default(false) @map("is_guest")
   createdAt           DateTime      @default(now()) @map("created_at")
   updatedAt           DateTime      @updatedAt @map("updated_at")
@@ -203,4 +207,32 @@ model Enquiry {
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
   @@map("enquiries")
+}
+
+model PurchaseOrder {
+  id         String   @id @default(uuid())
+  poNumber   String?  @map("po_number")
+  vendorName String?  @map("vendor_name")
+  fileUrl    String?  @map("file_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+  inventoryTransactions InventoryTransaction[]
+
+  @@map("purchase_orders")
+}
+
+model InventoryTransaction {
+  id              String   @id @default(uuid())
+  productId       String   @map("product_id")
+  product         Product  @relation(fields: [productId], references: [id])
+  type            String   // "IN", "ADJUSTMENT", "ORDER"
+  quantity        Int
+  previousStock   Int      @map("previous_stock")
+  newStock        Int      @map("new_stock")
+  referenceType   String   @map("reference_type") // "PO", "ORDER", "MANUAL"
+  referenceId     String?  @map("reference_id")
+  purchaseOrder   PurchaseOrder? @relation(fields: [referenceId], references: [id])
+  note            String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("inventory_transactions")
 }

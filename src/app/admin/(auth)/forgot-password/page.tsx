@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -70,7 +71,7 @@ export default function AdminForgotPasswordPage() {
                 Didn&apos;t receive the email? Check your spam folder or{' '}
                 <button
                   onClick={() => setSent(false)}
-                  className="text-sky-600 hover:text-sky-700 font-medium"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
                 >
                   try again
                 </button>
@@ -92,7 +93,7 @@ export default function AdminForgotPasswordPage() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-sky-600">Inblu Admin</h1>
+          <Image src="/inblutextlogo.png" alt="Inblu Admin" width={240} height={96} className="h-20 w-auto mx-auto" />
           <p className="text-slate-500 mt-2">Reset your admin password</p>
         </div>
 
@@ -132,7 +133,7 @@ export default function AdminForgotPasswordPage() {
             </form>
 
             <p className="text-center text-sm text-slate-500">
-              <Link href="/admin/login" className="text-sky-600 hover:text-sky-700 font-medium inline-flex items-center gap-1">
+              <Link href="/admin/login" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
                 <ArrowLeft className="h-3 w-3" />
                 Back to admin sign in
               </Link>

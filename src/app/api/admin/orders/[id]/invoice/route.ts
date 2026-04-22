@@ -68,7 +68,7 @@ export async function GET(
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; padding: 40px; }
     .invoice { max-width: 800px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-    .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
+    .logo { font-size: 24px; font-weight: bold; color: #0a508e; }
     .invoice-info { text-align: right; }
     .invoice-number { font-size: 20px; font-weight: bold; color: #1e293b; }
     .date { color: #64748b; margin-top: 4px; }

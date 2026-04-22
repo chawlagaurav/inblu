@@ -99,7 +99,7 @@ function OrderSuccessContent() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-12">
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-sky-500 mx-auto mb-4" />
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
             <p className="text-slate-600">Loading order details...</p>
           </CardContent>
         </Card>
@@ -131,11 +131,11 @@ function OrderSuccessContent() {
                 </p>
               )}
 
-              <div className="bg-sky-50 rounded-2xl p-4 mb-6">
-                <div className="flex items-center justify-center gap-3 text-sky-700">
+              <div className="bg-blue-50 rounded-2xl p-4 mb-6">
+                <div className="flex items-center justify-center gap-3 text-blue-700">
                   <Package className="h-5 w-5" />
                   <span className="text-sm font-medium">
-                    Estimated delivery: 2-5 business days
+                    Estimated delivery: 5-7 business days
                   </span>
                 </div>
               </div>
@@ -200,7 +200,7 @@ function OrderSuccessContent() {
               <CardContent className="space-y-4">
                 {order.items.map((item) => (
                   <div key={item.id} className="flex gap-4">
-                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-sky-50">
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-blue-50">
                       {item.product.imageUrl ? (
                         <Image
                           src={item.product.imageUrl}
@@ -210,7 +210,7 @@ function OrderSuccessContent() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-sky-300">
+                        <div className="h-full w-full flex items-center justify-center text-blue-300">
                           <ShoppingBag className="h-6 w-6" />
                         </div>
                       )}
@@ -318,7 +318,7 @@ function OrderSuccessContent() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-slate-600">Order Status</span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {order.status}
                       </span>
                     </div>
@@ -339,11 +339,11 @@ function OrderSuccessContent() {
               </Card>
 
               {/* Delivery Estimate */}
-              <div className="bg-sky-50 rounded-2xl p-4">
-                <div className="flex items-center gap-3 text-sky-700">
+              <div className="bg-blue-50 rounded-2xl p-4">
+                <div className="flex items-center gap-3 text-blue-700">
                   <Package className="h-5 w-5" />
                   <span className="text-sm font-medium">
-                    Estimated delivery: 2-5 business days
+                    Estimated delivery: 5-7 business days
                   </span>
                 </div>
               </div>
@@ -374,7 +374,7 @@ export default function OrderSuccessPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     }>
       <OrderSuccessContent />

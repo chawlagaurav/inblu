@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Loader2, Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -80,7 +81,7 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white flex items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-8 pb-8 text-center space-y-4">
@@ -103,15 +104,15 @@ export default function ResetPasswordPage() {
 
   if (!sessionReady) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white flex items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-8 pb-8 text-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-sky-600 mx-auto" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
               <p className="text-sm text-slate-600">Verifying your reset link...</p>
               <p className="text-xs text-slate-500">
                 If this takes too long, the link may have expired.{' '}
-                <Link href="/auth/forgot-password" className="text-sky-600 hover:text-sky-700 font-medium">
+                <Link href="/auth/forgot-password" className="text-blue-600 hover:text-blue-700 font-medium">
                   Request a new one
                 </Link>
               </p>
@@ -123,12 +124,12 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
-            <Link href="/" className="text-2xl font-bold text-sky-600 mb-4 block">
-              Inblu
+            <Link href="/" className="mb-4 block">
+              <Image src="/inblutextlogo.png" alt="Inblu" width={200} height={80} className="h-16 w-auto mx-auto" />
             </Link>
             <CardTitle>Reset your password</CardTitle>
             <CardDescription>Enter a new password for your account.</CardDescription>

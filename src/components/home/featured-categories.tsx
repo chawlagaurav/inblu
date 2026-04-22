@@ -11,7 +11,7 @@ const categories = [
     description: 'Advanced reverse osmosis purification',
     href: '/products?category=ro-purifiers',
     image: '/categories/ro-purifiers.png',
-    color: 'from-sky-400 to-blue-500',
+    color: 'from-blue-400 to-blue-500',
   },
   {
     name: 'Water Ionisers',
@@ -63,7 +63,7 @@ export function FeaturedCategories() {
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <h3 className="text-xl font-bold text-white">{category.name}</h3>
                     <p className="mt-1 text-sm text-white/80">{category.description}</p>
-                    <div className="mt-3 flex items-center text-sm font-medium text-white group-hover:text-sky-300 transition-colors">
+                    <div className="mt-3 flex items-center text-sm font-medium text-white group-hover:text-blue-300 transition-colors">
                       Shop Now
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </div>

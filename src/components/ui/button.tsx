@@ -4,16 +4,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-sky-500 text-white hover:bg-sky-600 shadow-md",
+        default: "bg-blue-500 text-white hover:bg-blue-600 shadow-md",
         destructive: "bg-red-500 text-white hover:bg-red-600",
-        outline: "border border-sky-200 bg-white hover:bg-sky-50 hover:text-sky-600",
-        secondary: "bg-sky-100 text-sky-900 hover:bg-sky-200",
-        ghost: "hover:bg-sky-100 hover:text-sky-900",
-        link: "text-sky-500 underline-offset-4 hover:underline",
+        outline: "border border-blue-200 bg-white hover:bg-blue-50 hover:text-blue-600",
+        secondary: "bg-blue-100 text-blue-900 hover:bg-blue-200",
+        ghost: "hover:bg-blue-100 hover:text-blue-900",
+        link: "text-blue-500 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",

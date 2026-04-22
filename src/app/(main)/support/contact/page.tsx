@@ -79,7 +79,7 @@ export default function ContactPage() {
 
   return (
     <div className="bg-white min-h-screen">
-      <section className="bg-gradient-to-b from-sky-50 to-white py-16 sm:py-24">
+      <section className="bg-gradient-to-b from-blue-50 to-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeIn>
             <div className="text-center mb-12">
@@ -100,25 +100,25 @@ export default function ContactPage() {
                 <h2 className="text-2xl font-bold text-slate-900 mb-6">Get in Touch</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {contactInfo.map((item) => (
-                    <Card key={item.title} className="border-sky-100 rounded-2xl hover:shadow-md transition-shadow">
+                    <Card key={item.title} className="border-blue-100 rounded-2xl hover:shadow-md transition-shadow">
                       <CardContent className="pt-6">
                         {item.href ? (
                           <a href={item.href} className="block">
                             <div className="flex items-start gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center flex-shrink-0">
-                                <item.icon className="h-6 w-6 text-sky-600" />
+                              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <item.icon className="h-6 w-6 text-blue-600" />
                               </div>
                               <div>
                                 <h3 className="font-semibold text-slate-900">{item.title}</h3>
-                                <p className="text-sky-600 font-medium">{item.details}</p>
+                                <p className="text-blue-600 font-medium">{item.details}</p>
                                 <p className="text-sm text-slate-500">{item.subtext}</p>
                               </div>
                             </div>
                           </a>
                         ) : (
                           <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center flex-shrink-0">
-                              <item.icon className="h-6 w-6 text-sky-600" />
+                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                              <item.icon className="h-6 w-6 text-blue-600" />
                             </div>
                             <div>
                               <h3 className="font-semibold text-slate-900">{item.title}</h3>
@@ -132,14 +132,14 @@ export default function ContactPage() {
                   ))}
                 </div>
 
-                <div className="mt-8 p-6 bg-sky-50 rounded-2xl">
+                <div className="mt-8 p-6 bg-blue-50 rounded-2xl">
                   <h3 className="font-semibold text-slate-900 mb-2">Need Urgent Help?</h3>
                   <p className="text-sm text-slate-600 mb-4">
                     For urgent installation or service issues, call our priority support line.
                   </p>
                   <a 
                     href="tel:+61431318665" 
-                    className="inline-flex items-center gap-2 text-sky-600 font-semibold hover:text-sky-700"
+                    className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700"
                   >
                     <Phone className="h-4 w-4" />
                     +61431318665 (Priority Line)
@@ -150,7 +150,7 @@ export default function ContactPage() {
 
             {/* Contact Form */}
             <FadeInOnScroll delay={0.1}>
-              <Card className="border-sky-100 rounded-2xl">
+              <Card className="border-blue-100 rounded-2xl">
                 <CardContent className="pt-6">
                   <h2 className="text-2xl font-bold text-slate-900 mb-6">Send us a Message</h2>
                   
@@ -188,7 +188,7 @@ export default function ContactPage() {
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2.5 rounded-xl border border-sky-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-colors"
+                            className="w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-colors"
                             placeholder="John Smith"
                           />
                         </div>
@@ -202,7 +202,7 @@ export default function ContactPage() {
                             required
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full px-4 py-2.5 rounded-xl border border-sky-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-colors"
+                            className="w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-colors"
                             placeholder="john@example.com"
                           />
                         </div>
@@ -218,7 +218,7 @@ export default function ContactPage() {
                             id="phone"
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full px-4 py-2.5 rounded-xl border border-sky-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-colors"
+                            className="w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-colors"
                             placeholder="0400 000 000"
                           />
                         </div>
@@ -231,7 +231,7 @@ export default function ContactPage() {
                             required
                             value={formData.subject}
                             onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                            className="w-full px-4 py-2.5 rounded-xl border border-sky-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-colors"
+                            className="w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-colors"
                           >
                             <option value="">Select a topic</option>
                             <option value="product-inquiry">Product Inquiry</option>
@@ -254,7 +254,7 @@ export default function ContactPage() {
                           rows={5}
                           value={formData.message}
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-sky-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-colors resize-none"
+                          className="w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-colors resize-none"
                           placeholder="How can we help you?"
                         />
                       </div>

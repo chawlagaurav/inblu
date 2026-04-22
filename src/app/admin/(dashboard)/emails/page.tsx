@@ -46,8 +46,8 @@ export default async function AdminEmailsPage() {
         <StaggerItem>
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center">
-                <FileText className="h-6 w-6 text-sky-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <FileText className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{recentOrders.length}</p>
@@ -92,18 +92,18 @@ export default async function AdminEmailsPage() {
             <CardDescription>Send emails and generate invoices</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="p-4 border border-sky-200 rounded-xl bg-sky-50">
-              <Mail className="h-8 w-8 text-sky-600 mb-3" />
+            <div className="p-4 border border-blue-200 rounded-xl bg-blue-50">
+              <Mail className="h-8 w-8 text-blue-600 mb-3" />
               <h3 className="font-semibold text-slate-900">Order Confirmation</h3>
               <p className="text-sm text-slate-500 mt-1">Send order confirmation emails to customers</p>
             </div>
-            <div className="p-4 border border-sky-200 rounded-xl bg-sky-50">
-              <Send className="h-8 w-8 text-sky-600 mb-3" />
+            <div className="p-4 border border-blue-200 rounded-xl bg-blue-50">
+              <Send className="h-8 w-8 text-blue-600 mb-3" />
               <h3 className="font-semibold text-slate-900">Shipping Updates</h3>
               <p className="text-sm text-slate-500 mt-1">Notify customers about shipping status</p>
             </div>
-            <div className="p-4 border border-sky-200 rounded-xl bg-sky-50">
-              <FileText className="h-8 w-8 text-sky-600 mb-3" />
+            <div className="p-4 border border-blue-200 rounded-xl bg-blue-50">
+              <FileText className="h-8 w-8 text-blue-600 mb-3" />
               <h3 className="font-semibold text-slate-900">Generate Invoices</h3>
               <p className="text-sm text-slate-500 mt-1">Create and download PDF invoices</p>
             </div>
@@ -128,7 +128,7 @@ export default async function AdminEmailsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-sky-100">
+                    <tr className="border-b border-blue-100">
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Order</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Customer</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Date</th>
@@ -139,9 +139,9 @@ export default async function AdminEmailsPage() {
                   </thead>
                   <tbody>
                     {recentOrders.map(order => (
-                      <tr key={order.id} className="border-b border-sky-50 hover:bg-sky-50/50 transition-colors">
+                      <tr key={order.id} className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors">
                         <td className="py-3 px-4">
-                          <Link href={`/admin/orders/${order.id}`} className="font-mono text-sm text-sky-600 hover:underline">
+                          <Link href={`/admin/orders/${order.id}`} className="font-mono text-sm text-blue-600 hover:underline">
                             #{order.id.slice(0, 8).toUpperCase()}
                           </Link>
                         </td>

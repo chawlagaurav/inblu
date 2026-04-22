@@ -225,7 +225,7 @@ export function generateOrderEmailHtml(data: OrderEmailData): string {
           </div>
 
           <!-- Shipping Address -->
-          <div style="background-color: #f0f9ff; border-radius: 12px; padding: 24px; margin: 24px 0;">
+          <div style="background-color: #eef4fb; border-radius: 12px; padding: 24px; margin: 24px 0;">
             <h2 style="margin: 0 0 16px; font-size: 18px; font-weight: 600;">Shipping Address</h2>
             <p style="margin: 0;">
               ${data.shippingAddress.firstName} ${data.shippingAddress.lastName}<br>
@@ -237,11 +237,103 @@ export function generateOrderEmailHtml(data: OrderEmailData): string {
           </div>
 
           <p style="text-align: center; color: #64748b; margin-top: 32px;">
-            Estimated delivery: 2-5 business days
+            Estimated delivery: 5-7 business days
           </p>
 
           <div style="text-align: center; margin-top: 32px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
-            <p style="color: #64748b; margin: 0;">Questions? Contact us at <a href="mailto:info@inblu.com.au" style="color: #2563eb;">info@inblu.com.au</a></p>
+            <p style="color: #64748b; margin: 0;">Questions? Contact us at <a href="mailto:info@inblu.com.au" style="color: #0a508e;">info@inblu.com.au</a></p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+export interface ServiceReminderData {
+  orderId: string
+  customerName: string
+  customerEmail: string
+  items: Array<{ name: string; quantity: number }>
+  dueDate: string
+  daysLeft: number
+}
+
+export async function sendServiceReminderEmail(data: ServiceReminderData): Promise<boolean> {
+  try {
+    const subject = `Service Reminder - Order #${data.orderId.slice(0, 8).toUpperCase()}`
+    const html = generateServiceReminderHtml(data)
+    const resend = getResend()
+
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: data.customerEmail,
+        subject,
+        html,
+      })
+
+      if (error) {
+        console.error('Resend error (service reminder):', error)
+        return false
+      }
+
+      console.log(`Service reminder email sent to ${data.customerEmail} for order ${data.orderId}`)
+    } else {
+      console.log('=== SERVICE REMINDER EMAIL (not sent — Resend not configured) ===')
+      console.log(`To: ${data.customerEmail}`)
+      console.log(`Subject: ${subject}`)
+      console.log('=================================')
+    }
+
+    return true
+  } catch (error) {
+    console.error('Failed to send service reminder email:', error)
+    return false
+  }
+}
+
+function generateServiceReminderHtml(data: ServiceReminderData): string {
+  const formattedDate = formatDate(data.dueDate)
+  const isOverdue = data.daysLeft < 0
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px;">
+      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #0a508e, #1e6fba); padding: 32px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">Service Reminder</h1>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #334155; font-size: 16px;">Hi ${data.customerName},</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            ${isOverdue
+              ? `Your service for order <strong>#${data.orderId.slice(0, 8).toUpperCase()}</strong> was due on <strong>${formattedDate}</strong>. Please schedule your service at your earliest convenience.`
+              : `This is a friendly reminder that the service for your order <strong>#${data.orderId.slice(0, 8).toUpperCase()}</strong> is due on <strong>${formattedDate}</strong> (${data.daysLeft} days from now).`
+            }
+          </p>
+
+          <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 24px 0;">
+            <h3 style="color: #0f172a; margin: 0 0 12px 0; font-size: 14px;">Items in this order:</h3>
+            ${data.items.map((item) => `
+              <p style="color: #475569; margin: 4px 0; font-size: 14px;">• ${item.name} (x${item.quantity})</p>
+            `).join('')}
+          </div>
+
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            Please contact us to schedule your service appointment. We want to ensure your products continue to perform at their best.
+          </p>
+
+          <div style="text-align: center; margin-top: 24px;">
+            <a href="mailto:info@inblu.com.au" style="display: inline-block; background: #0a508e; color: white; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+              Contact Us to Schedule
+            </a>
+          </div>
+
+          <div style="text-align: center; margin-top: 32px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; margin: 0;">Questions? Contact us at <a href="mailto:info@inblu.com.au" style="color: #0a508e;">info@inblu.com.au</a></p>
           </div>
         </div>
       </div>

@@ -223,13 +223,13 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
       <form onSubmit={handleSubmitShipping} className="space-y-6">
         {/* Guest Checkout Notice */}
         {isGuest && (
-          <Card className="border-sky-200 bg-sky-50">
+          <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <User className="h-5 w-5 text-sky-600 mt-0.5" />
+                <User className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-sky-900">Guest Checkout</p>
-                  <p className="text-sm text-sky-700">
+                  <p className="text-sm font-medium text-blue-900">Guest Checkout</p>
+                  <p className="text-sm text-blue-700">
                     You&apos;re checking out as a guest. Create an account to track your orders.
                   </p>
                 </div>

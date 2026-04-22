@@ -15,7 +15,7 @@ export default async function AdminOrdersPage() {
       orderBy: { createdAt: 'desc' },
       include: {
         items: {
-          include: { product: { select: { name: true } } },
+          include: { product: { select: { name: true, serviceTenureMonths: true } } },
         },
         user: true,
       },
@@ -47,11 +47,12 @@ export default async function AdminOrdersPage() {
     paymentStatus: o.paymentStatus,
     isGuest: o.isGuest,
     createdAt: o.createdAt.toISOString(),
+    deliveredAt: o.deliveredAt ? o.deliveredAt.toISOString() : null,
     items: o.items.map((i) => ({
       id: i.id,
       quantity: i.quantity,
       price: Number(i.price),
-      product: { name: i.product.name },
+      product: { name: i.product.name, serviceTenureMonths: i.product.serviceTenureMonths },
     })),
     shippingAddress: o.shippingAddress as Record<string, string> | null,
     user: o.user ? { name: o.user.name, email: o.user.email } : null,

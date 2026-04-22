@@ -131,7 +131,7 @@ export default function AdminEnquiriesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     )
   }
@@ -205,7 +205,7 @@ export default function AdminEnquiriesPage() {
               {filtered.map(enquiry => (
                 <div
                   key={enquiry.id}
-                  className="border border-sky-100 rounded-xl p-4 hover:bg-sky-50/50 transition-colors"
+                  className="border border-blue-100 rounded-xl p-4 hover:bg-blue-50/50 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div
@@ -242,7 +242,7 @@ export default function AdminEnquiriesPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setSelectedEnquiry(enquiry)}
-                        className="text-sky-600"
+                        className="text-blue-600"
                       >
                         Tag
                       </Button>
@@ -267,7 +267,7 @@ export default function AdminEnquiriesPage() {
 
                   {/* Expanded message */}
                   {expandedId === enquiry.id && (
-                    <div className="mt-3 pt-3 border-t border-sky-100">
+                    <div className="mt-3 pt-3 border-t border-blue-100">
                       <p className="text-sm text-slate-700 whitespace-pre-wrap">{enquiry.message}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {statuses.map(s => (
@@ -276,7 +276,7 @@ export default function AdminEnquiriesPage() {
                             onClick={() => handleStatusChange(enquiry.id, s)}
                             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                               enquiry.status === s
-                                ? statusConfig[s].color + ' ring-2 ring-offset-1 ring-sky-300'
+                                ? statusConfig[s].color + ' ring-2 ring-offset-1 ring-blue-300'
                                 : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                             }`}
                           >
@@ -315,7 +315,7 @@ export default function AdminEnquiriesPage() {
                     }}
                     className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-colors ${
                       selectedEnquiry.status === s
-                        ? 'border-sky-500 bg-sky-50'
+                        ? 'border-blue-500 bg-blue-50'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
@@ -323,7 +323,7 @@ export default function AdminEnquiriesPage() {
                       <Badge className={statusConfig[s].color}>{statusConfig[s].label}</Badge>
                     </div>
                     {selectedEnquiry.status === s && (
-                      <span className="text-xs text-sky-600 font-medium">Current</span>
+                      <span className="text-xs text-blue-600 font-medium">Current</span>
                     )}
                   </button>
                 ))}

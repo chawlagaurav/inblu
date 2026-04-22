@@ -8,7 +8,7 @@ function Skeleton({ className, ...props }: SkeletonProps) {
   return (
     <div
       className={cn(
-        'animate-pulse rounded-2xl bg-sky-100',
+        'animate-pulse rounded-2xl bg-blue-100',
         className
       )}
       {...props}
@@ -111,7 +111,7 @@ function SkeletonText({ lines = 3 }: { lines?: number }) {
 
 function SkeletonTestimonialCard() {
   return (
-    <div className="rounded-2xl border bg-sky-50/50 p-6">
+    <div className="rounded-2xl border bg-blue-50/50 p-6">
       <div className="flex gap-1 mb-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-4 w-4 rounded-full" />
@@ -123,7 +123,7 @@ function SkeletonTestimonialCard() {
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-3/4" />
       </div>
-      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-sky-100">
+      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-blue-100">
         <Skeleton className="h-10 w-10 rounded-full" />
         <div className="space-y-1">
           <Skeleton className="h-4 w-24" />

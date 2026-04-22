@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function SplashScreen() {
@@ -36,11 +37,9 @@ export function SplashScreen() {
             transition={{ duration: 0.5, ease: 'easeOut' }}
             className="text-center"
           >
-            <h1 className="text-5xl sm:text-7xl font-bold text-sky-600 tracking-tight">
-              Inblu
-            </h1>
+            <Image src="/inblutextlogo.png" alt="Inblu" width={400} height={160} className="h-32 sm:h-40 w-auto mx-auto" priority />
             <motion.div
-              className="h-0.5 bg-sky-600/40 mx-auto mt-3 rounded-full"
+              className="h-0.5 bg-blue-600/40 mx-auto mt-3 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: 120 }}
               transition={{ duration: 1.2, delay: 0.3, ease: 'easeInOut' }}

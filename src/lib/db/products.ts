@@ -15,6 +15,7 @@ function transformProduct(product: {
   images: string[]
   stock: number
   category: string
+  categories: string[]
   isBestSeller: boolean
   manualUrl: string | null
   createdAt: Date
@@ -29,6 +30,7 @@ function transformProduct(product: {
     images: product.images,
     stock: product.stock,
     category: product.category,
+    categories: product.categories || [],
     isBestSeller: product.isBestSeller,
     manualUrl: product.manualUrl ?? undefined,
     createdAt: product.createdAt,

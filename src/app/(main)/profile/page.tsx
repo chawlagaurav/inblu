@@ -108,14 +108,14 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-50 to-white">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
         <FadeIn>
           <h1 className="text-3xl font-bold text-slate-900 mb-8">My Profile</h1>
@@ -124,17 +124,17 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* User Information Section */}
           <FadeInOnScroll>
-            <Card className="border-sky-100 shadow-sm rounded-2xl">
-              <CardHeader className="border-b border-sky-100">
+            <Card className="border-blue-100 shadow-sm rounded-2xl">
+              <CardHeader className="border-b border-blue-100">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <User className="h-5 w-5 text-sky-500" />
+                  <User className="h-5 w-5 text-blue-500" />
                   Account Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center">
-                    <User className="h-6 w-6 text-sky-600" />
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <User className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Email</p>
@@ -143,8 +143,8 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-sky-600" />
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Calendar className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Member Since</p>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-sky-100">
+                <div className="pt-4 border-t border-blue-100">
                   <Button
                     onClick={handleLogout}
                     variant="outline"
@@ -171,17 +171,17 @@ export default function ProfilePage() {
           {/* Order History Section */}
           <div className="lg:col-span-2" id="orders">
             <FadeInOnScroll delay={0.1}>
-              <Card className="border-sky-100 shadow-sm rounded-2xl">
-                <CardHeader className="border-b border-sky-100">
+              <Card className="border-blue-100 shadow-sm rounded-2xl">
+                <CardHeader className="border-b border-blue-100">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <Package className="h-5 w-5 text-sky-500" />
+                    <Package className="h-5 w-5 text-blue-500" />
                     Order History
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                   {ordersLoading ? (
                     <div className="flex items-center justify-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     </div>
                   ) : orders.length === 0 ? (
                     <div className="text-center py-12">
@@ -198,7 +198,7 @@ export default function ProfilePage() {
                           key={order.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="border border-sky-100 rounded-xl p-4 hover:shadow-md transition-shadow"
+                          className="border border-blue-100 rounded-xl p-4 hover:shadow-md transition-shadow"
                         >
                           <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
                             <div>
@@ -221,12 +221,12 @@ export default function ProfilePage() {
                             </div>
                             <div>
                               <p className="text-sm text-slate-500">Total</p>
-                              <p className="text-sm font-bold text-sky-600">
+                              <p className="text-sm font-bold text-blue-600">
                                 {formatCurrency(order.totalAmount)}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-sky-50">
+                          <div className="flex items-center justify-between pt-3 border-t border-blue-50">
                             <p className="text-sm text-slate-500">
                               {order.items.length} item{order.items.length > 1 ? 's' : ''}
                             </p>
@@ -266,11 +266,11 @@ export default function ProfilePage() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="fixed inset-4 md:inset-10 lg:inset-20 bg-white rounded-2xl shadow-xl z-50 overflow-auto"
             >
-              <div className="sticky top-0 bg-white border-b border-sky-100 px-6 py-4 flex items-center justify-between">
+              <div className="sticky top-0 bg-white border-b border-blue-100 px-6 py-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-slate-900">Order Details</h2>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="p-2 hover:bg-sky-50 rounded-xl transition-colors"
+                  className="p-2 hover:bg-blue-50 rounded-xl transition-colors"
                 >
                   <X className="h-5 w-5 text-slate-500" />
                 </button>
@@ -279,9 +279,9 @@ export default function ProfilePage() {
               <div className="p-6 space-y-6">
                 {/* Order Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-sky-50 rounded-xl p-4">
+                  <div className="bg-blue-50 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <Package className="h-5 w-5 text-sky-600" />
+                      <Package className="h-5 w-5 text-blue-600" />
                       <p className="font-medium text-slate-900">Order Info</p>
                     </div>
                     <p className="text-sm text-slate-600">ID: {selectedOrder.id.slice(0, 8).toUpperCase()}</p>
@@ -291,9 +291,9 @@ export default function ProfilePage() {
                     </span>
                   </div>
 
-                  <div className="bg-sky-50 rounded-xl p-4">
+                  <div className="bg-blue-50 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="h-5 w-5 text-sky-600" />
+                      <MapPin className="h-5 w-5 text-blue-600" />
                       <p className="font-medium text-slate-900">Shipping Address</p>
                     </div>
                     <p className="text-sm text-slate-600">
@@ -307,9 +307,9 @@ export default function ProfilePage() {
                     </p>
                   </div>
 
-                  <div className="bg-sky-50 rounded-xl p-4">
+                  <div className="bg-blue-50 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <CreditCard className="h-5 w-5 text-sky-600" />
+                      <CreditCard className="h-5 w-5 text-blue-600" />
                       <p className="font-medium text-slate-900">Payment</p>
                     </div>
                     <p className="text-sm text-slate-600">
@@ -328,9 +328,9 @@ export default function ProfilePage() {
                     {selectedOrder.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-4 p-4 border border-sky-100 rounded-xl"
+                        className="flex items-center gap-4 p-4 border border-blue-100 rounded-xl"
                       >
-                        <div className="w-16 h-16 bg-sky-50 rounded-xl flex items-center justify-center overflow-hidden relative">
+                        <div className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center overflow-hidden relative">
                           {item.product.imageUrl ? (
                             <Image
                               src={item.product.imageUrl}
@@ -339,14 +339,14 @@ export default function ProfilePage() {
                               className="object-cover"
                             />
                           ) : (
-                            <Package className="h-8 w-8 text-sky-300" />
+                            <Package className="h-8 w-8 text-blue-300" />
                           )}
                         </div>
                         <div className="flex-1">
                           <p className="font-medium text-slate-900">{item.product.name}</p>
                           <p className="text-sm text-slate-500">Quantity: {item.quantity}</p>
                         </div>
-                        <p className="font-semibold text-sky-600">
+                        <p className="font-semibold text-blue-600">
                           {formatCurrency(item.price * item.quantity)}
                         </p>
                       </div>
@@ -355,10 +355,10 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Total */}
-                <div className="border-t border-sky-100 pt-4 flex justify-end">
+                <div className="border-t border-blue-100 pt-4 flex justify-end">
                   <div className="text-right">
                     <p className="text-sm text-slate-500">Total Amount</p>
-                    <p className="text-2xl font-bold text-sky-600">
+                    <p className="text-2xl font-bold text-blue-600">
                       {formatCurrency(selectedOrder.totalAmount)}
                     </p>
                   </div>

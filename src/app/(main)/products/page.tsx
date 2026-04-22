@@ -25,7 +25,7 @@ export default async function ProductsPage({
   return (
     <div className="bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-b from-sky-50 to-white py-16 sm:py-24">
+      <div className="bg-gradient-to-b from-blue-50 to-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeIn>
             <div className="mx-auto max-w-2xl text-center">

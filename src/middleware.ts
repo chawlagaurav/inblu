@@ -31,7 +31,18 @@ export async function middleware(request: NextRequest) {
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
+
+  // If the refresh token is invalid, clear the auth cookies
+  if (!user) {
+    const allCookies = request.cookies.getAll()
+    const supabaseCookies = allCookies.filter(c => c.name.startsWith('sb-'))
+    if (supabaseCookies.length > 0) {
+      supabaseCookies.forEach(({ name }) => {
+        supabaseResponse.cookies.delete(name)
+      })
+    }
+  }
 
   // Protected admin routes - require authentication and admin role
   if (request.nextUrl.pathname.startsWith('/admin')) {

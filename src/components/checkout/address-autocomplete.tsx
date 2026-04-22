@@ -214,7 +214,7 @@ export function AddressAutocomplete({
         autoComplete="off"
       />
       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-        <MapPin className={`h-4 w-4 transition-colors ${isFocused ? 'text-sky-500' : 'text-slate-400'}`} />
+        <MapPin className={`h-4 w-4 transition-colors ${isFocused ? 'text-blue-500' : 'text-slate-400'}`} />
       </div>
       {isLoaded && (
         <p className="text-[10px] text-slate-400 mt-1 text-right">

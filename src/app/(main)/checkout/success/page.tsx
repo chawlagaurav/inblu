@@ -42,11 +42,11 @@ function CheckoutSuccessContent() {
               </p>
             )}
 
-            <div className="bg-sky-50 rounded-2xl p-4 mb-6">
-              <div className="flex items-center justify-center gap-3 text-sky-700">
+            <div className="bg-blue-50 rounded-2xl p-4 mb-6">
+              <div className="flex items-center justify-center gap-3 text-blue-700">
                 <Package className="h-5 w-5" />
                 <span className="text-sm font-medium">
-                  Estimated delivery: 2-5 business days
+                  Estimated delivery: 5-7 business days
                 </span>
               </div>
             </div>

@@ -274,7 +274,7 @@ export function DiscountPopup() {
                         style={{
                           width: 8 + Math.random() * 8,
                           height: 8 + Math.random() * 8,
-                          backgroundColor: ['#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#22c55e', '#fbbf24'][
+                          backgroundColor: ['#0a508e', '#0d60ab', '#3d82cc', '#7eaee1', '#22c55e', '#fbbf24'][
                             Math.floor(Math.random() * 6)
                           ],
                           borderRadius: Math.random() > 0.5 ? '50%' : '2px',
@@ -295,7 +295,7 @@ export function DiscountPopup() {
               </button>
 
               {/* Header Decoration */}
-              <div className="relative h-32 bg-gradient-to-br from-sky-400 to-sky-600 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-blue-400 to-blue-600 overflow-hidden">
                 <div className="absolute inset-0 opacity-20">
                   <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <defs>
@@ -361,7 +361,7 @@ export function DiscountPopup() {
                           className={`pl-12 h-12 rounded-xl border-2 transition-colors ${
                             error 
                               ? 'border-red-300 focus:border-red-500' 
-                              : 'border-slate-200 focus:border-sky-500'
+                              : 'border-slate-200 focus:border-blue-500'
                           }`}
                           disabled={isSubmitting}
                         />
@@ -380,7 +380,7 @@ export function DiscountPopup() {
                       <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full h-12 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold text-base transition-all duration-200 hover:shadow-lg hover:shadow-sky-500/25"
+                        className="w-full h-12 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25"
                       >
                         {isSubmitting ? (
                           <motion.div
@@ -422,20 +422,20 @@ export function DiscountPopup() {
 
                       {/* Coupon Code */}
                       <div className="relative mb-6">
-                        <div className="flex items-center justify-center gap-3 rounded-xl border-2 border-dashed border-sky-300 bg-sky-50 p-4">
-                          <span className="text-2xl font-bold tracking-wider text-sky-600">
+                        <div className="flex items-center justify-center gap-3 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 p-4">
+                          <span className="text-2xl font-bold tracking-wider text-blue-600">
                             {settings.discountCode}
                           </span>
                           <Button
                             onClick={handleCopyCode}
                             variant="outline"
                             size="sm"
-                            className="rounded-lg border-sky-300 hover:bg-sky-100"
+                            className="rounded-lg border-blue-300 hover:bg-blue-100"
                           >
                             {copied ? (
                               <Check className="h-4 w-4 text-green-600" />
                             ) : (
-                              <Copy className="h-4 w-4 text-sky-600" />
+                              <Copy className="h-4 w-4 text-blue-600" />
                             )}
                           </Button>
                         </div>
@@ -443,7 +443,7 @@ export function DiscountPopup() {
 
                       <Button
                         onClick={handleClose}
-                        className="w-full h-12 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold"
+                        className="w-full h-12 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold"
                       >
                         Start Shopping
                       </Button>

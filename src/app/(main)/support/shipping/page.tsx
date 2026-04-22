@@ -34,7 +34,7 @@ const shippingInfo = [
 export default function ShippingPage() {
   return (
     <div className="bg-white min-h-screen">
-      <section className="bg-gradient-to-b from-sky-50 to-white py-16 sm:py-24">
+      <section className="bg-gradient-to-b from-blue-50 to-white py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           <FadeIn>
             <div className="text-center mb-12">
@@ -50,11 +50,11 @@ export default function ShippingPage() {
           <FadeInOnScroll>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
               {shippingInfo.map((item) => (
-                <Card key={item.title} className="border-sky-100 rounded-2xl">
+                <Card key={item.title} className="border-blue-100 rounded-2xl">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center flex-shrink-0">
-                        <item.icon className="h-6 w-6 text-sky-600" />
+                      <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <item.icon className="h-6 w-6 text-blue-600" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-slate-900">{item.title}</h3>
@@ -111,7 +111,7 @@ export default function ShippingPage() {
               <h3>Shipping Origin</h3>
               <p>
                 The package will be shipped from one of our AU warehouses closest to your location. If you have any questions, you can contact our customer service via LiveChat or email to{' '}
-                <a href="mailto:support@inblu.com.au" className="text-sky-600">support@inblu.com.au</a>, we will reply to you as soon as possible!
+                <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a>, we will reply to you as soon as possible!
               </p>
 
               <h3>Shipping Areas</h3>
@@ -135,7 +135,7 @@ export default function ShippingPage() {
               <h3>Delivery Time Exceeded</h3>
               <p>
                 If your order is delayed, please contact us via email{' '}
-                <a href="mailto:support@inblu.com.au" className="text-sky-600">support@inblu.com.au</a>, we will check the situation with the transportation company in time. Thanks for your understanding and support.
+                <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a>, we will check the situation with the transportation company in time. Thanks for your understanding and support.
               </p>
 
               <h3>Sales Tax</h3>

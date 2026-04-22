@@ -74,6 +74,9 @@ export async function PATCH(
     const body = await request.json()
     const { status, trackingNumber, notes, paymentStatus } = body
 
+    // Set deliveredAt when status changes to DELIVERED
+    const deliveredAt = status === 'DELIVERED' ? new Date() : undefined
+
     const order = await prisma.order.update({
       where: { id },
       data: {
@@ -81,6 +84,7 @@ export async function PATCH(
         ...(trackingNumber !== undefined && { trackingNumber }),
         ...(notes !== undefined && { notes }),
         ...(paymentStatus && { paymentStatus }),
+        ...(deliveredAt && { deliveredAt }),
       },
     })
 

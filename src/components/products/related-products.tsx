@@ -36,7 +36,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
           {products.map((product) => (
             <StaggerItem key={product.id}>
               <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="relative aspect-square overflow-hidden bg-sky-50">
+                <div className="relative aspect-square overflow-hidden bg-blue-50">
                   {product.imageUrl ? (
                     <Image
                       src={product.imageUrl}
@@ -45,8 +45,8 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-sky-100 to-sky-200">
-                      <span className="text-4xl font-bold text-sky-300">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+                      <span className="text-4xl font-bold text-blue-300">
                         {product.name.charAt(0)}
                       </span>
                     </div>
@@ -55,7 +55,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                 
                 <CardContent className="p-4">
                   <Link href={`/products/${product.id}`}>
-                    <h3 className="font-semibold text-slate-900 group-hover:text-sky-600 transition-colors line-clamp-1">
+                    <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
                       {product.name}
                     </h3>
                   </Link>

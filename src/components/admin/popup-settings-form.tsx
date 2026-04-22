@@ -99,7 +99,7 @@ export function PopupSettingsForm() {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         </CardContent>
       </Card>
     )
@@ -109,7 +109,7 @@ export function PopupSettingsForm() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-sky-600" />
+          <MessageSquare className="h-5 w-5 text-blue-600" />
           Discount Popup Settings
         </CardTitle>
         <CardDescription>
@@ -126,7 +126,7 @@ export function PopupSettingsForm() {
           <button
             onClick={toggleEnabled}
             className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-              settings.popupEnabled ? 'bg-sky-500' : 'bg-slate-300'
+              settings.popupEnabled ? 'bg-blue-500' : 'bg-slate-300'
             }`}
           >
             <span
@@ -247,13 +247,13 @@ export function PopupSettingsForm() {
 
         {/* Preview */}
         {settings.popupEnabled && (
-          <div className="p-4 border border-dashed border-sky-300 rounded-xl bg-sky-50">
+          <div className="p-4 border border-dashed border-blue-300 rounded-xl bg-blue-50">
             <h4 className="font-medium text-slate-900 mb-2">Preview</h4>
             <div className="space-y-1">
               <p className="text-lg font-bold text-slate-900">{settings.popupHeadline}</p>
               <p className="text-sm text-slate-600">{settings.popupSubtext}</p>
               <p className="text-sm mt-2">
-                <span className="font-mono bg-white px-2 py-1 rounded border border-sky-200 text-sky-600">
+                <span className="font-mono bg-white px-2 py-1 rounded border border-blue-200 text-blue-600">
                   {settings.discountCode}
                 </span>
                 <span className="text-slate-500 ml-2">→ {settings.discountPercentage}% off</span>

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
   LayoutDashboard, 
@@ -10,7 +11,6 @@ import {
   Settings, 
   LogOut,
   Megaphone,
-  BarChart3,
   Warehouse,
   Mail,
   Tag,
@@ -28,7 +28,6 @@ const navigation = [
   { name: 'Coupons', href: '/admin/coupons', icon: Tag },
   { name: 'Enquiries', href: '/admin/enquiries', icon: MessageSquareText },
   { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
-  { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
@@ -46,11 +45,12 @@ export function AdminSidebar() {
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white border-r border-sky-100 pt-5 pb-4 overflow-y-auto">
+        <div className="flex flex-col flex-grow bg-white border-r border-blue-100 pt-5 pb-4 overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-6">
-            <Link href="/admin" className="text-2xl font-bold text-sky-600">
-              Inblu Admin
+            <Link href="/admin" className="flex items-center gap-2">
+              <Image src="/inblutextlogo.png" alt="Inblu" width={160} height={64} className="h-16 w-auto" />
+              <span className="text-sm font-semibold text-slate-500">Admin</span>
             </Link>
           </div>
 
@@ -67,8 +67,8 @@ export function AdminSidebar() {
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors',
                     isActive
-                      ? 'bg-sky-100 text-sky-700'
-                      : 'text-slate-600 hover:bg-sky-50 hover:text-sky-600'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-slate-600 hover:bg-blue-50 hover:text-blue-600'
                   )}
                 >
                   <item.icon className="h-5 w-5" />

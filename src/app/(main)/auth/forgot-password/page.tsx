@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -54,7 +55,7 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white flex items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-8 pb-8 text-center space-y-4">
@@ -70,7 +71,7 @@ export default function ForgotPasswordPage() {
                 Didn&apos;t receive the email? Check your spam folder or{' '}
                 <button
                   onClick={() => setSent(false)}
-                  className="text-sky-600 hover:text-sky-700 font-medium"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
                 >
                   try again
                 </button>
@@ -89,12 +90,12 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
-            <Link href="/" className="text-2xl font-bold text-sky-600 mb-4 block">
-              Inblu
+            <Link href="/" className="mb-4 block">
+              <Image src="/inblutextlogo.png" alt="Inblu" width={200} height={80} className="h-16 w-auto mx-auto" />
             </Link>
             <CardTitle>Forgot your password?</CardTitle>
             <CardDescription>
@@ -132,7 +133,7 @@ export default function ForgotPasswordPage() {
             </form>
 
             <p className="text-center text-sm text-slate-500">
-              <Link href="/auth/login" className="text-sky-600 hover:text-sky-700 font-medium inline-flex items-center gap-1">
+              <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
                 <ArrowLeft className="h-3 w-3" />
                 Back to sign in
               </Link>

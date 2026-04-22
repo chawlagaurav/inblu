@@ -121,7 +121,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   className="border-0 focus-visible:ring-0 text-lg placeholder:text-slate-400"
                   autoFocus
                 />
-                {isLoading && <Loader2 className="h-5 w-5 text-sky-500 animate-spin flex-shrink-0" />}
+                {isLoading && <Loader2 className="h-5 w-5 text-blue-500 animate-spin flex-shrink-0" />}
                 <Button variant="ghost" size="icon" onClick={onClose} className="flex-shrink-0">
                   <X className="h-5 w-5" />
                 </Button>
@@ -164,7 +164,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                           <p className="text-sm text-slate-500">{product.category}</p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="font-semibold text-sky-600">
+                          <p className="font-semibold text-blue-600">
                             ${Number(product.price).toFixed(2)}
                           </p>
                         </div>
@@ -193,7 +193,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         <button
                           key={term}
                           onClick={() => setQuery(term)}
-                          className="px-3 py-1.5 bg-slate-100 rounded-full text-sm hover:bg-sky-50 hover:text-sky-600 transition-colors"
+                          className="px-3 py-1.5 bg-slate-100 rounded-full text-sm hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         >
                           {term}
                         </button>

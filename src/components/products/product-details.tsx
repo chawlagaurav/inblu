@@ -53,7 +53,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         <nav className="mb-8">
           <Link
             href="/products"
-            className="inline-flex items-center text-sm text-slate-500 hover:text-sky-600 transition-colors"
+            className="inline-flex items-center text-sm text-slate-500 hover:text-blue-600 transition-colors"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Products
@@ -65,7 +65,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         {/* Image Gallery */}
         <FadeIn className="space-y-4">
           {/* Main Image */}
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-sky-50">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-blue-50">
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedImage}
@@ -84,8 +84,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     priority
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-sky-100 to-sky-200">
-                    <span className="text-8xl font-bold text-sky-300">
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+                    <span className="text-8xl font-bold text-blue-300">
                       {product.name.charAt(0)}
                     </span>
                   </div>
@@ -107,8 +107,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   onClick={() => setSelectedImage(index)}
                   className={`relative h-20 w-20 overflow-hidden rounded-xl border-2 transition-colors ${
                     selectedImage === index
-                      ? 'border-sky-500'
-                      : 'border-transparent hover:border-sky-200'
+                      ? 'border-blue-500'
+                      : 'border-transparent hover:border-blue-200'
                   }`}
                 >
                   {image ? (
@@ -119,7 +119,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full bg-sky-100" />
+                    <div className="h-full w-full bg-blue-100" />
                   )}
                 </button>
               ))}
@@ -131,7 +131,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         <FadeIn delay={0.1}>
           <div className="space-y-6">
             {/* Category */}
-            <p className="text-sm font-medium text-sky-600 uppercase tracking-wide">
+            <p className="text-sm font-medium text-blue-600 uppercase tracking-wide">
               {product.category}
             </p>
 
@@ -184,7 +184,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Download manual for ${product.name}`}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-500 text-white hover:bg-sky-600 shadow-md transition-colors px-6 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-500 text-white hover:bg-blue-600 shadow-md transition-colors px-6 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
                 <Download className="h-5 w-5" />
                 Download {product.name} Manual
@@ -203,7 +203,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="h-10 w-10 rounded-xl border border-sky-200 flex items-center justify-center text-slate-600 hover:bg-sky-50 transition-colors"
+                    className="h-10 w-10 rounded-xl border border-blue-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 transition-colors"
                     disabled={quantity <= 1}
                   >
                     <Minus className="h-4 w-4" />
@@ -211,7 +211,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   <span className="w-12 text-center font-medium">{quantity}</span>
                   <button
                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="h-10 w-10 rounded-xl border border-sky-200 flex items-center justify-center text-slate-600 hover:bg-sky-50 transition-colors"
+                    className="h-10 w-10 rounded-xl border border-blue-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 transition-colors"
                     disabled={quantity >= product.stock}
                   >
                     <Plus className="h-4 w-4" />
@@ -252,8 +252,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 { icon: Shield, title: 'Secure Payment', desc: '256-bit encryption' },
                 { icon: RotateCcw, title: 'Easy Returns', desc: '30-day return policy' },
               ].map((feature) => (
-                <div key={feature.title} className="flex items-start gap-3 p-3 rounded-xl bg-sky-50">
-                  <feature.icon className="h-5 w-5 text-sky-600 flex-shrink-0 mt-0.5" />
+                <div key={feature.title} className="flex items-start gap-3 p-3 rounded-xl bg-blue-50">
+                  <feature.icon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-slate-900">{feature.title}</p>
                     <p className="text-xs text-slate-500">{feature.desc}</p>

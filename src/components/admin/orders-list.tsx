@@ -12,11 +12,14 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowUpDown,
+  Mail,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -41,7 +44,7 @@ interface OrderItem {
   id: string
   quantity: number
   price: string | number
-  product: { name: string }
+  product: { name: string; serviceTenureMonths: number }
 }
 
 interface Order {
@@ -54,6 +57,7 @@ interface Order {
   paymentStatus: string
   isGuest: boolean
   createdAt: string
+  deliveredAt: string | null
   shippingAddress: Record<string, string> | null
   items: OrderItem[]
   user: { name: string | null; email: string } | null
@@ -100,6 +104,51 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [exporting, setExporting] = useState(false)
+  const [sendingEmailFor, setSendingEmailFor] = useState<string | null>(null)
+
+  function getServiceDueInfo(order: Order): { daysLeft: number | null; dueDate: Date | null; label: string; color: string } {
+    if (order.status !== 'DELIVERED' || !order.deliveredAt) {
+      return { daysLeft: null, dueDate: null, label: '—', color: '' }
+    }
+    // Use the max service tenure from all items in the order
+    const maxTenure = Math.max(...order.items.map((i) => i.product.serviceTenureMonths || 6))
+    const delivered = new Date(order.deliveredAt)
+    const dueDate = new Date(delivered)
+    dueDate.setMonth(dueDate.getMonth() + maxTenure)
+    const now = new Date()
+    const diffMs = dueDate.getTime() - now.getTime()
+    const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+    if (daysLeft < 0) {
+      return { daysLeft, dueDate, label: `Overdue by ${Math.abs(daysLeft)}d`, color: 'bg-red-100 text-red-700' }
+    }
+    if (daysLeft <= 30) {
+      return { daysLeft, dueDate, label: `Due in ${daysLeft}d`, color: 'bg-amber-100 text-amber-700' }
+    }
+    return { daysLeft, dueDate, label: `${daysLeft}d left`, color: 'bg-green-100 text-green-700' }
+  }
+
+  const handleSendServiceReminder = async (order: Order) => {
+    setSendingEmailFor(order.id)
+    try {
+      const serviceInfo = getServiceDueInfo(order)
+      const response = await fetch(`/api/admin/orders/${order.id}/service-reminder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dueDate: serviceInfo.dueDate?.toISOString(),
+          daysLeft: serviceInfo.daysLeft,
+        }),
+      })
+      if (!response.ok) throw new Error('Failed to send email')
+      toast.success(`Service reminder sent to ${order.email}`)
+    } catch {
+      toast.error('Failed to send service reminder email')
+    } finally {
+      setSendingEmailFor(null)
+    }
+  }
+  
 
   // Client-side filtering for instant feedback
   const filteredOrders = useMemo(() => {
@@ -180,9 +229,9 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
     if (sortField !== field)
       return <ArrowUpDown className="h-3.5 w-3.5 ml-1 text-slate-400" />
     return sortDir === 'asc' ? (
-      <ChevronUp className="h-3.5 w-3.5 ml-1 text-sky-600" />
+      <ChevronUp className="h-3.5 w-3.5 ml-1 text-blue-600" />
     ) : (
-      <ChevronDown className="h-3.5 w-3.5 ml-1 text-sky-600" />
+      <ChevronDown className="h-3.5 w-3.5 ml-1 text-blue-600" />
     )
   }
 
@@ -306,12 +355,12 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                   variant="outline"
                   size="sm"
                   onClick={() => setShowFilters(!showFilters)}
-                  className={showFilters ? 'bg-sky-50 border-sky-300 text-sky-700' : ''}
+                  className={showFilters ? 'bg-blue-50 border-blue-300 text-blue-700' : ''}
                 >
                   <Filter className="h-4 w-4 mr-1" />
                   Filters
                   {hasActiveFilters && (
-                    <span className="ml-1.5 bg-sky-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                    <span className="ml-1.5 bg-blue-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
                       {[
                         paymentFilter !== 'all',
                         dateFrom !== '',
@@ -336,7 +385,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                     <select
                       value={paymentFilter}
                       onChange={(e) => setPaymentFilter(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="all">All Payments</option>
                       <option value="PENDING">Pending</option>
@@ -355,7 +404,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                     <select
                       value={guestFilter}
                       onChange={(e) => setGuestFilter(e.target.value as 'all' | 'guest' | 'registered')}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="all">All Customers</option>
                       <option value="registered">Registered</option>
@@ -374,7 +423,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                        className="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -390,7 +439,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                        className="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -431,12 +480,12 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-sky-100">
+                  <tr className="border-b border-blue-100">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
                       Order
                     </th>
                     <th
-                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-sky-600"
+                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-blue-600"
                       onClick={() => handleSort('customer')}
                     >
                       <span className="inline-flex items-center">
@@ -448,7 +497,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                       Items
                     </th>
                     <th
-                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-sky-600"
+                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-blue-600"
                       onClick={() => handleSort('total')}
                     >
                       <span className="inline-flex items-center">
@@ -460,7 +509,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                       Payment
                     </th>
                     <th
-                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-sky-600"
+                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-blue-600"
                       onClick={() => handleSort('status')}
                     >
                       <span className="inline-flex items-center">
@@ -471,8 +520,11 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
                       Shipping Address
                     </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
+                      Service Due
+                    </th>
                     <th
-                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-sky-600"
+                      className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-blue-600"
                       onClick={() => handleSort('date')}
                     >
                       <span className="inline-flex items-center">
@@ -489,7 +541,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                   {filteredOrders.map((order) => (
                     <tr
                       key={order.id}
-                      className="border-b border-sky-50 hover:bg-sky-50/50 transition-colors"
+                      className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors"
                     >
                       <td className="py-3 px-4">
                         <p className="text-sm font-medium text-slate-900">
@@ -536,6 +588,36 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                           <span className="text-sm text-slate-400">—</span>
                         )}
                       </td>
+                      {(() => {
+                        const serviceInfo = getServiceDueInfo(order)
+                        return (
+                          <td className="py-3 px-4">
+                            {serviceInfo.daysLeft !== null ? (
+                              <div className="flex items-center gap-2">
+                                <span className={`inline-block text-xs font-medium px-2 py-1 rounded-full ${serviceInfo.color}`}>
+                                  {serviceInfo.label}
+                                </span>
+                                {serviceInfo.daysLeft <= 30 && (
+                                  <button
+                                    onClick={() => handleSendServiceReminder(order)}
+                                    disabled={sendingEmailFor === order.id}
+                                    className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                                    title="Send service reminder email"
+                                  >
+                                    {sendingEmailFor === order.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Mail className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-slate-400">—</span>
+                            )}
+                          </td>
+                        )
+                      })()}
                       <td className="py-3 px-4 text-sm text-slate-500">
                         {formatDate(order.createdAt)}
                       </td>

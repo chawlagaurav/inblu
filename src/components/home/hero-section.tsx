@@ -49,7 +49,7 @@ export function HeroSection() {
           className="mb-8"
         >
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20">
-            <Droplets className="h-4 w-4 text-sky-400" />
+            <Droplets className="h-4 w-4 text-blue-400" />
             Premium Water Filtration
           </span>
         </motion.div>
@@ -63,7 +63,7 @@ export function HeroSection() {
           style={{ fontFamily: 'Inter, Poppins, system-ui, sans-serif' }}
         >
           DEFINING
-          <span className="block text-sky-400">PURITY.</span>
+          <span className="block text-blue-400">PURITY.</span>
         </motion.h1>
 
         {/* Supporting Text */}
@@ -89,7 +89,7 @@ export function HeroSection() {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold uppercase tracking-wider text-white bg-sky-500 rounded-2xl shadow-lg shadow-sky-500/30 hover:bg-sky-600 hover:shadow-xl hover:shadow-sky-500/40 transition-all duration-300"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold uppercase tracking-wider text-white bg-blue-500 rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
             >
               Shop Now
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -116,11 +116,11 @@ export function HeroSection() {
           className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-white/70"
         >
           <div className="flex items-center gap-2">
-            <Truck className="h-5 w-5 text-sky-400" />
+            <Truck className="h-5 w-5 text-blue-400" />
             <span>Free Australia-wide Shipping</span>
           </div>
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-sky-400" />
+            <Shield className="h-5 w-5 text-blue-400" />
             <span>2-Year Warranty</span>
           </div>
         </motion.div>
@@ -138,7 +138,7 @@ export function HeroSection() {
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
           className="w-7 h-12 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
         >
-          <motion.div className="w-1.5 h-3 bg-sky-400/70 rounded-full" />
+          <motion.div className="w-1.5 h-3 bg-blue-400/70 rounded-full" />
         </motion.div>
       </motion.div>
     </section>

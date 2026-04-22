@@ -40,8 +40,8 @@ export default async function AdminInventoryPage() {
         <StaggerItem>
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center">
-                <Package className="h-6 w-6 text-sky-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{totalUnits}</p>
@@ -167,7 +167,7 @@ export default async function AdminInventoryPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-sky-100">
+                  <tr className="border-b border-blue-100">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Product</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Category</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Price</th>
@@ -178,9 +178,9 @@ export default async function AdminInventoryPage() {
                 </thead>
                 <tbody>
                   {products.map(product => (
-                    <tr key={product.id} className="border-b border-sky-50 hover:bg-sky-50/50 transition-colors">
+                    <tr key={product.id} className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors">
                       <td className="py-3 px-4">
-                        <Link href={`/admin/products/${product.id}`} className="font-medium text-slate-900 hover:text-sky-600">
+                        <Link href={`/admin/products/${product.id}`} className="font-medium text-slate-900 hover:text-blue-600">
                           {product.name}
                         </Link>
                       </td>

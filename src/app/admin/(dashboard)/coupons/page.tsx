@@ -179,7 +179,7 @@ export default function AdminCouponsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     )
   }
@@ -203,7 +203,7 @@ export default function AdminCouponsPage() {
         {coupons.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <Tag className="h-12 w-12 text-sky-200 mb-4" />
+              <Tag className="h-12 w-12 text-blue-200 mb-4" />
               <h3 className="text-lg font-medium text-slate-900 mb-1">No coupons yet</h3>
               <p className="text-sm text-slate-500 mb-4">Create your first discount coupon</p>
               <Button onClick={openCreate} size="sm">
@@ -220,10 +220,10 @@ export default function AdminCouponsPage() {
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        coupon.discountType === 'percentage' ? 'bg-sky-100' : 'bg-emerald-100'
+                        coupon.discountType === 'percentage' ? 'bg-blue-100' : 'bg-emerald-100'
                       }`}>
                         {coupon.discountType === 'percentage' ? (
-                          <Percent className="h-5 w-5 text-sky-600" />
+                          <Percent className="h-5 w-5 text-blue-600" />
                         ) : (
                           <DollarSign className="h-5 w-5 text-emerald-600" />
                         )}
@@ -255,7 +255,7 @@ export default function AdminCouponsPage() {
                         title={coupon.isActive ? 'Deactivate' : 'Activate'}
                       >
                         {coupon.isActive ? (
-                          <ToggleRight className="h-5 w-5 text-sky-500" />
+                          <ToggleRight className="h-5 w-5 text-blue-500" />
                         ) : (
                           <ToggleLeft className="h-5 w-5 text-slate-400" />
                         )}
@@ -322,7 +322,7 @@ export default function AdminCouponsPage() {
                   onClick={() => setForm(prev => ({ ...prev, discountType: 'percentage' }))}
                   className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-colors ${
                     form.discountType === 'percentage'
-                      ? 'border-sky-500 bg-sky-50 text-sky-700'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-slate-200 hover:border-slate-300 text-slate-600'
                   }`}
                 >
@@ -448,7 +448,7 @@ export default function AdminCouponsPage() {
                 type="button"
                 onClick={() => setForm(prev => ({ ...prev, isActive: !prev.isActive }))}
                 className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                  form.isActive ? 'bg-sky-500' : 'bg-slate-300'
+                  form.isActive ? 'bg-blue-500' : 'bg-slate-300'
                 }`}
               >
                 <span
@@ -460,9 +460,9 @@ export default function AdminCouponsPage() {
             </div>
 
             {/* Preview */}
-            <div className="p-3 border border-dashed border-sky-300 rounded-xl bg-sky-50">
+            <div className="p-3 border border-dashed border-blue-300 rounded-xl bg-blue-50">
               <p className="text-xs font-medium text-slate-500 mb-1">Preview</p>
-              <p className="font-mono font-bold text-sky-700">{form.code || 'CODE'}</p>
+              <p className="font-mono font-bold text-blue-700">{form.code || 'CODE'}</p>
               <p className="text-sm text-slate-600">
                 {form.discountType === 'percentage'
                   ? `${form.discountValue || 0}% off`

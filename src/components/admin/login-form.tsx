@@ -120,7 +120,7 @@ export function AdminLoginForm() {
               <Label htmlFor="password">Password</Label>
               <Link
                 href="/admin/forgot-password"
-                className="text-sm text-sky-600 hover:text-sky-700"
+                className="text-sm text-blue-600 hover:text-blue-700"
               >
                 Forgot password?
               </Link>

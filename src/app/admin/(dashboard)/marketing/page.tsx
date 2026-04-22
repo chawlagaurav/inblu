@@ -103,7 +103,7 @@ export default function AdminMarketingPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     )
   }
@@ -128,7 +128,7 @@ export default function AdminMarketingPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-sky-600" />
+                <ImageIcon className="h-5 w-5 text-blue-600" />
                 Hero Section
               </CardTitle>
               <CardDescription>Customize the main hero section on the homepage</CardDescription>
@@ -288,7 +288,7 @@ export default function AdminMarketingPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Type className="h-5 w-5 text-sky-600" />
+                <Type className="h-5 w-5 text-blue-600" />
                 Promotional Banner
               </CardTitle>
               <CardDescription>Configure the top promotional banner</CardDescription>
@@ -358,7 +358,7 @@ export default function AdminMarketingPage() {
               {formData.promo_banner_active === 'true' && formData.promo_banner_text && (
                 <div className="mt-4">
                   <Label>Preview</Label>
-                  <div className="mt-2 bg-sky-600 text-white text-center py-2 px-4 rounded-lg text-sm">
+                  <div className="mt-2 bg-blue-600 text-white text-center py-2 px-4 rounded-lg text-sm">
                     {formData.promo_banner_text}
                   </div>
                 </div>
@@ -372,7 +372,7 @@ export default function AdminMarketingPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Link2 className="h-5 w-5 text-sky-600" />
+                <Link2 className="h-5 w-5 text-blue-600" />
                 Featured Categories
               </CardTitle>
               <CardDescription>Customize category section titles and descriptions</CardDescription>

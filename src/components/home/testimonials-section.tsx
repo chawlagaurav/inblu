@@ -44,7 +44,7 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <Card className="h-full bg-sky-50/50 border-sky-100">
+    <Card className="h-full bg-blue-50/50 border-blue-100">
       <CardContent className="p-6 flex flex-col h-full">
         <div className="flex items-center gap-1 mb-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -59,18 +59,18 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           ))}
         </div>
         
-        <Quote className="h-8 w-8 text-sky-200 mb-4" />
+        <Quote className="h-8 w-8 text-blue-200 mb-4" />
         
         <p className="flex-1 text-slate-700 text-sm leading-relaxed">
           {testimonial.review}
         </p>
 
-        <div className="flex items-center gap-3 mt-6 pt-4 border-t border-sky-100">
+        <div className="flex items-center gap-3 mt-6 pt-4 border-t border-blue-100">
           <Avatar>
             {testimonial.imageUrl ? (
               <AvatarImage src={testimonial.imageUrl} alt={testimonial.name} />
             ) : null}
-            <AvatarFallback className="bg-sky-200 text-sky-700">
+            <AvatarFallback className="bg-blue-200 text-blue-700">
               {testimonial.name
                 .split(' ')
                 .map((n) => n[0])

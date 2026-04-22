@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Upload, Loader2, Save, Trash2, Package } from 'lucide-react'
+import { ArrowLeft, Upload, Loader2, Save, Trash2, Package, PackagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FadeIn } from '@/components/motion'
 import { AdminLoader } from '@/components/admin/admin-loader'
+import { InventoryModal } from '@/components/admin/inventory-modal'
 import { toast } from 'sonner'
 
 const categories = [
@@ -29,6 +29,7 @@ interface Product {
   price: number
   stock: number
   category: string
+  categories: string[]
   imageUrl: string
   images: string[]
   sku: string | null
@@ -46,19 +47,30 @@ export default function EditProductPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [product, setProduct] = useState<Product | null>(null)
+  const [inventoryOpen, setInventoryOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     stock: '',
-    category: '',
+    categories: [] as string[],
     imageUrl: '',
     sku: '',
     manualUrl: '',
+    serviceTenureMonths: '6',
     isBestSeller: false,
     isActive: true,
     specifications: '',
   })
+
+  const toggleCategory = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(value)
+        ? prev.categories.filter((c) => c !== value)
+        : [...prev.categories, value],
+    }))
+  }
 
   useEffect(() => {
     fetchProduct()
@@ -77,10 +89,11 @@ export default function EditProductPage() {
         description: data.description,
         price: String(data.price),
         stock: String(data.stock),
-        category: data.category,
+        categories: data.categories && data.categories.length > 0 ? data.categories : (data.category ? [data.category] : []),
         imageUrl: data.imageUrl || '',
         sku: data.sku || '',
         manualUrl: data.manualUrl || '',
+        serviceTenureMonths: String(data.serviceTenureMonths ?? 6),
         isBestSeller: data.isBestSeller,
         isActive: data.isActive,
         specifications: data.specifications ? JSON.stringify(data.specifications, null, 2) : '',
@@ -126,12 +139,14 @@ export default function EditProductPage() {
           description: formData.description,
           price: parseFloat(formData.price),
           stock: parseInt(formData.stock),
-          category: formData.category,
+          category: formData.categories[0] || '',
+          categories: formData.categories,
           imageUrl: formData.imageUrl || '/products/placeholder.jpg',
           images: product?.images || [],
           sku: formData.sku || null,
           manualUrl: formData.manualUrl || null,
           specifications: specs,
+          serviceTenureMonths: parseInt(formData.serviceTenureMonths) || 6,
           isBestSeller: formData.isBestSeller,
           isActive: formData.isActive,
         }),
@@ -180,6 +195,10 @@ export default function EditProductPage() {
             <h1 className="text-3xl font-bold text-slate-900">Edit Product</h1>
             <p className="text-slate-500 mt-1">Update product information</p>
           </div>
+          <Button variant="outline" onClick={() => setInventoryOpen(true)}>
+            <PackagePlus className="h-4 w-4 mr-2" />
+            Update Stock
+          </Button>
         </div>
       </FadeIn>
 
@@ -232,36 +251,23 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="stock">Stock Quantity *</Label>
-                  <Input
-                    id="stock"
-                    name="stock"
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.stock}
-                    onChange={handleChange}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="category">Category *</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Categories *</Label>
+                  <div className="mt-1 space-y-2 rounded-lg border border-slate-200 p-3">
+                    {categories.map((category) => (
+                      <label key={category.value} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(category.value)}
+                          onChange={() => toggleCategory(category.value)}
+                          className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-slate-700">{category.label}</span>
+                      </label>
+                    ))}
+                    {formData.categories.length === 0 && (
+                      <p className="text-xs text-slate-400">Select at least one category</p>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -275,6 +281,21 @@ export default function EditProductPage() {
                     placeholder="Optional product SKU"
                   />
                 </div>
+
+                <div>
+                  <Label htmlFor="serviceTenureMonths">Service Tenure (months)</Label>
+                  <Input
+                    id="serviceTenureMonths"
+                    name="serviceTenureMonths"
+                    type="number"
+                    min="1"
+                    value={formData.serviceTenureMonths}
+                    onChange={handleChange}
+                    className="mt-1"
+                    placeholder="6"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Service due reminder period after delivery</p>
+                </div>
               </div>
 
               <div className="flex items-center gap-6 pt-2">
@@ -285,7 +306,7 @@ export default function EditProductPage() {
                     name="isBestSeller"
                     checked={formData.isBestSeller}
                     onChange={handleChange}
-                    className="rounded border-sky-300 text-sky-600 focus:ring-sky-500"
+                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                   />
                   <Label htmlFor="isBestSeller">Best Seller</Label>
                 </div>
@@ -296,7 +317,7 @@ export default function EditProductPage() {
                     name="isActive"
                     checked={formData.isActive}
                     onChange={handleChange}
-                    className="rounded border-sky-300 text-sky-600 focus:ring-sky-500"
+                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                   />
                   <Label htmlFor="isActive">Active (visible to customers)</Label>
                 </div>
@@ -323,7 +344,7 @@ export default function EditProductPage() {
 
               {formData.imageUrl && (
                 <div className="flex items-start gap-4">
-                  <div className="h-24 w-24 rounded-lg overflow-hidden bg-sky-100">
+                  <div className="h-24 w-24 rounded-lg overflow-hidden bg-blue-100">
                     <Image
                       src={formData.imageUrl}
                       alt="Product preview"
@@ -336,8 +357,8 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              <div className="border-2 border-dashed border-sky-200 rounded-2xl p-6 text-center">
-                <Upload className="h-8 w-8 text-sky-400 mx-auto mb-3" />
+              <div className="border-2 border-dashed border-blue-200 rounded-2xl p-6 text-center">
+                <Upload className="h-8 w-8 text-blue-400 mx-auto mb-3" />
                 <p className="text-sm text-slate-600 mb-2">
                   Drag and drop images here, or enter URL above
                 </p>
@@ -401,6 +422,20 @@ export default function EditProductPage() {
           </div>
         </form>
       </FadeIn>
+
+      {product && (
+        <InventoryModal
+          open={inventoryOpen}
+          onOpenChange={setInventoryOpen}
+          productId={product.id}
+          productName={product.name}
+          currentStock={parseInt(formData.stock) || 0}
+          onStockUpdated={(newStock) => {
+            setFormData((prev) => ({ ...prev, stock: String(newStock) }))
+            setProduct((prev) => prev ? { ...prev, stock: newStock } : prev)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -70,7 +70,7 @@ export function OrderSummary() {
             <ul className="space-y-4 max-h-64 overflow-y-auto">
               {items.map((item) => (
                 <li key={item.product.id} className="flex gap-3">
-                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-sky-50">
+                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-blue-50">
                     {item.product.imageUrl ? (
                       <Image
                         src={item.product.imageUrl}
@@ -80,7 +80,7 @@ export function OrderSummary() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-sky-300">
+                      <div className="h-full w-full flex items-center justify-center text-blue-300">
                         <ShoppingBag className="h-6 w-6" />
                       </div>
                     )}
@@ -161,7 +161,7 @@ export function OrderSummary() {
           </div>
 
           {subtotal < SHIPPING_THRESHOLD && subtotal > 0 && !appliedCoupon && (
-            <p className="text-sm text-sky-600 text-center bg-sky-50 rounded-xl p-3">
+            <p className="text-sm text-blue-600 text-center bg-blue-50 rounded-xl p-3">
               Add {formatCurrency(SHIPPING_THRESHOLD - subtotal)} more for free shipping!
             </p>
           )}

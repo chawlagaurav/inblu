@@ -27,7 +27,7 @@ export function NewsletterSection() {
   }
 
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-br from-sky-500 to-sky-600">
+    <section className="py-16 sm:py-24 bg-gradient-to-br from-blue-500 to-blue-600">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeInOnScroll>
           <div className="relative isolate overflow-hidden rounded-3xl bg-white/10 backdrop-blur-sm p-8 sm:p-12 lg:p-16">
@@ -35,7 +35,7 @@ export function NewsletterSection() {
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 Stay in the Loop
               </h2>
-              <p className="mt-4 text-lg text-sky-100">
+              <p className="mt-4 text-lg text-blue-100">
                 Subscribe to our newsletter for exclusive offers, new arrivals, and style tips.
               </p>
 
@@ -62,14 +62,14 @@ export function NewsletterSection() {
                     type="submit"
                     disabled={isSubmitting}
                     size="lg"
-                    className="bg-white text-sky-600 hover:bg-sky-50 gap-2"
+                    className="bg-white text-blue-600 hover:bg-blue-50 gap-2"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <motion.span
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                          className="h-4 w-4 border-2 border-sky-600 border-t-transparent rounded-full"
+                          className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"
                         />
                         Subscribing...
                       </span>
@@ -83,7 +83,7 @@ export function NewsletterSection() {
                 </form>
               )}
 
-              <p className="mt-4 text-sm text-sky-200">
+              <p className="mt-4 text-sm text-blue-200">
                 We respect your privacy. Unsubscribe at any time.
               </p>
             </div>

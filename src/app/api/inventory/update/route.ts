@@ -64,20 +64,16 @@ export async function POST(request: NextRequest) {
       newStock = currentStock + quantity
       referenceType = 'PO'
 
-      // Handle file upload - save to public/uploads
+      // Handle file upload to Cloudinary
       if (file && file.size > 0) {
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
-        const ext = file.name.split('.').pop() || 'pdf'
-        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-        const fileName = `po_${Date.now()}_${sanitizedName}`
-
-        const fs = await import('fs/promises')
-        const path = await import('path')
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'po')
-        await fs.mkdir(uploadDir, { recursive: true })
-        await fs.writeFile(path.join(uploadDir, fileName), buffer)
-        fileUrl = `/uploads/po/${fileName}`
+        const { uploadToCloudinary } = await import('@/lib/cloudinary')
+        const result = await uploadToCloudinary(buffer, {
+          folder: 'purchase-orders',
+          publicId: `po_${Date.now()}`,
+        })
+        fileUrl = result.url
       }
 
       // Create purchase order if any PO data provided

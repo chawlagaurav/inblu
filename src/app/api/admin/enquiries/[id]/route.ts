@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { EnquiryStatus } from '@prisma/client'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -30,15 +31,15 @@ export async function PATCH(
     const body = await request.json()
     const { status, comment } = body
 
-    const validStatuses = ['NEW_LEAD', 'INTERESTED', 'FOLLOW_UP', 'NEED_MORE_INFO', 'QUOTATION_SENT', 'NEGOTIATION', 'CONVERTED_TO_ORDER', 'NO_RESPONSE', 'NOT_INTERESTED', 'LOST', 'FUTURE_FOLLOW_UP']
+    const validStatuses: EnquiryStatus[] = ['NEW_LEAD', 'INTERESTED', 'FOLLOW_UP', 'NEED_MORE_INFO', 'QUOTATION_SENT', 'NEGOTIATION', 'CONVERTED_TO_ORDER', 'NO_RESPONSE', 'NOT_INTERESTED', 'LOST', 'FUTURE_FOLLOW_UP']
     
-    const updateData: { status?: string; comment?: string } = {}
+    const updateData: { status?: EnquiryStatus; comment?: string | null } = {}
     
     if (status !== undefined) {
       if (!validStatuses.includes(status)) {
         return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
       }
-      updateData.status = status
+      updateData.status = status as EnquiryStatus
     }
     
     if (comment !== undefined) {

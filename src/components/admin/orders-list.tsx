@@ -58,6 +58,7 @@ interface Order {
   isGuest: boolean
   createdAt: string
   deliveredAt: string | null
+  serviceDueDate: string | null
   shippingAddress: Record<string, string> | null
   items: OrderItem[]
   user: { name: string | null; email: string } | null
@@ -107,14 +108,23 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
   const [sendingEmailFor, setSendingEmailFor] = useState<string | null>(null)
 
   function getServiceDueInfo(order: Order): { daysLeft: number | null; dueDate: Date | null; label: string; color: string } {
-    if (order.status !== 'DELIVERED' || !order.deliveredAt) {
+    // Use serviceDueDate if set, otherwise calculate from delivery date
+    let dueDate: Date | null = null
+    
+    if (order.serviceDueDate) {
+      dueDate = new Date(order.serviceDueDate)
+    } else if (order.status === 'DELIVERED' && order.deliveredAt) {
+      // Fallback: calculate from delivery date using max service tenure
+      const maxTenure = Math.max(...order.items.map((i) => i.product.serviceTenureMonths || 6))
+      const delivered = new Date(order.deliveredAt)
+      dueDate = new Date(delivered)
+      dueDate.setMonth(dueDate.getMonth() + maxTenure)
+    }
+    
+    if (!dueDate) {
       return { daysLeft: null, dueDate: null, label: '—', color: '' }
     }
-    // Use the max service tenure from all items in the order
-    const maxTenure = Math.max(...order.items.map((i) => i.product.serviceTenureMonths || 6))
-    const delivered = new Date(order.deliveredAt)
-    const dueDate = new Date(delivered)
-    dueDate.setMonth(dueDate.getMonth() + maxTenure)
+    
     const now = new Date()
     const diffMs = dueDate.getTime() - now.getTime()
     const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
@@ -592,25 +602,30 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         const serviceInfo = getServiceDueInfo(order)
                         return (
                           <td className="py-3 px-4">
-                            {serviceInfo.daysLeft !== null ? (
-                              <div className="flex items-center gap-2">
-                                <span className={`inline-block text-xs font-medium px-2 py-1 rounded-full ${serviceInfo.color}`}>
-                                  {serviceInfo.label}
-                                </span>
-                                {serviceInfo.daysLeft <= 30 && (
-                                  <button
-                                    onClick={() => handleSendServiceReminder(order)}
-                                    disabled={sendingEmailFor === order.id}
-                                    className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                                    title="Send service reminder email"
-                                  >
-                                    {sendingEmailFor === order.id ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <Mail className="h-4 w-4" />
-                                    )}
-                                  </button>
-                                )}
+                            {serviceInfo.dueDate !== null ? (
+                              <div className="space-y-1">
+                                <p className="text-sm text-slate-600">
+                                  {new Intl.DateTimeFormat('en-AU', { dateStyle: 'medium' }).format(serviceInfo.dueDate)}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${serviceInfo.color}`}>
+                                    {serviceInfo.label}
+                                  </span>
+                                  {serviceInfo.daysLeft !== null && serviceInfo.daysLeft <= 30 && (
+                                    <button
+                                      onClick={() => handleSendServiceReminder(order)}
+                                      disabled={sendingEmailFor === order.id}
+                                      className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                                      title="Send service reminder email"
+                                    >
+                                      {sendingEmailFor === order.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Mail className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             ) : (
                               <span className="text-sm text-slate-400">—</span>

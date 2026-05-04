@@ -48,6 +48,7 @@ export default async function AdminOrdersPage() {
     isGuest: o.isGuest,
     createdAt: o.createdAt.toISOString(),
     deliveredAt: o.deliveredAt ? o.deliveredAt.toISOString() : null,
+    serviceDueDate: o.serviceDueDate ? o.serviceDueDate.toISOString() : null,
     items: o.items.map((i) => ({
       id: i.id,
       quantity: i.quantity,

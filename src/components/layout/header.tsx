@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
-import { Menu, ShoppingCart, X, User, LogOut, Package, ChevronDown, Truck, RotateCcw, FileText, Phone, Search } from 'lucide-react'
+import { Menu, ShoppingCart, X, User, LogOut, Package, ChevronDown, Truck, RotateCcw, FileText, Phone, Search, MessageSquare, Wrench } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/cart'
@@ -18,9 +18,11 @@ const navigation = [
 ]
 
 const supportItems = [
+  { name: 'Service Request', href: '/support/service-request', icon: Wrench },
   { name: 'Shipping Policy', href: '/support/shipping', icon: Truck },
   { name: 'Returns & Refunds', href: '/support/returns', icon: RotateCcw },
   { name: 'Terms & Conditions', href: '/support/terms', icon: FileText },
+  { name: 'Enquiry', href: '/support/enquiry', icon: MessageSquare },
   { name: 'Contact Us', href: '/support/contact', icon: Phone },
 ]
 

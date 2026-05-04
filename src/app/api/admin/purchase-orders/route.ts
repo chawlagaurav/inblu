@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -15,7 +15,7 @@ async function verifyAdmin() {
   return user
 }
 
-// GET all enquiries
+// GET all purchase orders
 export async function GET() {
   try {
     const user = await verifyAdmin()
@@ -23,13 +23,22 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const enquiries = await prisma.enquiry.findMany({
+    const purchaseOrders = await prisma.purchaseOrder.findMany({
       orderBy: { createdAt: 'desc' },
+      include: {
+        inventoryTransactions: {
+          include: {
+            product: {
+              select: { id: true, name: true, imageUrl: true },
+            },
+          },
+        },
+      },
     })
 
-    return NextResponse.json(enquiries)
+    return NextResponse.json(purchaseOrders)
   } catch (error) {
-    console.error('Error fetching enquiries:', error)
-    return NextResponse.json({ error: 'Failed to fetch enquiries' }, { status: 500 })
+    console.error('Error fetching purchase orders:', error)
+    return NextResponse.json({ error: 'Failed to fetch purchase orders' }, { status: 500 })
   }
 }

@@ -28,19 +28,26 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { status } = body
+    const { status, comment } = body
 
-    const validStatuses = ['NEW', 'IN_PROGRESS', 'LEAD', 'CONVERTED', 'RESOLVED']
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    const validStatuses = ['NEW_LEAD', 'INTERESTED', 'FOLLOW_UP', 'NEED_MORE_INFO', 'QUOTATION_SENT', 'NEGOTIATION', 'CONVERTED_TO_ORDER', 'NO_RESPONSE', 'NOT_INTERESTED', 'LOST', 'FUTURE_FOLLOW_UP']
+    
+    const updateData: { status?: string; comment?: string } = {}
+    
+    if (status !== undefined) {
+      if (!validStatuses.includes(status)) {
+        return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+      }
+      updateData.status = status
+    }
+    
+    if (comment !== undefined) {
+      updateData.comment = comment || null
     }
 
     const enquiry = await prisma.enquiry.update({
       where: { id },
-      data: {
-        status,
-        resolvedAt: status === 'RESOLVED' ? new Date() : null,
-      },
+      data: updateData,
     })
 
     return NextResponse.json(enquiry)

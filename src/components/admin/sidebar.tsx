@@ -14,19 +14,21 @@ import {
   Mail,
   Tag,
   MessageSquareText,
-  FileText
+  FileText,
+  Wrench
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Enquiries', href: '/admin/enquiries', icon: MessageSquareText },
+  { name: 'Service Requests', href: '/admin/service-requests', icon: Wrench },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Purchase Orders', href: '/admin/purchase-orders', icon: FileText },
   { name: 'Coupons', href: '/admin/coupons', icon: Tag },
-  { name: 'Enquiries', href: '/admin/enquiries', icon: MessageSquareText },
   { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]

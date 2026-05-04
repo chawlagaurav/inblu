@@ -245,6 +245,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
             <Separator />
 
+            {/* Estimated Delivery */}
+            <div className="flex items-center gap-2 p-4 rounded-xl bg-green-50 border border-green-100">
+              <Truck className="h-5 w-5 text-green-600" />
+              <span className="text-sm font-medium text-green-700">Estimated delivery: 5-7 business days</span>
+            </div>
+
             {/* Features */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[

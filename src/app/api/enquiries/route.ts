@@ -6,8 +6,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, email, phone, subject, message } = body
 
-    if (!name || !email || !subject || !message) {
-      return NextResponse.json({ error: 'Name, email, subject, and message are required' }, { status: 400 })
+    if (!name || !email || !message) {
+      return NextResponse.json({ error: 'Name, email, and message are required' }, { status: 400 })
     }
 
     const enquiry = await prisma.enquiry.create({
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         phone: phone || null,
-        subject,
+        subject: subject || 'General Inquiry',
         message,
       },
     })

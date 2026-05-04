@@ -35,8 +35,15 @@ interface Product {
   sku: string | null
   specifications: Record<string, string> | null
   manualUrl: string | null
+  relatedProductIds: string[]
   isBestSeller: boolean
   isActive: boolean
+}
+
+interface ProductListItem {
+  id: string
+  name: string
+  imageUrl: string
 }
 
 export default function EditProductPage() {
@@ -47,6 +54,7 @@ export default function EditProductPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [product, setProduct] = useState<Product | null>(null)
+  const [allProducts, setAllProducts] = useState<ProductListItem[]>([])
   const [inventoryOpen, setInventoryOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -58,6 +66,7 @@ export default function EditProductPage() {
     sku: '',
     manualUrl: '',
     serviceTenureMonths: '6',
+    relatedProductIds: [] as string[],
     isBestSeller: false,
     isActive: true,
     specifications: '',
@@ -72,9 +81,31 @@ export default function EditProductPage() {
     }))
   }
 
+  const toggleRelatedProduct = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      relatedProductIds: prev.relatedProductIds.includes(id)
+        ? prev.relatedProductIds.filter((p) => p !== id)
+        : [...prev.relatedProductIds, id],
+    }))
+  }
+
   useEffect(() => {
     fetchProduct()
+    fetchAllProducts()
   }, [productId])
+
+  const fetchAllProducts = async () => {
+    try {
+      const response = await fetch('/api/admin/products')
+      if (response.ok) {
+        const data = await response.json()
+        setAllProducts(data.filter((p: ProductListItem) => p.id !== productId))
+      }
+    } catch {
+      console.error('Failed to fetch products')
+    }
+  }
 
   const fetchProduct = async () => {
     try {
@@ -94,6 +125,7 @@ export default function EditProductPage() {
         sku: data.sku || '',
         manualUrl: data.manualUrl || '',
         serviceTenureMonths: String(data.serviceTenureMonths ?? 6),
+        relatedProductIds: data.relatedProductIds || [],
         isBestSeller: data.isBestSeller,
         isActive: data.isActive,
         specifications: data.specifications ? JSON.stringify(data.specifications, null, 2) : '',
@@ -147,6 +179,7 @@ export default function EditProductPage() {
           manualUrl: formData.manualUrl || null,
           specifications: specs,
           serviceTenureMonths: parseInt(formData.serviceTenureMonths) || 6,
+          relatedProductIds: formData.relatedProductIds,
           isBestSeller: formData.isBestSeller,
           isActive: formData.isActive,
         }),
@@ -399,6 +432,56 @@ export default function EditProductPage() {
                   Enter specifications as JSON object
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Suggested Products</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-slate-500">
+                Select products to show as suggestions when viewing this product. If none selected, related products will be shown based on category.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto p-1">
+                {allProducts.map((p) => (
+                  <label
+                    key={p.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+                      formData.relatedProductIds.includes(p.id)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.relatedProductIds.includes(p.id)}
+                      onChange={() => toggleRelatedProduct(p.id)}
+                      className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="h-10 w-10 rounded-lg overflow-hidden bg-blue-100 flex-shrink-0">
+                      {p.imageUrl && (
+                        <Image
+                          src={p.imageUrl}
+                          alt={p.name}
+                          width={40}
+                          height={40}
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <span className="text-sm text-slate-700 truncate">{p.name}</span>
+                  </label>
+                ))}
+                {allProducts.length === 0 && (
+                  <p className="text-sm text-slate-400 col-span-full">No other products available</p>
+                )}
+              </div>
+              {formData.relatedProductIds.length > 0 && (
+                <p className="text-xs text-blue-600">
+                  {formData.relatedProductIds.length} product{formData.relatedProductIds.length > 1 ? 's' : ''} selected
+                </p>
+              )}
             </CardContent>
           </Card>
 

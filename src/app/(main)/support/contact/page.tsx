@@ -224,11 +224,10 @@ export default function ContactPage() {
                         </div>
                         <div>
                           <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-1">
-                            Subject *
+                            Subject
                           </label>
                           <select
                             id="subject"
-                            required
                             value={formData.subject}
                             onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                             className="w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-colors"

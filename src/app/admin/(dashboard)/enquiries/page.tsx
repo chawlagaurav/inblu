@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Loader2, MessageSquare, Trash2, Search, X, Mail, Phone, ChevronDown, ChevronUp, Clock,
+  Loader2, MessageSquare, Trash2, Search, X, Mail, Phone, ChevronDown, ChevronUp, MessageCircle, Clock,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,32 +20,33 @@ interface Enquiry {
   subject: string
   message: string
   status: string
+  comment: string | null
   resolvedAt: string | null
   createdAt: string
+  updatedAt: string
 }
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  NEW: { label: 'New', color: 'bg-blue-100 text-blue-700' },
-  IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-700' },
-  LEAD: { label: 'Lead', color: 'bg-purple-100 text-purple-700' },
-  CONVERTED: { label: 'Converted to Sale', color: 'bg-green-100 text-green-700' },
-  RESOLVED: { label: 'Resolved', color: 'bg-slate-100 text-slate-600' },
+  NEW_LEAD: { label: 'New Lead', color: 'bg-blue-100 text-blue-700' },
+  INTERESTED: { label: 'Interested', color: 'bg-cyan-100 text-cyan-700' },
+  FOLLOW_UP: { label: 'Follow-up', color: 'bg-yellow-100 text-yellow-700' },
+  NEED_MORE_INFO: { label: 'Need More Info', color: 'bg-orange-100 text-orange-700' },
+  QUOTATION_SENT: { label: 'Quotation Sent', color: 'bg-purple-100 text-purple-700' },
+  NEGOTIATION: { label: 'Negotiation', color: 'bg-indigo-100 text-indigo-700' },
+  CONVERTED_TO_ORDER: { label: 'Converted to Order', color: 'bg-green-100 text-green-700' },
+  NO_RESPONSE: { label: 'No Response', color: 'bg-slate-100 text-slate-600' },
+  NOT_INTERESTED: { label: 'Not Interested', color: 'bg-red-100 text-red-700' },
+  LOST: { label: 'Lost', color: 'bg-red-200 text-red-800' },
+  FUTURE_FOLLOW_UP: { label: 'Future Follow-up', color: 'bg-teal-100 text-teal-700' },
 }
 
-const statuses = ['NEW', 'IN_PROGRESS', 'LEAD', 'CONVERTED', 'RESOLVED'] as const
+const statuses = ['NEW_LEAD', 'INTERESTED', 'FOLLOW_UP', 'NEED_MORE_INFO', 'QUOTATION_SENT', 'NEGOTIATION', 'CONVERTED_TO_ORDER', 'NO_RESPONSE', 'NOT_INTERESTED', 'LOST', 'FUTURE_FOLLOW_UP'] as const
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat('en-AU', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(date))
-}
-
-function daysUntilDeletion(resolvedAt: string) {
-  const resolved = new Date(resolvedAt).getTime()
-  const deleteAt = resolved + 5 * 24 * 60 * 60 * 1000
-  const remaining = Math.ceil((deleteAt - Date.now()) / (24 * 60 * 60 * 1000))
-  return Math.max(0, remaining)
 }
 
 export default function AdminEnquiriesPage() {
@@ -88,6 +89,24 @@ export default function AdminEnquiriesPage() {
       }
     } catch {
       toast.error('Failed to update status')
+    }
+  }
+
+  const handleCommentUpdate = async (id: string, comment: string) => {
+    try {
+      const res = await fetch(`/api/admin/enquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setEnquiries(prev => prev.map(e => e.id === id ? updated : e))
+        if (selectedEnquiry?.id === id) setSelectedEnquiry(updated)
+        toast.success('Comment updated')
+      }
+    } catch {
+      toast.error('Failed to update comment')
     }
   }
 
@@ -151,11 +170,17 @@ export default function AdminEnquiriesPage() {
       <div className="flex flex-wrap gap-2">
         {[
           { key: 'all', label: 'All' },
-          { key: 'NEW', label: 'New' },
-          { key: 'IN_PROGRESS', label: 'In Progress' },
-          { key: 'LEAD', label: 'Lead' },
-          { key: 'CONVERTED', label: 'Converted' },
-          { key: 'RESOLVED', label: 'Resolved' },
+          { key: 'NEW_LEAD', label: 'New Lead' },
+          { key: 'INTERESTED', label: 'Interested' },
+          { key: 'FOLLOW_UP', label: 'Follow-up' },
+          { key: 'NEED_MORE_INFO', label: 'Need More Info' },
+          { key: 'QUOTATION_SENT', label: 'Quotation Sent' },
+          { key: 'NEGOTIATION', label: 'Negotiation' },
+          { key: 'CONVERTED_TO_ORDER', label: 'Converted' },
+          { key: 'NO_RESPONSE', label: 'No Response' },
+          { key: 'NOT_INTERESTED', label: 'Not Interested' },
+          { key: 'LOST', label: 'Lost' },
+          { key: 'FUTURE_FOLLOW_UP', label: 'Future Follow-up' },
         ].map(tab => (
           <button key={tab.key} onClick={() => setStatusFilter(tab.key)}>
             <Badge
@@ -217,10 +242,9 @@ export default function AdminEnquiriesPage() {
                         <Badge className={statusConfig[enquiry.status]?.color}>
                           {statusConfig[enquiry.status]?.label}
                         </Badge>
-                        {enquiry.status === 'RESOLVED' && enquiry.resolvedAt && (
-                          <span className="text-xs text-slate-400 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Deletes in {daysUntilDeletion(enquiry.resolvedAt)}d
+                        {enquiry.comment && (
+                          <span className="flex items-center gap-1 text-xs text-blue-500" title="Has comment">
+                            <MessageCircle className="h-3 w-3" />
                           </span>
                         )}
                       </div>
@@ -235,6 +259,11 @@ export default function AdminEnquiriesPage() {
                           </span>
                         )}
                         <span>{formatDate(enquiry.createdAt)}</span>
+                        {enquiry.updatedAt !== enquiry.createdAt && (
+                          <span className="flex items-center gap-1 text-blue-500" title={`Last updated: ${formatDate(enquiry.updatedAt)}`}>
+                            <Clock className="h-3 w-3" /> Updated {formatDate(enquiry.updatedAt)}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -269,6 +298,24 @@ export default function AdminEnquiriesPage() {
                   {expandedId === enquiry.id && (
                     <div className="mt-3 pt-3 border-t border-blue-100">
                       <p className="text-sm text-slate-700 whitespace-pre-wrap">{enquiry.message}</p>
+                      
+                      {/* Comment Box */}
+                      <div className="mt-4">
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Notes / Comment</label>
+                        <textarea
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none bg-white"
+                          rows={2}
+                          placeholder="Add notes about this enquiry..."
+                          defaultValue={enquiry.comment || ''}
+                          onBlur={(e) => {
+                            const newComment = e.target.value.trim()
+                            if (newComment !== (enquiry.comment || '')) {
+                              handleCommentUpdate(enquiry.id, newComment)
+                            }
+                          }}
+                        />
+                      </div>
+                      
                       <div className="mt-3 flex flex-wrap gap-2">
                         {statuses.map(s => (
                           <button
@@ -327,6 +374,24 @@ export default function AdminEnquiriesPage() {
                     )}
                   </button>
                 ))}
+              </div>
+              {/* Comment Box */}
+              <div className="pt-4 border-t">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Comment / Notes
+                </label>
+                <textarea
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
+                  rows={3}
+                  placeholder="Add a comment or note about this enquiry..."
+                  defaultValue={selectedEnquiry.comment || ''}
+                  onBlur={(e) => {
+                    const newComment = e.target.value.trim()
+                    if (newComment !== (selectedEnquiry.comment || '')) {
+                      handleCommentUpdate(selectedEnquiry.id, newComment)
+                    }
+                  }}
+                />
               </div>
             </div>
           )}

@@ -10,13 +10,14 @@ const footerNavigation = {
   ],
   company: [
     { name: 'About Us', href: '/about' },
-    { name: 'Contact', href: '/contact' },
-    { name: 'Shipping & Returns', href: '/shipping' },
+    { name: 'Contact', href: '/support/contact' },
+    { name: 'Service Request', href: '/support/service-request' },
+    { name: 'Shipping & Returns', href: '/support/shipping' },
   ],
   legal: [
     { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Refund Policy', href: '/refund' },
+    { name: 'Terms of Service', href: '/support/terms' },
+    { name: 'Refund Policy', href: '/support/returns' },
   ],
 }
 
@@ -33,7 +34,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <Image src="/inblutextlogo.png" alt="Inblu" width={160} height={64} className="h-16 w-auto" />
+              <Image src="/inblutextlogo.png" alt="Inblu" width={320} height={128} className="h-32 w-auto" />
             </Link>
             <p className="text-sm text-slate-600 max-w-xs">
               Premium quality products delivered across Australia. Experience excellence with every purchase.

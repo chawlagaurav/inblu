@@ -15,21 +15,32 @@ async function verifyAdmin() {
   return user
 }
 
-// GET all enquiries
-export async function GET() {
+// DELETE a purchase order
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const user = await verifyAdmin()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const enquiries = await prisma.enquiry.findMany({
-      orderBy: { createdAt: 'desc' },
+    const { id } = await params
+
+    // First delete associated inventory transactions
+    await prisma.inventoryTransaction.deleteMany({
+      where: { referenceId: id },
     })
 
-    return NextResponse.json(enquiries)
+    // Then delete the purchase order
+    await prisma.purchaseOrder.delete({
+      where: { id },
+    })
+
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error fetching enquiries:', error)
-    return NextResponse.json({ error: 'Failed to fetch enquiries' }, { status: 500 })
+    console.error('Error deleting purchase order:', error)
+    return NextResponse.json({ error: 'Failed to delete purchase order' }, { status: 500 })
   }
 }

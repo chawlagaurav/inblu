@@ -38,6 +38,7 @@ export function InventoryModal({
 
   // Add Stock state
   const [addQuantity, setAddQuantity] = useState('')
+  const [unitCost, setUnitCost] = useState('')
   const [poNumber, setPoNumber] = useState('')
   const [vendorName, setVendorName] = useState('')
   const [poFile, setPoFile] = useState<File | null>(null)
@@ -48,6 +49,7 @@ export function InventoryModal({
 
   const resetForm = () => {
     setAddQuantity('')
+    setUnitCost('')
     setPoNumber('')
     setVendorName('')
     setPoFile(null)
@@ -69,6 +71,7 @@ export function InventoryModal({
       formData.append('productId', productId)
       formData.append('type', 'IN')
       formData.append('quantity', String(qty))
+      if (unitCost) formData.append('unitCost', unitCost)
       if (poNumber) formData.append('poNumber', poNumber)
       if (vendorName) formData.append('vendorName', vendorName)
       if (poFile) formData.append('file', poFile)
@@ -177,6 +180,25 @@ export function InventoryModal({
                 {addQuantity && parseInt(addQuantity) > 0 && (
                   <p className="text-xs text-slate-500 mt-1">
                     New stock will be: {currentStock + parseInt(addQuantity)}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="unitCost">Unit Cost ($)</Label>
+                <Input
+                  id="unitCost"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Cost per unit"
+                  value={unitCost}
+                  onChange={(e) => setUnitCost(e.target.value)}
+                  className="mt-1"
+                />
+                {addQuantity && parseInt(addQuantity) > 0 && unitCost && parseFloat(unitCost) > 0 && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Total cost: ${(parseInt(addQuantity) * parseFloat(unitCost)).toFixed(2)}
                   </p>
                 )}
               </div>

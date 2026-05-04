@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     const note = formData.get('note') as string | null
     const poNumber = formData.get('poNumber') as string | null
     const vendorName = formData.get('vendorName') as string | null
+    const unitCostRaw = formData.get('unitCost') as string | null
     const file = formData.get('file') as File | null
 
     if (!productId || !type) {
@@ -51,6 +52,8 @@ export async function POST(request: NextRequest) {
     let referenceType: string
     let referenceId: string | null = null
     let fileUrl: string | null = null
+    let unitCost: number | null = null
+    let totalCost: number | null = null
 
     if (type === 'IN') {
       const rawQuantity = formData.get('quantity')
@@ -63,6 +66,16 @@ export async function POST(request: NextRequest) {
       }
       newStock = currentStock + quantity
       referenceType = 'PO'
+
+      // Parse unit cost if provided
+      if (unitCostRaw) {
+        unitCost = parseFloat(unitCostRaw)
+        if (!isNaN(unitCost) && unitCost > 0) {
+          totalCost = quantity * unitCost
+        } else {
+          unitCost = null
+        }
+      }
 
       // Handle file upload to Cloudinary
       if (file && file.size > 0) {
@@ -77,12 +90,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Create purchase order if any PO data provided
-      if (poNumber || vendorName || fileUrl) {
+      if (poNumber || vendorName || fileUrl || totalCost) {
         const po = await prisma.purchaseOrder.create({
           data: {
             poNumber: poNumber || null,
             vendorName: vendorName || null,
             fileUrl,
+            totalCost: totalCost ? totalCost : null,
           },
         })
         referenceId = po.id
@@ -113,6 +127,7 @@ export async function POST(request: NextRequest) {
           referenceType,
           referenceId,
           note: note || null,
+          unitCost: unitCost ? unitCost : null,
         },
       }),
       prisma.product.update({

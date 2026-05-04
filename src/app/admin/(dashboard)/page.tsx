@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Package, ShoppingCart, ShoppingBag, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, AlertTriangle, Eye } from 'lucide-react'
+import { Package, ShoppingCart, ShoppingBag, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, AlertTriangle, Eye, Wallet } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +36,9 @@ async function getDashboardData() {
     recentOrders,
     orderStatuses,
     topProductItems,
+    allPurchaseOrders,
+    thisMonthPurchaseOrders,
+    lastMonthPurchaseOrders,
   ] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: thisMonth } },
@@ -66,7 +69,26 @@ async function getDashboardData() {
       orderBy: { _sum: { quantity: 'desc' } },
       take: 5,
     }),
+    prisma.purchaseOrder.findMany({
+      select: { totalCost: true },
+    }),
+    prisma.purchaseOrder.findMany({
+      where: { createdAt: { gte: thisMonth } },
+      select: { totalCost: true },
+    }),
+    prisma.purchaseOrder.findMany({
+      where: { createdAt: { gte: lastMonth, lte: lastMonthEnd } },
+      select: { totalCost: true },
+    }),
   ])
+
+  // Total cost spent on purchases
+  const totalCostSpent = allPurchaseOrders.reduce((sum, po) => sum + Number(po.totalCost || 0), 0)
+  const thisMonthCost = thisMonthPurchaseOrders.reduce((sum, po) => sum + Number(po.totalCost || 0), 0)
+  const lastMonthCost = lastMonthPurchaseOrders.reduce((sum, po) => sum + Number(po.totalCost || 0), 0)
+  const costChange = lastMonthCost > 0
+    ? ((thisMonthCost - lastMonthCost) / lastMonthCost) * 100
+    : thisMonthCost > 0 ? 100 : 0
 
   // Revenue
   const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0)
@@ -131,6 +153,9 @@ async function getDashboardData() {
     thisMonthOrderCount,
     orderChange,
     newCustomersThisMonth,
+    totalCostSpent,
+    thisMonthCost,
+    costChange,
     customerChange,
     avgOrderValue,
     avgOrderChange,
@@ -182,7 +207,7 @@ export default async function AdminDashboard() {
       </FadeIn>
 
       {/* KPI Cards with month-over-month trends */}
-      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StaggerItem>
           <Card>
             <CardContent className="p-4">
@@ -259,6 +284,27 @@ export default async function AdminDashboard() {
                 <ChangeBadge value={data.avgOrderChange} />
                 <span className="text-xs text-slate-500">vs last month</span>
               </div>
+            </CardContent>
+          </Card>
+        </StaggerItem>
+
+        <StaggerItem>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-slate-500">Purchase Cost (This Month)</p>
+                  <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(data.thisMonthCost)}</p>
+                </div>
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Wallet className="h-5 w-5 text-red-600" />
+                </div>
+              </div>
+              <div className="flex items-center gap-1 mt-2">
+                <ChangeBadge value={data.costChange} />
+                <span className="text-xs text-slate-500">vs last month</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Total: {formatCurrency(data.totalCostSpent)}</p>
             </CardContent>
           </Card>
         </StaggerItem>

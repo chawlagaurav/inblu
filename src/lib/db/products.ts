@@ -18,6 +18,7 @@ function transformProduct(product: {
   categories: string[]
   isBestSeller: boolean
   manualUrl: string | null
+  relatedProductIds?: string[]
   createdAt: Date
   updatedAt: Date
 }): Product {
@@ -33,6 +34,7 @@ function transformProduct(product: {
     categories: product.categories || [],
     isBestSeller: product.isBestSeller,
     manualUrl: product.manualUrl ?? undefined,
+    relatedProductIds: product.relatedProductIds || [],
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
   }
@@ -141,17 +143,36 @@ export const getCachedProductById = unstable_cache(
 )
 
 /**
- * Get related products by category (excluding the current product)
+ * Get related products - first uses manually set relatedProductIds, then falls back to category
  */
 export async function getRelatedProducts(
+  productId: string,
   category: string,
-  excludeId: string,
   limit = 4
 ): Promise<Product[]> {
+  // First, get the current product to check for manually set related products
+  const currentProduct = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { relatedProductIds: true },
+  })
+
+  // If there are manually set related products, fetch those
+  if (currentProduct?.relatedProductIds && currentProduct.relatedProductIds.length > 0) {
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: currentProduct.relatedProductIds },
+        isActive: true,
+      },
+      take: limit,
+    })
+    return products.map(transformProduct)
+  }
+
+  // Fall back to category-based related products
   const products = await prisma.product.findMany({
     where: {
       category,
-      id: { not: excludeId },
+      id: { not: productId },
       isActive: true,
     },
     take: limit,
@@ -165,8 +186,8 @@ export async function getRelatedProducts(
  * Get cached related products
  */
 export const getCachedRelatedProducts = unstable_cache(
-  async (category: string, excludeId: string, limit = 4) =>
-    getRelatedProducts(category, excludeId, limit),
+  async (productId: string, category: string, limit = 4) =>
+    getRelatedProducts(productId, category, limit),
   ['related-products'],
   {
     revalidate: 60,

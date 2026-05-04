@@ -44,9 +44,9 @@ export function BestSellers({ products }: BestSellersProps) {
           </div>
         </FadeInOnScroll>
 
-        <StaggerContainer className="mt-12 flex flex-wrap justify-center gap-6">
+        <StaggerContainer className="mt-12 flex flex-wrap justify-center gap-10">
           {products.map((product) => (
-            <StaggerItem key={product.id} className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]">
+            <StaggerItem key={product.id} className="w-full sm:w-[calc(50%-20px)] lg:w-[calc(33.333%-27px)]">
               <ProductCard product={product} onAddToCart={handleAddToCart} />
             </StaggerItem>
           ))}
@@ -70,8 +70,9 @@ function ProductCard({
   onAddToCart: (product: Product) => void
 }) {
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-      <div className="relative aspect-square overflow-hidden bg-blue-50">
+    <Link href={`/products/${product.id}`} className="block">
+      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <div className="relative aspect-square overflow-hidden bg-blue-50">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
@@ -107,20 +108,19 @@ function ProductCard({
           </Button>
         </motion.div>
       </div>
-      <CardContent className="p-4">
-        <Link href={`/products/${product.id}`}>
+        <CardContent className="p-4">
           <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
             {product.name}
           </h3>
-        </Link>
-        <p className="mt-1 text-sm text-slate-500 line-clamp-1">{product.description}</p>
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-lg font-bold text-slate-900">
-            {formatCurrency(product.price)}
-          </span>
-          <span className="text-xs text-slate-500">{product.stock} in stock</span>
-        </div>
-      </CardContent>
-    </Card>
+          <p className="mt-1 text-sm text-slate-500 line-clamp-1">{product.description}</p>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-lg font-bold text-slate-900">
+              {formatCurrency(product.price)}
+            </span>
+            <span className="text-xs text-slate-500">{product.stock} in stock</span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }

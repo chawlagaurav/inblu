@@ -55,7 +55,7 @@ export function ProductsGrid({ products, category, search }: ProductsGridProps) 
   }
 
   return (
-    <StaggerContainer key={`${category || 'all'}-${search || ''}`} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <StaggerContainer key={`${category || 'all'}-${search || ''}`} className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
       {filteredProducts.map((product) => (
         <StaggerItem key={product.id}>
           <ProductCard product={product} onAddToCart={handleAddToCart} />
@@ -73,8 +73,9 @@ function ProductCard({
   onAddToCart: (product: Product) => void
 }) {
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-      <div className="relative aspect-square overflow-hidden bg-blue-50">
+    <Link href={`/products/${product.id}`} className="block">
+      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <div className="relative aspect-square overflow-hidden bg-blue-50">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
@@ -123,8 +124,7 @@ function ProductCard({
         </div>
       </div>
       
-      <CardContent className="p-4">
-        <Link href={`/products/${product.id}`}>
+        <CardContent className="p-4">
           <div className="mb-2">
             <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">
               {product.category}
@@ -133,22 +133,22 @@ function ProductCard({
               {product.name}
             </h3>
           </div>
-        </Link>
-        
-        <p className="text-sm text-slate-500 line-clamp-2 mb-3">
-          {product.description}
-        </p>
-        
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-slate-900">
-            {formatCurrency(product.price)}
-          </span>
-          <span className="text-xs text-slate-400">
-            {product.stock > 0 ? `${product.stock} in stock` : 'Sold out'}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+          
+          <p className="text-sm text-slate-500 line-clamp-2 mb-3">
+            {product.description}
+          </p>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-xl font-bold text-slate-900">
+              {formatCurrency(product.price)}
+            </span>
+            <span className="text-xs text-slate-400">
+              {product.stock > 0 ? `${product.stock} in stock` : 'Sold out'}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }
 

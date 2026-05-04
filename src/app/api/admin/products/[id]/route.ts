@@ -76,6 +76,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       specifications,
       manualUrl,
       serviceTenureMonths,
+      relatedProductIds,
       isBestSeller,
       isActive
     } = body
@@ -95,6 +96,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         specifications,
         manualUrl,
         serviceTenureMonths: serviceTenureMonths ?? undefined,
+        relatedProductIds: relatedProductIds ?? undefined,
         isBestSeller,
         isActive,
       },

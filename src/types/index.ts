@@ -10,6 +10,7 @@ export interface Product {
   categories: string[]
   isBestSeller: boolean
   manualUrl?: string
+  relatedProductIds?: string[]
   createdAt: Date
   updatedAt: Date
 }

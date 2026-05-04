@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Truck, XCircle, Mail, FileDown, Save } from 'lucide-react'
+import { Loader2, Truck, XCircle, Mail, FileDown, Save, Eye, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -106,26 +106,52 @@ export function OrderActions({ order }: OrderActionsProps) {
   const handleGenerateInvoice = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/admin/orders/${order.id}/invoice`)
-      
+      const response = await fetch('/api/generate-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      })
+
       if (!response.ok) {
         throw new Error('Failed to generate invoice')
       }
 
-      // Download the PDF
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `invoice-${order.id.slice(0, 8).toUpperCase()}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      const data = await response.json()
+      window.open(data.pdfUrl, '_blank')
 
-      toast.success('Invoice downloaded')
+      toast.success('Invoice generated successfully')
     } catch {
       toast.error('Failed to generate invoice')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handlePreviewInvoice = () => {
+    window.open(`/api/generate-invoice?orderId=${order.id}&preview=true`, '_blank')
+  }
+
+  const handleSendInvoiceEmail = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/generate-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, sendEmail: true }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to send invoice')
+      }
+
+      const data = await response.json()
+      if (data.emailSent) {
+        toast.success('Invoice sent to customer')
+      } else {
+        toast.warning('Invoice generated but email failed to send')
+      }
+    } catch {
+      toast.error('Failed to send invoice')
     } finally {
       setIsLoading(false)
     }
@@ -220,11 +246,31 @@ export function OrderActions({ order }: OrderActionsProps) {
           <Button
             variant="outline"
             className="w-full"
+            onClick={handlePreviewInvoice}
+            disabled={isLoading}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Preview Invoice
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full"
             onClick={handleGenerateInvoice}
             disabled={isLoading}
           >
             <FileDown className="h-4 w-4 mr-2" />
             Download Invoice
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleSendInvoiceEmail}
+            disabled={isLoading}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Send Invoice to Customer
           </Button>
 
           {status !== 'CANCELLED' && status !== 'DELIVERED' && (

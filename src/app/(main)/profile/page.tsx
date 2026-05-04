@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Package, LogOut, Calendar, X, CreditCard, MapPin, Loader2 } from 'lucide-react'
+import { User, Package, LogOut, Calendar, X, CreditCard, MapPin, Loader2, FileText, Download, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -55,6 +55,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [invoiceLoading, setInvoiceLoading] = useState(false)
+  const [previewMode, setPreviewMode] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -104,6 +106,33 @@ export default function ProfilePage() {
       style: 'currency',
       currency: 'AUD',
     }).format(amount)
+  }
+
+  const handleDownloadInvoice = async (orderId: string) => {
+    setInvoiceLoading(true)
+    try {
+      const response = await fetch('/api/generate-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // Open PDF in new tab for download
+        window.open(data.pdfUrl, '_blank')
+      } else {
+        console.error('Failed to generate invoice')
+      }
+    } catch (error) {
+      console.error('Error generating invoice:', error)
+    } finally {
+      setInvoiceLoading(false)
+    }
+  }
+
+  const handlePreviewInvoice = (orderId: string) => {
+    window.open(`/api/generate-invoice?orderId=${orderId}&preview=true`, '_blank')
   }
 
   if (loading) {
@@ -355,7 +384,31 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Total */}
-                <div className="border-t border-blue-100 pt-4 flex justify-end">
+                <div className="border-t border-blue-100 pt-4 flex justify-between items-end">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePreviewInvoice(selectedOrder.id)}
+                      className="gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Preview Invoice
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleDownloadInvoice(selectedOrder.id)}
+                      disabled={invoiceLoading}
+                      className="gap-2"
+                    >
+                      {invoiceLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      Download Invoice
+                    </Button>
+                  </div>
                   <div className="text-right">
                     <p className="text-sm text-slate-500">Total Amount</p>
                     <p className="text-2xl font-bold text-blue-600">

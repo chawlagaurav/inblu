@@ -51,6 +51,7 @@ model Product {
   specifications Json?     @default("{}")
   manualUrl    String?     @map("manual_url")
   serviceTenureMonths Int   @default(6) @map("service_tenure_months")
+  relatedProductIds String[] @default([]) @map("related_product_ids")
   isBestSeller Boolean     @default(false) @map("is_best_seller")
   isActive     Boolean     @default(true) @map("is_active")
   createdAt    DateTime    @default(now()) @map("created_at")
@@ -90,10 +91,12 @@ model Order {
   trackingNumber      String?       @map("tracking_number")
   notes               String?
   deliveredAt         DateTime? @map("delivered_at")
+  serviceDueDate      DateTime?     @map("service_due_date")
   isGuest             Boolean       @default(false) @map("is_guest")
   createdAt           DateTime      @default(now()) @map("created_at")
   updatedAt           DateTime      @updatedAt @map("updated_at")
   items               OrderItem[]
+  serviceRequests     ServiceRequest[]
 
   @@map("orders")
 }
@@ -187,11 +190,17 @@ model Coupon {
 }
 
 enum EnquiryStatus {
-  NEW
-  IN_PROGRESS
-  LEAD
-  CONVERTED
-  RESOLVED
+  NEW_LEAD
+  INTERESTED
+  FOLLOW_UP
+  NEED_MORE_INFO
+  QUOTATION_SENT
+  NEGOTIATION
+  CONVERTED_TO_ORDER
+  NO_RESPONSE
+  NOT_INTERESTED
+  LOST
+  FUTURE_FOLLOW_UP
 }
 
 model Enquiry {
@@ -201,7 +210,8 @@ model Enquiry {
   phone      String?
   subject    String
   message    String
-  status     EnquiryStatus @default(NEW)
+  status     EnquiryStatus @default(NEW_LEAD)
+  comment    String?
   resolvedAt DateTime?     @map("resolved_at")
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
@@ -214,6 +224,7 @@ model PurchaseOrder {
   poNumber   String?  @map("po_number")
   vendorName String?  @map("vendor_name")
   fileUrl    String?  @map("file_url")
+  totalCost  Decimal? @db.Decimal(10, 2) @map("total_cost")
   createdAt  DateTime @default(now()) @map("created_at")
   inventoryTransactions InventoryTransaction[]
 
@@ -226,6 +237,7 @@ model InventoryTransaction {
   product         Product  @relation(fields: [productId], references: [id])
   type            String   // "IN", "ADJUSTMENT", "ORDER"
   quantity        Int
+  unitCost        Decimal? @db.Decimal(10, 2) @map("unit_cost")
   previousStock   Int      @map("previous_stock")
   newStock        Int      @map("new_stock")
   referenceType   String   @map("reference_type") // "PO", "ORDER", "MANUAL"
@@ -235,4 +247,52 @@ model InventoryTransaction {
   createdAt       DateTime @default(now()) @map("created_at")
 
   @@map("inventory_transactions")
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  IN_PROGRESS
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceType {
+  INSTALLATION
+  MAINTENANCE
+  REPAIR
+  FILTER_REPLACEMENT
+  INSPECTION
+  WARRANTY_CLAIM
+  OTHER
+}
+
+model ServiceRequest {
+  id              String               @id @default(uuid())
+  ticketNumber    String               @unique @map("ticket_number")
+  orderId         String               @map("order_id")
+  order           Order                @relation(fields: [orderId], references: [id])
+  name            String
+  email           String
+  phone           String
+  address         String?
+  city            String?
+  state           String?
+  postcode        String?
+  serviceType     ServiceType          @map("service_type")
+  productName     String?              @map("product_name")
+  purchaseDate    DateTime?            @map("purchase_date")
+  issueDescription String              @map("issue_description")
+  preferredDate   DateTime?            @map("preferred_date")
+  status          ServiceRequestStatus @default(PENDING)
+  priority        String               @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  assignedTo      String?              @map("assigned_to")
+  internalNotes   String?              @map("internal_notes")
+  resolution      String?
+  scheduledDate   DateTime?            @map("scheduled_date")
+  completedAt     DateTime?            @map("completed_at")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  @@map("service_requests")
 }

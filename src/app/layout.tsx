@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   keywords: ["water filter", "RO purifier", "water ioniser", "undersink filter", "australia", "clean water", "water purification"],
   authors: [{ name: "Inblu" }],
   creator: "Inblu",
+  icons: {
+    icon: "/inblu.svg",
+    shortcut: "/inblu.svg",
+    apple: "/inblu.svg",
+  },
   openGraph: {
     type: "website",
     locale: "en_AU",

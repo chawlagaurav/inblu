@@ -24,6 +24,8 @@ export async function GET() {
     hasDirectUrl: !!process.env.DIRECT_URL,
     hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
     hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || 'NOT SET',
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || 'NOT SET',
     dbUrlPreview: dbUrl ? dbUrl.replace(/:[^:@]+@/, ':****@').substring(0, 80) : 'NOT SET',
     directUrlPreview: directUrl ? directUrl.replace(/:[^:@]+@/, ':****@').substring(0, 80) : 'NOT SET',
     port,

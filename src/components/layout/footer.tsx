@@ -142,7 +142,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-8 border-t border-blue-100 pt-8">
           <p className="text-xs text-slate-500 text-center">
-            &copy; {new Date().getFullYear()} Inblu. All rights reserved. ABN: 12 345 678 901
+            &copy; {new Date().getFullYear()} Inblu. All rights reserved. ABN: 87 947 612 461
           </p>
         </div>
       </div>

@@ -10,7 +10,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Inblu Filters - Premium Water Filtration",
+    default: "Inblu Filters | Premium Water Filtration",
     template: "%s | Inblu Filters",
   },
   description: "Pure, clean drinking water for Australian homes. Discover premium RO water purifiers, undersink filters, and water ionisers at Inblu.",
@@ -32,20 +32,20 @@ export const metadata: Metadata = {
     locale: "en_AU",
     url: process.env.NEXT_PUBLIC_APP_URL,
     siteName: "Inblu Filters",
-    title: "Inblu Filters - Premium Water Filtration",
+    title: "Inblu Filters | Premium Water Filtration",
     description: "Pure, clean drinking water for Australian homes. Premium water purifiers and filters.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Inblu Filters - Premium Water Filtration",
+        alt: "Inblu Filters | Premium Water Filtration",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Inblu Filters - Premium Water Filtration",
+    title: "Inblu Filters | Premium Water Filtration",
     description: "Pure, clean drinking water for Australian homes. Premium water purifiers and filters.",
     images: ["/og-image.png"],
   },

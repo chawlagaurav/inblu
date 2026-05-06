@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Upload, Loader2, Plus } from 'lucide-react'
+import { ArrowLeft, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FadeIn } from '@/components/motion'
+import { ImageUpload, MultiImageUpload, DocumentUpload } from '@/components/admin/image-upload'
 import { toast } from 'sonner'
 
 const categories = [
@@ -29,6 +30,7 @@ export default function NewProductPage() {
     stock: '',
     categories: [] as string[],
     imageUrl: '',
+    images: [] as string[],
     sku: '',
     manualUrl: '',
     serviceTenureMonths: '6',
@@ -89,7 +91,7 @@ export default function NewProductPage() {
           category: formData.categories[0],
           categories: formData.categories,
           imageUrl: formData.imageUrl || '/products/placeholder.jpg',
-          images: [],
+          images: formData.images,
           sku: formData.sku || null,
           manualUrl: formData.manualUrl || null,
           specifications: specs,
@@ -275,25 +277,26 @@ export default function NewProductPage() {
             <CardHeader>
               <CardTitle>Product Images</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="imageUrl">Main Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  name="imageUrl"
+                <Label>Main Image *</Label>
+                <p className="text-xs text-slate-500 mb-2">This will be the primary product image</p>
+                <ImageUpload
                   value={formData.imageUrl}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="/products/product-image.jpg or https://..."
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                  folder="products"
                 />
               </div>
 
-              <div className="border-2 border-dashed border-blue-200 rounded-2xl p-6 text-center">
-                <Upload className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                <p className="text-sm text-slate-600 mb-2">
-                  Drag and drop images here, or enter URL above
-                </p>
-                <p className="text-xs text-slate-400">PNG, JPG up to 5MB</p>
+              <div>
+                <Label>Additional Images</Label>
+                <p className="text-xs text-slate-500 mb-2">Add more images for product gallery (max 5)</p>
+                <MultiImageUpload
+                  values={formData.images}
+                  onChange={(urls) => setFormData({ ...formData, images: urls })}
+                  folder="products"
+                  maxImages={5}
+                />
               </div>
             </CardContent>
           </Card>
@@ -304,14 +307,13 @@ export default function NewProductPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="manualUrl">Manual PDF URL</Label>
-                <Input
-                  id="manualUrl"
-                  name="manualUrl"
+                <Label>Product Manual (PDF)</Label>
+                <p className="text-xs text-slate-500 mb-2">Upload a PDF manual for this product</p>
+                <DocumentUpload
                   value={formData.manualUrl}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="/manuals/product-manual.pdf"
+                  onChange={(url) => setFormData({ ...formData, manualUrl: url })}
+                  folder="manuals"
+                  label="PDF Manual"
                 />
               </div>
 

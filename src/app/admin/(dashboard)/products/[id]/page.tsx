@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Upload, Loader2, Save, Trash2, Package, PackagePlus } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Trash2, Package, PackagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FadeIn } from '@/components/motion'
 import { AdminLoader } from '@/components/admin/admin-loader'
 import { InventoryModal } from '@/components/admin/inventory-modal'
+import { ImageUpload, MultiImageUpload, DocumentUpload } from '@/components/admin/image-upload'
 import { toast } from 'sonner'
 
 const categories = [
@@ -63,6 +64,7 @@ export default function EditProductPage() {
     stock: '',
     categories: [] as string[],
     imageUrl: '',
+    images: [] as string[],
     sku: '',
     manualUrl: '',
     serviceTenureMonths: '6',
@@ -122,6 +124,7 @@ export default function EditProductPage() {
         stock: String(data.stock),
         categories: data.categories && data.categories.length > 0 ? data.categories : (data.category ? [data.category] : []),
         imageUrl: data.imageUrl || '',
+        images: data.images || [],
         sku: data.sku || '',
         manualUrl: data.manualUrl || '',
         serviceTenureMonths: String(data.serviceTenureMonths ?? 6),
@@ -174,7 +177,7 @@ export default function EditProductPage() {
           category: formData.categories[0] || '',
           categories: formData.categories,
           imageUrl: formData.imageUrl || '/products/placeholder.jpg',
-          images: product?.images || [],
+          images: formData.images,
           sku: formData.sku || null,
           manualUrl: formData.manualUrl || null,
           specifications: specs,
@@ -362,40 +365,26 @@ export default function EditProductPage() {
             <CardHeader>
               <CardTitle>Product Images</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="imageUrl">Main Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  name="imageUrl"
+                <Label>Main Image *</Label>
+                <p className="text-xs text-slate-500 mb-2">This will be the primary product image</p>
+                <ImageUpload
                   value={formData.imageUrl}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="/products/product-image.jpg"
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                  folder="products"
                 />
               </div>
 
-              {formData.imageUrl && (
-                <div className="flex items-start gap-4">
-                  <div className="h-24 w-24 rounded-lg overflow-hidden bg-blue-100">
-                    <Image
-                      src={formData.imageUrl}
-                      alt="Product preview"
-                      width={96}
-                      height={96}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <p className="text-sm text-slate-500">Current image preview</p>
-                </div>
-              )}
-
-              <div className="border-2 border-dashed border-blue-200 rounded-2xl p-6 text-center">
-                <Upload className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                <p className="text-sm text-slate-600 mb-2">
-                  Drag and drop images here, or enter URL above
-                </p>
-                <p className="text-xs text-slate-400">PNG, JPG up to 5MB</p>
+              <div>
+                <Label>Additional Images</Label>
+                <p className="text-xs text-slate-500 mb-2">Add more images for product gallery (max 5)</p>
+                <MultiImageUpload
+                  values={formData.images}
+                  onChange={(urls) => setFormData({ ...formData, images: urls })}
+                  folder="products"
+                  maxImages={5}
+                />
               </div>
             </CardContent>
           </Card>
@@ -406,14 +395,13 @@ export default function EditProductPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="manualUrl">Manual PDF URL</Label>
-                <Input
-                  id="manualUrl"
-                  name="manualUrl"
+                <Label>Product Manual (PDF)</Label>
+                <p className="text-xs text-slate-500 mb-2">Upload a PDF manual for this product</p>
+                <DocumentUpload
                   value={formData.manualUrl}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="/manuals/product-manual.pdf"
+                  onChange={(url) => setFormData({ ...formData, manualUrl: url })}
+                  folder="manuals"
+                  label="PDF Manual"
                 />
               </div>
 

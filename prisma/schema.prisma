@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,220 +11,182 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model coupons {
-  id                  String    @id
-  code                String    @unique
-  description         String?
-  discount_type       String    @default("percentage")
-  discount_value      Decimal   @db.Decimal(10, 2)
-  min_order_amount    Decimal?  @db.Decimal(10, 2)
-  max_discount_amount Decimal?  @db.Decimal(10, 2)
-  max_uses            Int?
-  used_count          Int       @default(0)
-  is_active           Boolean   @default(true)
-  start_date          DateTime?
-  end_date            DateTime?
-  created_at          DateTime  @default(now())
-  updated_at          DateTime
+enum Role {
+  ADMIN
+  CUSTOMER
 }
 
-model enquiries {
-  id          String        @id
-  name        String
-  email       String
-  phone       String?
-  subject     String
-  message     String
-  status      EnquiryStatus @default(NEW_LEAD)
-  resolved_at DateTime?
-  created_at  DateTime      @default(now())
-  updated_at  DateTime
-  comment     String?
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
-model inventory_transactions {
-  id              String           @id
-  product_id      String
-  type            String
-  quantity        Int
-  previous_stock  Int
-  new_stock       Int
-  reference_type  String
-  reference_id    String?
-  note            String?
-  created_at      DateTime         @default(now())
-  unit_cost       Decimal?         @db.Decimal(10, 2)
-  products        products         @relation(fields: [product_id], references: [id])
-  purchase_orders purchase_orders? @relation(fields: [reference_id], references: [id])
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  orders    Order[]
+
+  @@map("users")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model marketing_content {
-  id         String    @id
-  key        String    @unique
-  title      String?
-  subtitle   String?
-  content    String?
-  image_url  String?
-  link_url   String?
-  link_text  String?
-  is_active  Boolean   @default(true)
-  start_date DateTime?
-  end_date   DateTime?
-  created_at DateTime  @default(now())
-  updated_at DateTime
+model Product {
+  id           String      @id @default(uuid())
+  name         String
+  description  String
+  price        Decimal     @db.Decimal(10, 2)
+  imageUrl     String      @map("image_url")
+  images       String[]    @default([])
+  sku          String?
+  stock        Int         @default(0)
+  category     String
+  categories   String[]    @default([])
+  specifications Json?     @default("{}")
+  manualUrl    String?     @map("manual_url")
+  serviceTenureMonths Int   @default(6) @map("service_tenure_months")
+  relatedProductIds String[] @default([]) @map("related_product_ids")
+  isBestSeller Boolean     @default(false) @map("is_best_seller")
+  isActive     Boolean     @default(true) @map("is_active")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  orderItems   OrderItem[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@map("products")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model marketing_settings {
-  id                  String    @id
-  popup_enabled       Boolean   @default(true)
-  popup_headline      String    @default("GET 10% OFF YOUR FIRST ORDER")
-  popup_subtext       String    @default("Join our community and get exclusive offers on water purification products.")
-  discount_code       String    @default("CLEANWATER10")
-  discount_percentage Int       @default(10)
-  popup_delay         Int       @default(5)
-  start_date          DateTime?
-  end_date            DateTime?
-  created_at          DateTime  @default(now())
-  updated_at          DateTime
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model order_items {
-  id         String   @id
-  order_id   String
-  product_id String
-  quantity   Int
-  price      Decimal  @db.Decimal(10, 2)
-  created_at DateTime @default(now())
-  orders     orders   @relation(fields: [order_id], references: [id], onDelete: Cascade)
-  products   products @relation(fields: [product_id], references: [id])
+model Order {
+  id                  String        @id @default(uuid())
+  userId              String?       @map("user_id")
+  user                User?         @relation(fields: [userId], references: [id])
+  customerName        String        @map("customer_name")
+  email               String
+  phone               String?
+  totalAmount         Decimal       @db.Decimal(10, 2) @map("total_amount")
+  subtotal            Decimal       @db.Decimal(10, 2)
+  gst                 Decimal       @db.Decimal(10, 2)
+  shippingCost        Decimal       @db.Decimal(10, 2) @map("shipping_cost")
+  discountAmount      Decimal       @db.Decimal(10, 2) @default(0) @map("discount_amount")
+  couponCode          String?       @map("coupon_code")
+  stripePaymentIntent String?       @unique @map("stripe_payment_intent")
+  stripeSessionId     String?       @map("stripe_session_id")
+  status              OrderStatus   @default(PENDING)
+  paymentStatus       PaymentStatus @default(PENDING) @map("payment_status")
+  shippingAddress     Json          @map("shipping_address")
+  trackingNumber      String?       @map("tracking_number")
+  notes               String?
+  deliveredAt         DateTime? @map("delivered_at")
+  serviceDueDate      DateTime?     @map("service_due_date")
+  isGuest             Boolean       @default(false) @map("is_guest")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  items               OrderItem[]
+  serviceRequests     ServiceRequest[]
+
+  @@map("orders")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model orders {
-  id                    String             @id
-  user_id               String?
-  customer_name         String
-  email                 String
-  phone                 String?
-  total_amount          Decimal            @db.Decimal(10, 2)
-  subtotal              Decimal            @db.Decimal(10, 2)
-  gst                   Decimal            @db.Decimal(10, 2)
-  shipping_cost         Decimal            @db.Decimal(10, 2)
-  discount_amount       Decimal            @default(0) @db.Decimal(10, 2)
-  coupon_code           String?
-  stripe_payment_intent String?            @unique
-  stripe_session_id     String?
-  status                OrderStatus        @default(PENDING)
-  payment_status        PaymentStatus      @default(PENDING)
-  shipping_address      Json
-  tracking_number       String?
-  notes                 String?
-  is_guest              Boolean            @default(false)
-  created_at            DateTime           @default(now())
-  updated_at            DateTime
-  delivered_at          DateTime?
-  service_due_date      DateTime?
-  order_items           order_items[]
-  users                 users?             @relation(fields: [user_id], references: [id])
-  service_requests      service_requests[]
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String   @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("order_items")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model products {
-  id                     String                   @id
-  name                   String
-  description            String
-  price                  Decimal                  @db.Decimal(10, 2)
-  image_url              String
-  images                 String[]                 @default([])
-  sku                    String?
-  stock                  Int                      @default(0)
-  category               String
-  specifications         Json?                    @default("{}")
-  manual_url             String?
-  is_best_seller         Boolean                  @default(false)
-  is_active              Boolean                  @default(true)
-  created_at             DateTime                 @default(now())
-  updated_at             DateTime
-  categories             String[]                 @default([])
-  service_tenure_months  Int                      @default(6)
-  related_product_ids    String[]                 @default([])
-  inventory_transactions inventory_transactions[]
-  order_items            order_items[]
+model Testimonial {
+  id           String   @id @default(uuid())
+  content      String
+  rating       Int      @default(5)
+  authorName   String   @map("author_name")
+  authorAvatar String?  @map("author_avatar")
+  isApproved   Boolean  @default(false) @map("is_approved")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("testimonials")
 }
 
-model purchase_orders {
-  id                     String                   @id
-  po_number              String?
-  vendor_name            String?
-  file_url               String?
-  created_at             DateTime                 @default(now())
-  total_cost             Decimal?                 @db.Decimal(10, 2)
-  inventory_transactions inventory_transactions[]
+model MarketingContent {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  title       String?
+  subtitle    String?
+  content     String?
+  imageUrl    String?  @map("image_url")
+  linkUrl     String?  @map("link_url")
+  linkText    String?  @map("link_text")
+  isActive    Boolean  @default(true) @map("is_active")
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("marketing_content")
 }
 
-model service_requests {
-  id                String               @id
-  ticket_number     String               @unique
-  name              String
-  email             String
-  phone             String
-  address           String?
-  city              String?
-  state             String?
-  postcode          String?
-  service_type      ServiceType
-  product_name      String?
-  purchase_date     DateTime?
-  issue_description String
-  preferred_date    DateTime?
-  status            ServiceRequestStatus @default(PENDING)
-  priority          String               @default("NORMAL")
-  assigned_to       String?
-  internal_notes    String?
-  resolution        String?
-  scheduled_date    DateTime?
-  completed_at      DateTime?
-  created_at        DateTime             @default(now())
-  updated_at        DateTime
-  order_id          String
-  orders            orders               @relation(fields: [order_id], references: [id])
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  source    String   @default("popup") // popup, newsletter, checkout
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("subscribers")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model subscribers {
-  id         String   @id
-  email      String   @unique
-  source     String   @default("popup")
-  created_at DateTime @default(now())
+model MarketingSettings {
+  id                 String    @id @default(uuid())
+  popupEnabled       Boolean   @default(true) @map("popup_enabled")
+  popupHeadline      String    @default("GET 10% OFF YOUR FIRST ORDER") @map("popup_headline")
+  popupSubtext       String    @default("Join our community and get exclusive offers on water purification products.") @map("popup_subtext")
+  discountCode       String    @default("CLEANWATER10") @map("discount_code")
+  discountPercentage Int       @default(10) @map("discount_percentage")
+  popupDelay         Int       @default(5) @map("popup_delay") // seconds
+  startDate          DateTime? @map("start_date")
+  endDate            DateTime? @map("end_date")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  @@map("marketing_settings")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model testimonials {
-  id            String   @id
-  content       String
-  rating        Int      @default(5)
-  author_name   String
-  author_avatar String?
-  is_approved   Boolean  @default(false)
-  created_at    DateTime @default(now())
-  updated_at    DateTime
-}
+model Coupon {
+  id               String    @id @default(uuid())
+  code             String    @unique
+  description      String?
+  discountType     String    @default("percentage") @map("discount_type") // "percentage" or "fixed"
+  discountValue    Decimal   @db.Decimal(10, 2) @map("discount_value") // percentage (e.g. 10) or fixed amount (e.g. 25.00)
+  minOrderAmount   Decimal?  @db.Decimal(10, 2) @map("min_order_amount")
+  maxDiscountAmount Decimal? @db.Decimal(10, 2) @map("max_discount_amount") // cap for percentage discounts
+  maxUses          Int?      @map("max_uses")
+  usedCount        Int       @default(0) @map("used_count")
+  isActive         Boolean   @default(true) @map("is_active")
+  startDate        DateTime? @map("start_date")
+  endDate          DateTime? @map("end_date")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model users {
-  id         String   @id
-  email      String   @unique
-  name       String?
-  phone      String?
-  role       Role     @default(CUSTOMER)
-  created_at DateTime @default(now())
-  updated_at DateTime
-  orders     orders[]
+  @@map("coupons")
 }
 
 enum EnquiryStatus {
@@ -238,25 +203,50 @@ enum EnquiryStatus {
   FUTURE_FOLLOW_UP
 }
 
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
+model Enquiry {
+  id         String        @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String
+  status     EnquiryStatus @default(NEW_LEAD)
+  comment    String?
+  resolvedAt DateTime?     @map("resolved_at")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@map("enquiries")
 }
 
-enum PaymentStatus {
-  PENDING
-  PROCESSING
-  SUCCEEDED
-  FAILED
-  REFUNDED
+model PurchaseOrder {
+  id         String   @id @default(uuid())
+  poNumber   String?  @map("po_number")
+  vendorName String?  @map("vendor_name")
+  fileUrl    String?  @map("file_url")
+  totalCost  Decimal? @db.Decimal(10, 2) @map("total_cost")
+  createdAt  DateTime @default(now()) @map("created_at")
+  inventoryTransactions InventoryTransaction[]
+
+  @@map("purchase_orders")
 }
 
-enum Role {
-  ADMIN
-  CUSTOMER
+model InventoryTransaction {
+  id              String   @id @default(uuid())
+  productId       String   @map("product_id")
+  product         Product  @relation(fields: [productId], references: [id])
+  type            String   // "IN", "ADJUSTMENT", "ORDER"
+  quantity        Int
+  unitCost        Decimal? @db.Decimal(10, 2) @map("unit_cost")
+  previousStock   Int      @map("previous_stock")
+  newStock        Int      @map("new_stock")
+  referenceType   String   @map("reference_type") // "PO", "ORDER", "MANUAL"
+  referenceId     String?  @map("reference_id")
+  purchaseOrder   PurchaseOrder? @relation(fields: [referenceId], references: [id])
+  note            String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("inventory_transactions")
 }
 
 enum ServiceRequestStatus {
@@ -275,4 +265,34 @@ enum ServiceType {
   INSPECTION
   WARRANTY_CLAIM
   OTHER
+}
+
+model ServiceRequest {
+  id              String               @id @default(uuid())
+  ticketNumber    String               @unique @map("ticket_number")
+  orderId         String               @map("order_id")
+  order           Order                @relation(fields: [orderId], references: [id])
+  name            String
+  email           String
+  phone           String
+  address         String?
+  city            String?
+  state           String?
+  postcode        String?
+  serviceType     ServiceType          @map("service_type")
+  productName     String?              @map("product_name")
+  purchaseDate    DateTime?            @map("purchase_date")
+  issueDescription String              @map("issue_description")
+  preferredDate   DateTime?            @map("preferred_date")
+  status          ServiceRequestStatus @default(PENDING)
+  priority        String               @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  assignedTo      String?              @map("assigned_to")
+  internalNotes   String?              @map("internal_notes")
+  resolution      String?
+  scheduledDate   DateTime?            @map("scheduled_date")
+  completedAt     DateTime?            @map("completed_at")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  @@map("service_requests")
 }

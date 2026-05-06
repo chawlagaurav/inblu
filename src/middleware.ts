@@ -29,19 +29,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
-
-  // If the refresh token is invalid, clear the auth cookies
-  if (!user) {
-    const allCookies = request.cookies.getAll()
-    const supabaseCookies = allCookies.filter(c => c.name.startsWith('sb-'))
-    if (supabaseCookies.length > 0) {
-      supabaseCookies.forEach(({ name }) => {
-        supabaseResponse.cookies.delete(name)
-      })
-    }
+  // Get the user - don't delete cookies on failure
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch (e) {
+    // Auth check failed - don't clear cookies, let the session refresh naturally
+    console.error('[Middleware] Auth check failed:', e)
   }
 
   // Protected admin routes - require authentication and admin role

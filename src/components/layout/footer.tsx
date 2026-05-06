@@ -10,7 +10,7 @@ const footerNavigation = {
   ],
   company: [
     { name: 'About Us', href: '/about' },
-    { name: 'Contact', href: '/support/contact' },
+    { name: 'Contact Us', href: '/support/contact' },
     { name: 'Service Request', href: '/support/service-request' },
     { name: 'Shipping & Returns', href: '/support/shipping' },
   ],

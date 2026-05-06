@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { ServiceType } from '@prisma/client'
+import { sendServiceRequestConfirmation, sendServiceRequestAdminNotification } from '@/lib/email'
 
 /**
  * Generate ticket number: SR-YYYYMMDD-XXXX
@@ -106,6 +107,29 @@ export async function POST(request: NextRequest) {
         preferredDate: preferredDate ? new Date(preferredDate) : null,
       },
     })
+
+    // Send confirmation emails (don't await to avoid blocking response)
+    const emailData = {
+      ticketNumber: serviceRequest.ticketNumber,
+      name,
+      email,
+      phone,
+      serviceType,
+      productName: productName || null,
+      issueDescription,
+      preferredDate: preferredDate ? new Date(preferredDate) : null,
+      address: address || null,
+      city: city || null,
+      state: state || null,
+      postcode: postcode || null,
+      orderId: order?.id || null,
+    }
+
+    // Send emails in background
+    Promise.all([
+      sendServiceRequestConfirmation(emailData),
+      sendServiceRequestAdminNotification(emailData),
+    ]).catch(err => console.error('Failed to send service request emails:', err))
 
     return NextResponse.json({
       success: true,

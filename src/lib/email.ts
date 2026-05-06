@@ -341,3 +341,244 @@ function generateServiceReminderHtml(data: ServiceReminderData): string {
     </html>
   `
 }
+
+// Service Request Email Functions
+export interface ServiceRequestEmailData {
+  ticketNumber: string
+  name: string
+  email: string
+  phone: string
+  serviceType: string
+  productName?: string | null
+  issueDescription: string
+  preferredDate?: Date | null
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  postcode?: string | null
+  orderId?: string | null
+}
+
+const SERVICE_TYPE_LABELS: Record<string, string> = {
+  INSTALLATION: 'Installation',
+  MAINTENANCE: 'Maintenance',
+  REPAIR: 'Repair',
+  FILTER_REPLACEMENT: 'Filter Replacement',
+  INSPECTION: 'Inspection',
+  WARRANTY_CLAIM: 'Warranty Claim',
+  OTHER: 'Other',
+}
+
+export async function sendServiceRequestConfirmation(data: ServiceRequestEmailData): Promise<boolean> {
+  try {
+    const subject = `Service Request Received - ${data.ticketNumber}`
+    const html = generateServiceRequestConfirmationHtml(data)
+    const resend = getResend()
+
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: 'inBlu Support <support@inblu.com.au>',
+        to: data.email,
+        subject,
+        html,
+      })
+
+      if (error) {
+        console.error('Resend error (service request confirmation):', error)
+        return false
+      }
+
+      console.log(`Service request confirmation sent to ${data.email} for ticket ${data.ticketNumber}`)
+    } else {
+      console.log('=== SERVICE REQUEST CONFIRMATION (not sent — Resend not configured) ===')
+      console.log(`To: ${data.email}`)
+      console.log(`Subject: ${subject}`)
+      console.log('=================================')
+    }
+
+    return true
+  } catch (error) {
+    console.error('Failed to send service request confirmation:', error)
+    return false
+  }
+}
+
+export async function sendServiceRequestAdminNotification(data: ServiceRequestEmailData): Promise<boolean> {
+  try {
+    const adminEmail = 'support@inblu.com.au'
+    const subject = `New Service Request - ${data.ticketNumber} (${SERVICE_TYPE_LABELS[data.serviceType] || data.serviceType})`
+    const html = generateServiceRequestAdminHtml(data)
+    const resend = getResend()
+
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: 'inBlu System <support@inblu.com.au>',
+        to: adminEmail,
+        subject,
+        html,
+      })
+
+      if (error) {
+        console.error('Resend error (service request admin notification):', error)
+        return false
+      }
+
+      console.log(`Service request admin notification sent for ticket ${data.ticketNumber}`)
+    } else {
+      console.log('=== SERVICE REQUEST ADMIN NOTIFICATION (not sent — Resend not configured) ===')
+      console.log(`To: ${adminEmail}`)
+      console.log(`Subject: ${subject}`)
+      console.log('=================================')
+    }
+
+    return true
+  } catch (error) {
+    console.error('Failed to send service request admin notification:', error)
+    return false
+  }
+}
+
+function generateServiceRequestConfirmationHtml(data: ServiceRequestEmailData): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px;">
+      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #0a508e, #1e6fba); padding: 32px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">Service Request Received</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">Ticket: ${data.ticketNumber}</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #334155; font-size: 16px;">Hi ${data.name},</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            Thank you for submitting your service request. We have received your request and our team will review it shortly.
+          </p>
+
+          <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; margin: 24px 0;">
+            <h3 style="color: #0f172a; margin: 0 0 16px 0; font-size: 16px;">Request Details</h3>
+            <table style="width: 100%; font-size: 14px; color: #475569;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: 600;">Ticket Number:</td>
+                <td style="padding: 8px 0;">${data.ticketNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: 600;">Service Type:</td>
+                <td style="padding: 8px 0;">${SERVICE_TYPE_LABELS[data.serviceType] || data.serviceType}</td>
+              </tr>
+              ${data.productName ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: 600;">Product:</td>
+                <td style="padding: 8px 0;">${data.productName}</td>
+              </tr>
+              ` : ''}
+              ${data.orderId ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: 600;">Order ID:</td>
+                <td style="padding: 8px 0;">${data.orderId.slice(0, 8).toUpperCase()}</td>
+              </tr>
+              ` : ''}
+              ${data.preferredDate ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: 600;">Preferred Date:</td>
+                <td style="padding: 8px 0;">${formatDate(data.preferredDate)}</td>
+              </tr>
+              ` : ''}
+            </table>
+          </div>
+
+          <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 24px 0;">
+            <p style="color: #92400e; margin: 0; font-size: 14px;">
+              <strong>What's Next?</strong><br/>
+              Our support team will review your request and contact you within 1-2 business days to schedule your service appointment.
+            </p>
+          </div>
+
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            If you have any urgent concerns, please don't hesitate to call us at <a href="tel:+61431318665" style="color: #0a508e;">+61 431 318 665</a>.
+          </p>
+
+          <div style="text-align: center; margin-top: 32px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; margin: 0; font-size: 12px;">
+              Questions? Reply to this email or contact us at <a href="mailto:support@inblu.com.au" style="color: #0a508e;">support@inblu.com.au</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+function generateServiceRequestAdminHtml(data: ServiceRequestEmailData): string {
+  const addressParts = [data.address, data.city, data.state, data.postcode].filter(Boolean)
+  const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : 'Not provided'
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px;">
+      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="background: #dc2626; padding: 24px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 20px;">🔔 New Service Request</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">${data.ticketNumber}</p>
+        </div>
+        <div style="padding: 24px;">
+          <table style="width: 100%; font-size: 14px; color: #334155; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600; width: 140px;">Customer Name:</td>
+              <td style="padding: 12px 8px;">${data.name}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600;">Email:</td>
+              <td style="padding: 12px 8px;"><a href="mailto:${data.email}" style="color: #0a508e;">${data.email}</a></td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600;">Phone:</td>
+              <td style="padding: 12px 8px;"><a href="tel:${data.phone}" style="color: #0a508e;">${data.phone}</a></td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600;">Service Type:</td>
+              <td style="padding: 12px 8px;"><span style="background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${SERVICE_TYPE_LABELS[data.serviceType] || data.serviceType}</span></td>
+            </tr>
+            ${data.productName ? `
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600;">Product:</td>
+              <td style="padding: 12px 8px;">${data.productName}</td>
+            </tr>
+            ` : ''}
+            ${data.orderId ? `
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600;">Order ID:</td>
+              <td style="padding: 12px 8px;">${data.orderId.slice(0, 8).toUpperCase()}</td>
+            </tr>
+            ` : ''}
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600;">Address:</td>
+              <td style="padding: 12px 8px;">${fullAddress}</td>
+            </tr>
+            ${data.preferredDate ? `
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 12px 8px; font-weight: 600;">Preferred Date:</td>
+              <td style="padding: 12px 8px;">${formatDate(data.preferredDate)}</td>
+            </tr>
+            ` : ''}
+          </table>
+
+          <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin-top: 20px;">
+            <h3 style="color: #0f172a; margin: 0 0 8px 0; font-size: 14px;">Issue Description:</h3>
+            <p style="color: #475569; margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${data.issueDescription}</p>
+          </div>
+
+          <div style="text-align: center; margin-top: 24px;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'}/admin/service-requests" style="display: inline-block; background: #0a508e; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+              View in Admin Panel
+            </a>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}

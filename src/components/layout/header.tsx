@@ -114,6 +114,15 @@ export function Header() {
 
         {/* Mobile: Cart + Profile (right) */}
         <div className="flex items-center gap-1 lg:hidden">
+          <a href="tel:+61431318665">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+            >
+              <Phone className="h-5 w-5" />
+            </Button>
+          </a>
           <Button
             variant="ghost"
             size="icon"
@@ -266,6 +275,14 @@ export function Header() {
               </Link>
             )}
           </div>
+          <a href="tel:+61431318665">
+            <Button
+              variant="ghost"
+              size="icon"
+            >
+              <Phone className="h-5 w-5" />
+            </Button>
+          </a>
           <Button
             variant="ghost"
             size="icon"

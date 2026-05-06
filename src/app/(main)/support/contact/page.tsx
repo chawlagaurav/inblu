@@ -19,9 +19,9 @@ const contactInfo = [
   {
     icon: Mail,
     title: 'Email',
-    details: 'support@inblu.com.au',
+    details: 'info@inblu.com.au',
     subtext: 'We reply within 24 hours',
-    href: 'mailto:support@inblu.com.au',
+    href: 'mailto:info@inblu.com.au',
   },
   {
     icon: MapPin,

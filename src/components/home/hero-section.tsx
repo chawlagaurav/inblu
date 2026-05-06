@@ -95,17 +95,62 @@ export function HeroSection() {
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </Link>
+        </motion.div>
 
-          {/* Secondary CTA */}
-          <Link href="/about">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center justify-center px-8 py-4 text-base font-bold uppercase tracking-wider text-white bg-white/10 backdrop-blur-sm rounded-2xl border border-white/30 hover:bg-white/20 hover:border-white/50 transition-all duration-300"
+        {/* Animated Water Drop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={mounted ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-12 flex justify-center"
+        >
+          <motion.div
+            animate={{ y: [0, 12, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            className="relative"
+          >
+            {/* Water Drop SVG */}
+            <svg
+              width="32"
+              height="44"
+              viewBox="0 0 32 44"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="drop-shadow-lg"
             >
-              Learn More
-            </motion.button>
-          </Link>
+              <path
+                d="M16 0C16 0 0 18 0 28C0 36.8366 7.16344 44 16 44C24.8366 44 32 36.8366 32 28C32 18 16 0 16 0Z"
+                fill="url(#waterDropGradient)"
+              />
+              <ellipse
+                cx="10"
+                cy="26"
+                rx="4"
+                ry="6"
+                fill="white"
+                fillOpacity="0.3"
+              />
+              <defs>
+                <linearGradient
+                  id="waterDropGradient"
+                  x1="16"
+                  y1="0"
+                  x2="16"
+                  y2="44"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stopColor="#60A5FA" />
+                  <stop offset="1" stopColor="#3B82F6" />
+                </linearGradient>
+              </defs>
+            </svg>
+            {/* Ripple effect */}
+            <motion.div
+              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-2 bg-blue-400/30 rounded-full blur-sm"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Trust Badges */}

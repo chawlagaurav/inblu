@@ -17,7 +17,7 @@ import { ImageUpload, MultiImageUpload, DocumentUpload } from '@/components/admi
 import { toast } from 'sonner'
 
 const categories = [
-  { value: 'ro-purifiers', label: 'RO Water Purifiers' },
+  { value: 'ro-purifiers', label: 'Counter top Purifiers' },
   { value: 'water-ionisers', label: 'Water Ionisers' },
   { value: 'undersink-filters', label: 'Undersink Filters' },
   { value: 'replacement-filters', label: 'Replacement Filters' },

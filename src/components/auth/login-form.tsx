@@ -60,7 +60,7 @@ export function LoginForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?redirect=${redirect}`,
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
         },
       })
 

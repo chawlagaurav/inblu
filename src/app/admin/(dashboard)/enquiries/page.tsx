@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Loader2, MessageSquare, Trash2, Search, X, Mail, Phone, ChevronDown, ChevronUp, MessageCircle, Clock,
+  Loader2, MessageSquare, Trash2, Search, X, Mail, Phone, ChevronDown, ChevronUp, MessageCircle, Clock, ExternalLink,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -158,11 +158,19 @@ export default function AdminEnquiriesPage() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Enquiries</h1>
-          <p className="text-slate-500 mt-1">
-            Manage customer enquiries from the contact form &middot; {filtered.length} enquir{filtered.length !== 1 ? 'ies' : 'y'}
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Enquiries</h1>
+            <p className="text-slate-500 mt-1">
+              Manage customer enquiries from the contact form &middot; {filtered.length} enquir{filtered.length !== 1 ? 'ies' : 'y'}
+            </p>
+          </div>
+          <Button asChild>
+            <a href="/support/enquiry" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Create Enquiry
+            </a>
+          </Button>
         </div>
       </FadeIn>
 

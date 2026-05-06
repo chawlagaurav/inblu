@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
@@ -8,12 +9,33 @@ export async function GET(request: Request) {
   const redirect = searchParams.get('redirect') || '/'
 
   if (code) {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+    const cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[] = []
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(newCookies) {
+            newCookies.forEach((cookie) => {
+              cookiesToSet.push(cookie)
+            })
+          },
+        },
+      }
+    )
+    
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
       // Get the authenticated user
       const { data: { user } } = await supabase.auth.getUser()
+      
+      let finalRedirect = redirect
       
       if (user) {
         // Sync user to database (create if doesn't exist)
@@ -35,7 +57,7 @@ export async function GET(request: Request) {
           // If trying to access admin, verify admin role
           if (redirect.startsWith('/admin')) {
             if (dbUser.role !== 'ADMIN') {
-              return NextResponse.redirect(`${origin}/admin/login?error=not_admin`)
+              finalRedirect = '/admin/login?error=not_admin'
             }
           }
         } catch (dbError) {
@@ -43,7 +65,12 @@ export async function GET(request: Request) {
         }
       }
       
-      return NextResponse.redirect(`${origin}${redirect}`)
+      // Create redirect response and set all cookies on it
+      const response = NextResponse.redirect(`${origin}${finalRedirect}`)
+      cookiesToSet.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
+      })
+      return response
     }
   }
 

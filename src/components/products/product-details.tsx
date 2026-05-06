@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, Minus, Plus, ShoppingCart, Truck, Shield, RotateCcw, Check, Download, Zap } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck, Shield, RotateCcw, Check, Download, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -46,6 +46,14 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
   const images = product.images.length > 0 ? product.images : [product.imageUrl]
 
+  const nextImage = () => {
+    setSelectedImage((prev) => (prev + 1) % images.length)
+  }
+
+  const prevImage = () => {
+    setSelectedImage((prev) => (prev - 1 + images.length) % images.length)
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
       {/* Breadcrumb */}
@@ -65,7 +73,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         {/* Image Gallery */}
         <FadeIn className="space-y-4">
           {/* Main Image */}
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-blue-50">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-blue-50 group">
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedImage}
@@ -92,6 +100,26 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 )}
               </motion.div>
             </AnimatePresence>
+            
+            {/* Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-6 w-6 text-slate-700" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-6 w-6 text-slate-700" />
+                </button>
+              </>
+            )}
             
             {product.isBestSeller && (
               <Badge className="absolute top-4 left-4">Best Seller</Badge>

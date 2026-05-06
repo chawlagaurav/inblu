@@ -53,7 +53,7 @@ export function BestSellers({ products }: BestSellersProps) {
         </StaggerContainer>
 
         <FadeInOnScroll className="mt-12 text-center" delay={0.3}>
-          <Button asChild variant="outline" size="lg">
+          <Button asChild size="lg" className="bg-blue-500 hover:bg-blue-600">
             <Link href="/products">View All Products</Link>
           </Button>
         </FadeInOnScroll>

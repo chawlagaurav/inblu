@@ -1,4 +1,4 @@
-import { Header, Footer, CartDrawer, AnnouncementBar, SplashScreen } from "@/components/layout";
+import { Header, Footer, CartDrawer, AnnouncementBar, ContactBar, SplashScreen } from "@/components/layout";
 import { DiscountPopup } from "@/components/discount-popup";
 
 export default function MainLayout({
@@ -9,6 +9,7 @@ export default function MainLayout({
   return (
     <>
       <SplashScreen />
+      <ContactBar />
       <AnnouncementBar />
       <Header />
       <main className="min-h-screen">{children}</main>

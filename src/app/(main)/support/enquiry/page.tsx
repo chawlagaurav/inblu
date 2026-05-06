@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Send, Loader2, CheckCircle } from 'lucide-react'
+import { Send, Loader2, CheckCircle, Phone, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { FadeIn } from '@/components/motion'
@@ -147,6 +147,28 @@ export default function EnquiryPage() {
                 )}
               </CardContent>
             </Card>
+          </FadeIn>
+
+          {/* Help Section */}
+          <FadeIn delay={0.2}>
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <Card className="text-center border-blue-100">
+                <CardContent className="pt-6">
+                  <Phone className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                  <h4 className="font-semibold text-slate-900">Call Us</h4>
+                  <p className="text-sm text-slate-600 mt-1">0431 318 665</p>
+                  <p className="text-xs text-slate-400">Mon-Fri 9am-6pm</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center border-blue-100">
+                <CardContent className="pt-6">
+                  <Mail className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                  <h4 className="font-semibold text-slate-900">Email Us</h4>
+                  <p className="text-sm text-slate-600 mt-1">info@inblu.com.au</p>
+                  <p className="text-xs text-slate-400">24hr response</p>
+                </CardContent>
+              </Card>
+            </div>
           </FadeIn>
         </div>
       </section>

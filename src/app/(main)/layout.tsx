@@ -1,4 +1,4 @@
-import { Header, Footer, CartDrawer, AnnouncementBar, ContactBar, SplashScreen } from "@/components/layout";
+import { Header, Footer, CartDrawer, AnnouncementBar, ContactBar, SplashScreen, CookieConsent } from "@/components/layout";
 import { DiscountPopup } from "@/components/discount-popup";
 
 export default function MainLayout({
@@ -16,6 +16,7 @@ export default function MainLayout({
       <Footer />
       <CartDrawer />
       <DiscountPopup />
+      <CookieConsent />
     </>
   );
 }

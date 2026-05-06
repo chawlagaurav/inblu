@@ -158,7 +158,7 @@ export async function GET(
 
     <div class="footer">
       <p>Thank you for your business!</p>
-      <p>If you have any questions, please contact support@inblu.com.au</p>
+      <p>If you have any questions, please contact info@inblu.com.au</p>
     </div>
   </div>
 </body>

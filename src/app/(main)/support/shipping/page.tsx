@@ -111,7 +111,7 @@ export default function ShippingPage() {
               <h3>Shipping Origin</h3>
               <p>
                 The package will be shipped from one of our AU warehouses closest to your location. If you have any questions, you can contact our customer service via LiveChat or email to{' '}
-                <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a>, we will reply to you as soon as possible!
+                <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a>, we will reply to you as soon as possible!
               </p>
 
               <h3>Shipping Areas</h3>
@@ -135,7 +135,7 @@ export default function ShippingPage() {
               <h3>Delivery Time Exceeded</h3>
               <p>
                 If your order is delayed, please contact us via email{' '}
-                <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a>, we will check the situation with the transportation company in time. Thanks for your understanding and support.
+                <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a>, we will check the situation with the transportation company in time. Thanks for your understanding and support.
               </p>
 
               <h3>Sales Tax</h3>

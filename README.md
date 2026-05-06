@@ -271,4 +271,4 @@ MIT
 
 ## Support
 
-For support, email support@inblu.com.au or open an issue in the repository.
+For support, email info@inblu.com.au or open an issue in the repository.

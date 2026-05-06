@@ -400,7 +400,7 @@ export default function ServiceRequestPage() {
                 <CardContent className="pt-6">
                   <Mail className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                   <h4 className="font-semibold text-slate-900">Email Us</h4>
-                  <p className="text-sm text-slate-600 mt-1">support@inblu.com.au</p>
+                  <p className="text-sm text-slate-600 mt-1">info@inblu.com.au</p>
                   <p className="text-xs text-slate-400">24hr response</p>
                 </CardContent>
               </Card>

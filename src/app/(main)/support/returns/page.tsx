@@ -74,7 +74,7 @@ export default function ReturnsPage() {
               <h3>1. If you contact us within 24 hours of purchase:</h3>
               <p>
                 Since most orders ship the same day, kindly email us at{' '}
-                <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a>{' '}
+                <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a>{' '}
                 within 24 hours of placing the order. There will be no cancellation fees for standard items canceled before shipment. If the package has already been shipped, we will provide a prepaid label for return, and once we receive the package from you, we will issue a refund.
               </p>
               <h3>2. If you contact us after 24 hours of purchase:</h3>
@@ -98,7 +98,7 @@ export default function ReturnsPage() {
               </p>
               <p>
                 If you receive a damaged item and wish to file a claim, please email{' '}
-                <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a>{' '}
+                <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a>{' '}
                 with your order information and a picture of the damaged or incorrect product. We are eager to assist you.
               </p>
               <p>
@@ -123,7 +123,7 @@ export default function ReturnsPage() {
               <p>If you would like to return a product, please follow these guidelines:</p>
               <p><strong>Step 1:</strong> Contact our customer service team before returning a product. We will respond with return instructions within 24 hours.</p>
               <ul>
-                <li>Email: <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a></li>
+                <li>Email: <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a></li>
               </ul>
               <p><strong>Step 2:</strong> Prepare the package after receiving confirmation from the customer service team, and please note the following requirements:</p>
               <ul>
@@ -154,7 +154,7 @@ export default function ReturnsPage() {
               </p>
               <p>
                 To request a refund, please contact us at{' '}
-                <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a>. We are here to assist you promptly.
+                <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a>. We are here to assist you promptly.
               </p>
               <p>
                 <strong>Note:</strong> This price-change refund policy only applies to items shipped and sold by our official store. If you&apos;re buying from a different vendor, you&apos;ll need to contact that seller if the price drops.

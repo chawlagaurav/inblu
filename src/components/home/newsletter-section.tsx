@@ -67,7 +67,7 @@ export function NewsletterSection() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 rounded-xl border-0 px-4 py-3 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 sm:text-sm"
+                  className="flex-1 rounded-xl border-2 border-white/50 bg-white px-4 py-3 text-slate-900 placeholder-slate-500 focus:border-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 sm:text-sm"
                   placeholder="Enter your email"
                   disabled={status === 'loading'}
                 />

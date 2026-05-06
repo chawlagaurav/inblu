@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -86,6 +87,11 @@ export async function POST(request: NextRequest) {
         isActive: isActive ?? true,
       },
     })
+
+    // Revalidate product pages cache
+    revalidateTag('products')
+    revalidatePath('/products')
+    revalidatePath('/')
 
     return NextResponse.json(product, { status: 201 })
   } catch (error) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -102,6 +103,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       },
     })
 
+    // Revalidate product pages cache
+    revalidateTag('products')
+    revalidatePath('/products')
+    revalidatePath(`/products/${id}`)
+    revalidatePath('/')
+
     return NextResponse.json(product)
   } catch (error) {
     console.error('Error updating product:', error)
@@ -139,6 +146,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         where: { id },
         data: { isActive: false },
       })
+      
+      // Revalidate cache
+      revalidateTag('products')
+      revalidatePath('/products')
+      revalidatePath('/')
+      
       return NextResponse.json({ message: 'Product deactivated (has order history)' })
     }
 
@@ -146,6 +159,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     await prisma.product.delete({
       where: { id },
     })
+
+    // Revalidate cache
+    revalidateTag('products')
+    revalidatePath('/products')
+    revalidatePath('/')
 
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {

@@ -18,9 +18,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Inblu" }],
   creator: "Inblu",
   icons: {
-    icon: "/inblu.svg",
-    shortcut: "/inblu.svg",
-    apple: "/inblu.svg",
+    icon: [
+      { url: "/inblutextlogo.png", sizes: "any" },
+      { url: "/inblutextlogo.png", type: "image/png", sizes: "192x192" },
+    ],
+    shortcut: "/inblutextlogo.png",
+    apple: [
+      { url: "/inblutextlogo.png", sizes: "180x180" },
+    ],
   },
   openGraph: {
     type: "website",

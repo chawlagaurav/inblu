@@ -109,46 +109,27 @@ export function HeroSection() {
             transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
             className="relative"
           >
-            {/* Water Drop SVG */}
+            {/* Water Drop SVG - Transparent with white border */}
             <svg
               width="32"
               height="44"
               viewBox="0 0 32 44"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="drop-shadow-lg"
             >
               <path
-                d="M16 0C16 0 0 18 0 28C0 36.8366 7.16344 44 16 44C24.8366 44 32 36.8366 32 28C32 18 16 0 16 0Z"
-                fill="url(#waterDropGradient)"
+                d="M16 2C16 2 2 18 2 28C2 35.732 8.26801 42 16 42C23.732 42 30 35.732 30 28C30 18 16 2 16 2Z"
+                fill="transparent"
+                stroke="white"
+                strokeWidth="2"
+                strokeOpacity="0.7"
               />
-              <ellipse
-                cx="10"
-                cy="26"
-                rx="4"
-                ry="6"
-                fill="white"
-                fillOpacity="0.3"
-              />
-              <defs>
-                <linearGradient
-                  id="waterDropGradient"
-                  x1="16"
-                  y1="0"
-                  x2="16"
-                  y2="44"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop stopColor="#60A5FA" />
-                  <stop offset="1" stopColor="#3B82F6" />
-                </linearGradient>
-              </defs>
             </svg>
             {/* Ripple effect */}
             <motion.div
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+              animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0, 0.4] }}
               transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-2 bg-blue-400/30 rounded-full blur-sm"
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-2 bg-white/20 rounded-full blur-sm"
             />
           </motion.div>
         </motion.div>
@@ -171,21 +152,6 @@ export function HeroSection() {
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={mounted ? { opacity: 1 } : {}}
-        transition={{ delay: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-7 h-12 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
-        >
-          <motion.div className="w-1.5 h-3 bg-blue-400/70 rounded-full" />
-        </motion.div>
-      </motion.div>
     </section>
   )
 }

@@ -33,9 +33,9 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!name || !email || !phone || !serviceType || !issueDescription || !orderId) {
+    if (!name || !email || !phone || !serviceType || !issueDescription) {
       return NextResponse.json(
-        { error: 'Please fill in all required fields including Order ID' },
+        { error: 'Please fill in all required fields' },
         { status: 400 }
       )
     }
@@ -57,19 +57,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate and find order by ID
-    const order = await prisma.order.findFirst({
-      where: {
-        id: {
-          startsWith: orderId.trim().toLowerCase(),
+    // Validate and find order by ID if provided
+    let order = null
+    if (orderId && orderId.trim()) {
+      order = await prisma.order.findFirst({
+        where: {
+          id: {
+            startsWith: orderId.trim().toLowerCase(),
+          },
         },
-      },
-    })
-    if (!order) {
-      return NextResponse.json(
-        { error: 'Order not found. Please check your Order ID and try again.' },
-        { status: 400 }
-      )
+      })
+      if (!order) {
+        return NextResponse.json(
+          { error: 'Order not found. Please check your Order ID and try again.' },
+          { status: 400 }
+        )
+      }
     }
 
     // Generate unique ticket number
@@ -88,7 +91,7 @@ export async function POST(request: NextRequest) {
     const serviceRequest = await prisma.serviceRequest.create({
       data: {
         ticketNumber,
-        orderId: order.id,
+        orderId: order?.id || null,
         name,
         email,
         phone,

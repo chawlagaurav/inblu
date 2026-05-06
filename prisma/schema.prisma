@@ -270,8 +270,8 @@ enum ServiceType {
 model ServiceRequest {
   id              String               @id @default(uuid())
   ticketNumber    String               @unique @map("ticket_number")
-  orderId         String               @map("order_id")
-  order           Order                @relation(fields: [orderId], references: [id])
+  orderId         String?              @map("order_id")
+  order           Order?               @relation(fields: [orderId], references: [id])
   name            String
   email           String
   phone           String

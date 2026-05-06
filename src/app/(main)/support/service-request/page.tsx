@@ -273,11 +273,10 @@ export default function ServiceRequestPage() {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="orderId">Order ID *</Label>
+                        <Label htmlFor="orderId">Order ID</Label>
                         <Input
                           id="orderId"
                           name="orderId"
-                          required
                           placeholder="e.g., A1B2C3D4"
                           value={formData.orderId}
                           onChange={handleChange}
@@ -285,7 +284,7 @@ export default function ServiceRequestPage() {
                           maxLength={8}
                         />
                         <p className="text-xs text-slate-500 mt-1">
-                          First 8 characters from your order confirmation email
+                          Optional - First 8 characters from your order confirmation
                         </p>
                       </div>
                       <div>

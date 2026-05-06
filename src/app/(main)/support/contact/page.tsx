@@ -26,9 +26,9 @@ const contactInfo = [
   {
     icon: MapPin,
     title: 'Address',
-    details: '8R5C+W4 Marsden Park',
-    subtext: 'New South Wales, Australia',
-    href: 'https://maps.app.goo.gl/KiXj1Q9iVubCU47K8',
+    details: '22 Wentworth Street',
+    subtext: 'The Ponds NSW 2769',
+    href: 'https://maps.google.com/?q=22+Wentworth+Street,+The+Ponds+NSW+2769',
   },
   {
     icon: Clock,

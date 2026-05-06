@@ -4,6 +4,7 @@ import {
   BestSellers,
   TestimonialsSection,
   FeaturedCategories,
+  NewsletterSection,
 } from '@/components/home'
 import { getCachedBestSellerProducts } from '@/lib/db/products'
 import { getCachedFeaturedTestimonials } from '@/lib/db/testimonials'
@@ -27,6 +28,7 @@ export default function Home() {
         <BestSellersSection />
       </Suspense>
       <FeaturedCategories />
+      <NewsletterSection />
       <Suspense fallback={<SkeletonTestimonials />}>
         <TestimonialsSectionWrapper />
       </Suspense>

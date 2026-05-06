@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Instagram, Youtube, Facebook, Mail } from 'lucide-react'
+import { Instagram, Youtube, Facebook } from 'lucide-react'
 
 const footerNavigation = {
   shop: [
@@ -103,39 +103,6 @@ export function Footer() {
                 ))}
               </ul>
             </div>
-          </div>
-        </div>
-
-        {/* Newsletter */}
-        <div className="mt-12 border-t border-blue-100 pt-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">Subscribe to our newsletter</h3>
-              <p className="mt-1 text-sm text-slate-600">
-                Get updates on new products and exclusive offers.
-              </p>
-            </div>
-            <form className="flex gap-2 w-full md:w-auto">
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="min-w-0 flex-1 rounded-xl border border-blue-200 px-4 py-2 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent md:w-64"
-                placeholder="Enter your email"
-              />
-              <button
-                type="submit"
-                className="flex-none rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-600 transition-colors"
-              >
-                <Mail className="h-4 w-4 md:hidden" />
-                <span className="hidden md:inline">Subscribe</span>
-              </button>
-            </form>
           </div>
         </div>
 

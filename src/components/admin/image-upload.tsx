@@ -1,10 +1,27 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Upload, X, Loader2, ImageIcon, FileText } from 'lucide-react'
+import { Upload, X, Loader2, ImageIcon, FileText, GripVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import Image from 'next/image'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface ImageUploadProps {
   value?: string
@@ -163,6 +180,65 @@ interface MultiImageUploadProps {
   className?: string
 }
 
+interface SortableImageProps {
+  url: string
+  index: number
+  onRemove: (index: number) => void
+}
+
+function SortableImage({ url, index, onRemove }: SortableImageProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: url })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative group">
+      <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200">
+        <Image
+          src={url}
+          alt={`Image ${index + 1}`}
+          fill
+          className="object-cover"
+          unoptimized
+        />
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors cursor-grab active:cursor-grabbing flex items-center justify-center"
+        >
+          <GripVertical className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+        </div>
+      </div>
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        className="absolute -top-2 -right-2 h-5 w-5 rounded-full z-20"
+        onClick={() => onRemove(index)}
+      >
+        <X className="h-3 w-3" />
+      </Button>
+      {index === 0 && (
+        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+          Main
+        </span>
+      )}
+    </div>
+  )
+}
+
 export function MultiImageUpload({ 
   values = [], 
   onChange, 
@@ -172,6 +248,23 @@ export function MultiImageUpload({
 }: MultiImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = values.findIndex((url) => url === active.id)
+      const newIndex = values.findIndex((url) => url === over.id)
+      onChange(arrayMove(values, oldIndex, newIndex))
+    }
+  }
 
   const handleUpload = async (file: File) => {
     if (!file) return
@@ -225,7 +318,7 @@ export function MultiImageUpload({
     }
   }
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleFileDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
     
@@ -252,34 +345,31 @@ export function MultiImageUpload({
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap gap-3 mb-3">
-        {values.map((url, index) => (
-          <div key={url} className="relative">
-            <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200">
-              <Image
-                src={url}
-                alt={`Image ${index + 1}`}
-                fill
-                className="object-cover"
-                unoptimized
+      {values.length > 0 && (
+        <p className="text-xs text-slate-500 mb-2">Drag images to reorder. First image will be the main image.</p>
+      )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={values} strategy={rectSortingStrategy}>
+          <div className="flex flex-wrap gap-3 mb-3">
+            {values.map((url, index) => (
+              <SortableImage
+                key={url}
+                url={url}
+                index={index}
+                onRemove={handleRemove}
               />
-            </div>
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
-              onClick={() => handleRemove(index)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       {values.length < maxImages && (
         <div
-          onDrop={handleDrop}
+          onDrop={handleFileDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           className={`

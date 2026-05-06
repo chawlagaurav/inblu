@@ -7,7 +7,7 @@ import { FadeInOnScroll } from '@/components/motion'
 
 const categories = [
   {
-    name: 'Counter top Purifiers',
+    name: 'Counter Top Filters',
     description: 'Advanced reverse osmosis purification',
     href: '/products?category=ro-purifiers',
     image: 'https://res.cloudinary.com/dlnt5kqmh/image/upload/v1778059842/inblu/categories/ro-purifiers.png',

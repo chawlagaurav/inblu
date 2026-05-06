@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 
 const categories = [
   { id: 'all', name: 'All Products' },
-  { id: 'ro-purifiers', name: 'Counter top Purifiers' },
+  { id: 'ro-purifiers', name: 'Counter Top Filters' },
   { id: 'water-ionisers', name: 'Water Ionisers' },
   { id: 'undersink-filters', name: 'Undersink Filters' },
   { id: 'replacement-filters', name: 'Replacement Filters' },

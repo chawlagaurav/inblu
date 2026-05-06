@@ -1,15 +1,13 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Plus, Search, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FadeIn } from '@/components/motion'
-import { formatCurrency } from '@/lib/utils'
 import prisma from '@/lib/prisma'
-import { ProductActions } from '@/components/admin/product-actions'
+import { ProductsReorderList } from '@/components/admin/products-reorder-list'
 
 export const metadata: Metadata = {
   title: 'Products - Admin',
@@ -38,7 +36,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
       ...(statusFilter === 'inactive' ? { isActive: false } : {}),
       ...(statusFilter === 'low-stock' ? { stock: { lte: 10 } } : {}),
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { displayOrder: 'asc' },
   })
 
   const totalProducts = products.length
@@ -142,96 +140,20 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
             </div>
           </CardHeader>
           <CardContent>
-            {products.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">No products found</p>
-                <Button asChild className="mt-4">
-                  <Link href="/admin/products/new">Add your first product</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-blue-100">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Product</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Category</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Price</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Stock</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Status</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-slate-900">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr key={product.id} className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-lg overflow-hidden bg-blue-100 flex-shrink-0">
-                              {product.imageUrl ? (
-                                <Image
-                                  src={product.imageUrl}
-                                  alt={product.name}
-                                  width={48}
-                                  height={48}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="h-full w-full flex items-center justify-center">
-                                  <Package className="h-6 w-6 text-blue-400" />
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-slate-900">{product.name}</p>
-                              <div className="flex gap-1 mt-0.5">
-                                {product.isBestSeller && (
-                                  <Badge variant="secondary" className="text-xs">Best Seller</Badge>
-                                )}
-                                {!product.isActive && (
-                                  <Badge variant="outline" className="text-xs text-slate-500">Inactive</Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-slate-600">
-                          <div className="flex flex-wrap gap-1">
-                            {product.categories && product.categories.length > 0
-                              ? product.categories.map((cat: string) => (
-                                  <span key={cat} className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-                                    {cat}
-                                  </span>
-                                ))
-                              : <span>{product.category}</span>
-                            }
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm font-medium text-slate-900">
-                          {formatCurrency(Number(product.price))}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={`text-sm font-medium ${
-                            product.stock <= 10 ? 'text-red-600' : 'text-slate-900'
-                          }`}>
-                            {product.stock}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
-                            {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          <ProductActions product={{ id: product.id, name: product.name }} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <ProductsReorderList 
+              products={products.map(p => ({
+                id: p.id,
+                name: p.name,
+                imageUrl: p.imageUrl,
+                category: p.category,
+                categories: p.categories,
+                price: Number(p.price),
+                stock: p.stock,
+                isActive: p.isActive,
+                isBestSeller: p.isBestSeller,
+                displayOrder: p.displayOrder,
+              }))}
+            />
           </CardContent>
         </Card>
       </FadeIn>

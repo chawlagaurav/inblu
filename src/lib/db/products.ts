@@ -73,7 +73,7 @@ export async function getProducts(options?: {
   const products = await prisma.product.findMany({
     where,
     take: limit,
-    orderBy: { createdAt: 'desc' },
+    orderBy: { displayOrder: 'asc' },
   })
 
   return products.map(transformProduct)
@@ -176,7 +176,7 @@ export async function getRelatedProducts(
       isActive: true,
     },
     take: limit,
-    orderBy: { createdAt: 'desc' },
+    orderBy: { displayOrder: 'asc' },
   })
 
   return products.map(transformProduct)

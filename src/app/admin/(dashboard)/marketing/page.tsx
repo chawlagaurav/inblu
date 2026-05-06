@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, ImageIcon, Type, Link2, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Save, ImageIcon, Type, Link2, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -111,9 +112,17 @@ export default function AdminMarketingPage() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Marketing Content</h1>
-          <p className="text-slate-500 mt-1">Manage homepage content and promotions</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Marketing Content</h1>
+            <p className="text-slate-500 mt-1">Manage homepage content and promotions</p>
+          </div>
+          <Button asChild>
+            <Link href="/admin/marketing/newsletter">
+              <Mail className="h-4 w-4 mr-2" />
+              Newsletter
+            </Link>
+          </Button>
         </div>
       </FadeIn>
 

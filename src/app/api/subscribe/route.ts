@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,9 +23,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const normalizedEmail = email.toLowerCase().trim()
+
     // Check if already subscribed
     const existing = await prisma.subscriber.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: normalizedEmail },
     })
 
     if (existing) {
@@ -35,9 +38,25 @@ export async function POST(request: NextRequest) {
     // Create new subscriber
     await prisma.subscriber.create({
       data: {
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         source: source || 'website',
       },
+    })
+
+    // Get discount code from marketing settings
+    let discountCode = 'WELCOME10'
+    try {
+      const settings = await prisma.marketingSettings.findFirst()
+      if (settings?.discountCode) {
+        discountCode = settings.discountCode
+      }
+    } catch {
+      // Use default if settings not found
+    }
+
+    // Send welcome email (don't block response on email)
+    sendWelcomeEmail(normalizedEmail, discountCode).catch((err) => {
+      console.error('Failed to send welcome email:', err)
     })
 
     return NextResponse.json({ success: true, message: 'Subscribed successfully!' })

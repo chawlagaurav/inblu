@@ -582,3 +582,183 @@ function generateServiceRequestAdminHtml(data: ServiceRequestEmailData): string 
     </html>
   `
 }
+
+// Welcome email for newsletter subscribers
+export async function sendWelcomeEmail(email: string, discountCode?: string): Promise<boolean> {
+  try {
+    const subject = 'Welcome to Inblu Filters! 🎉'
+    const html = generateWelcomeEmailHtml(email, discountCode)
+    const resend = getResend()
+
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject,
+        html,
+      })
+
+      if (error) {
+        console.error('Resend error (welcome email):', error)
+        return false
+      }
+
+      console.log(`Welcome email sent to ${email}`)
+    } else {
+      console.log('=== WELCOME EMAIL (not sent — Resend not configured) ===')
+      console.log(`To: ${email}`)
+      console.log(`Subject: ${subject}`)
+      console.log('=================================')
+    }
+
+    return true
+  } catch (error) {
+    console.error('Failed to send welcome email:', error)
+    return false
+  }
+}
+
+function generateWelcomeEmailHtml(email: string, discountCode?: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px;">
+      <div style="max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #0a508e 0%, #1e3a5f 100%); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+          <img src="https://inblu.com.au/inblutextlogo.png" alt="Inblu Filters" style="height: 60px; margin-bottom: 16px;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Inblu Filters!</h1>
+        </div>
+        
+        <div style="background: white; border-radius: 0 0 16px 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+            Thank you for subscribing to our newsletter! You're now part of the Inblu community.
+          </p>
+          
+          <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+            As a subscriber, you'll be the first to know about:
+          </p>
+          
+          <ul style="color: #334155; font-size: 16px; line-height: 1.8;">
+            <li>New product launches</li>
+            <li>Exclusive discounts and offers</li>
+            <li>Water filtration tips and guides</li>
+            <li>Special promotions</li>
+          </ul>
+
+          ${discountCode ? `
+          <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
+            <p style="color: #1e40af; font-size: 14px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Your Exclusive Discount Code</p>
+            <p style="color: #0a508e; font-size: 32px; font-weight: bold; margin: 0; letter-spacing: 2px;">${discountCode}</p>
+            <p style="color: #1e40af; font-size: 14px; margin: 8px 0 0;">Use this code at checkout for 10% off your first order!</p>
+          </div>
+          ` : ''}
+
+          <div style="text-align: center; margin-top: 32px;">
+            <a href="https://inblu.com.au/products" style="display: inline-block; background: #0a508e; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              Shop Now
+            </a>
+          </div>
+
+          <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 14px; margin: 0;">
+              Questions? Contact us at <a href="mailto:info@inblu.com.au" style="color: #0a508e;">info@inblu.com.au</a>
+            </p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 16px 0 0;">
+              You're receiving this because you subscribed to our newsletter.<br>
+              <a href="https://inblu.com.au" style="color: #64748b;">Inblu Filters</a> | Premium Water Filtration
+            </p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Send newsletter/campaign email to a single subscriber
+export async function sendNewsletterEmail(
+  to: string,
+  subject: string,
+  content: string
+): Promise<boolean> {
+  try {
+    const html = generateNewsletterHtml(subject, content)
+    const resend = getResend()
+
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject,
+        html,
+      })
+
+      if (error) {
+        console.error('Resend error (newsletter):', error)
+        return false
+      }
+      return true
+    } else {
+      console.log('=== NEWSLETTER EMAIL (not sent — Resend not configured) ===')
+      console.log(`To: ${to}`)
+      console.log(`Subject: ${subject}`)
+      return true
+    }
+  } catch (error) {
+    console.error('Failed to send newsletter email:', error)
+    return false
+  }
+}
+
+function generateNewsletterHtml(subject: string, content: string): string {
+  // Convert line breaks to <br> and basic markdown-like formatting
+  const formattedContent = content
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px;">
+      <div style="max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #0a508e 0%, #1e3a5f 100%); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+          <img src="https://inblu.com.au/inblutextlogo.png" alt="Inblu Filters" style="height: 60px;">
+        </div>
+        
+        <div style="background: white; border-radius: 0 0 16px 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <h1 style="color: #0f172a; font-size: 24px; margin: 0 0 24px;">${subject}</h1>
+          
+          <div style="color: #334155; font-size: 16px; line-height: 1.7;">
+            ${formattedContent}
+          </div>
+
+          <div style="text-align: center; margin-top: 32px;">
+            <a href="https://inblu.com.au/products" style="display: inline-block; background: #0a508e; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              Visit Our Store
+            </a>
+          </div>
+
+          <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 14px; margin: 0;">
+              Questions? Contact us at <a href="mailto:info@inblu.com.au" style="color: #0a508e;">info@inblu.com.au</a>
+            </p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 16px 0 0;">
+              You're receiving this because you subscribed to our newsletter.<br>
+              <a href="https://inblu.com.au" style="color: #64748b;">Inblu Filters</a> | Premium Water Filtration
+            </p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}

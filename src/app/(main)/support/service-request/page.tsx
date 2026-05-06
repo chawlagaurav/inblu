@@ -273,10 +273,11 @@ export default function ServiceRequestPage() {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="orderId">Order ID</Label>
+                        <Label htmlFor="orderId">Order ID *</Label>
                         <Input
                           id="orderId"
                           name="orderId"
+                          required
                           placeholder="e.g., A1B2C3D4"
                           value={formData.orderId}
                           onChange={handleChange}
@@ -284,7 +285,7 @@ export default function ServiceRequestPage() {
                           maxLength={8}
                         />
                         <p className="text-xs text-slate-500 mt-1">
-                          Optional - First 8 characters from your order confirmation
+                          First 8 characters from your order confirmation
                         </p>
                       </div>
                       <div>
@@ -387,7 +388,7 @@ export default function ServiceRequestPage() {
 
           {/* Help Section */}
           <FadeInOnScroll delay={0.1}>
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
               <Card className="text-center border-blue-100">
                 <CardContent className="pt-6">
                   <Phone className="h-8 w-8 text-blue-600 mx-auto mb-3" />
@@ -400,16 +401,8 @@ export default function ServiceRequestPage() {
                 <CardContent className="pt-6">
                   <Mail className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                   <h4 className="font-semibold text-slate-900">Email Us</h4>
-                  <p className="text-sm text-slate-600 mt-1">info@inblu.com.au</p>
+                  <p className="text-sm text-slate-600 mt-1">support@inblu.com.au</p>
                   <p className="text-xs text-slate-400">24hr response</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center border-blue-100">
-                <CardContent className="pt-6">
-                  <Wrench className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-                  <h4 className="font-semibold text-slate-900">Expert Service</h4>
-                  <p className="text-sm text-slate-600 mt-1">Certified Technicians</p>
-                  <p className="text-xs text-slate-400">Quality guaranteed</p>
                 </CardContent>
               </Card>
             </div>

@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!name || !email || !phone || !serviceType || !issueDescription) {
+    if (!name || !email || !phone || !serviceType || !issueDescription || !orderId) {
       return NextResponse.json(
-        { error: 'Please fill in all required fields' },
+        { error: 'Please fill in all required fields including Order ID' },
         { status: 400 }
       )
     }

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Instagram, Youtube, Mail } from 'lucide-react'
+import { Instagram, Youtube, Facebook, Mail } from 'lucide-react'
 
 const footerNavigation = {
   shop: [
@@ -22,6 +22,7 @@ const footerNavigation = {
 }
 
 const socialLinks = [
+  { name: 'Facebook', href: 'https://www.facebook.com/inblufilters', icon: Facebook },
   { name: 'Instagram', href: 'https://www.instagram.com/inblufilters?igsh=ODZ5azljaWM0NnM3', icon: Instagram },
   { name: 'YouTube', href: 'https://www.youtube.com/@InbluFilters', icon: Youtube },
 ]

@@ -73,14 +73,15 @@ function ProductCard({
   onAddToCart: (product: Product) => void
 }) {
   return (
-    <Link href={`/products/${product.id}`} className="block">
-      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <Link href={`/products/${product.id}`} className="block h-full">
+      <Card className="group h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <div className="relative aspect-square overflow-hidden bg-blue-50">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (

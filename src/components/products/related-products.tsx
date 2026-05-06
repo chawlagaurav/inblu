@@ -34,14 +34,15 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         <StaggerContainer className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.map((product) => (
             <StaggerItem key={product.id}>
-              <Link href={`/products/${product.id}`} className="group block">
-                <div className="overflow-hidden rounded-lg bg-white border border-slate-100 transition-all duration-200 hover:shadow-md hover:border-blue-200">
+              <Link href={`/products/${product.id}`} className="group block h-full">
+                <div className="h-full overflow-hidden rounded-lg bg-white border border-slate-100 transition-all duration-200 hover:shadow-md hover:border-blue-200">
                   <div className="relative aspect-[4/3] overflow-hidden bg-blue-50">
                     {product.imageUrl ? (
                       <Image
                         src={product.imageUrl}
                         alt={product.name}
                         fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                         className="object-cover transition-transform duration-200 group-hover:scale-105"
                       />
                     ) : (

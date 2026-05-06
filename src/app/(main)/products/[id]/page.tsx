@@ -54,9 +54,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
 }
 
 export async function generateStaticParams() {
-  // Fetch all products for static generation
-  const products = await getCachedProducts({ limit: 100 })
-  return products.map((product) => ({
-    id: product.id,
-  }))
+  try {
+    // Fetch all products for static generation
+    const products = await getCachedProducts({ limit: 100 })
+    return products.map((product) => ({
+      id: product.id,
+    }))
+  } catch (error) {
+    // If database is unavailable during build, generate pages on-demand
+    console.log('Database unavailable during build, skipping static generation for products')
+    return []
+  }
 }

@@ -8,7 +8,6 @@ import {
   Package, 
   ShoppingCart, 
   Users, 
-  Settings, 
   LogOut,
   Megaphone,
   Mail,
@@ -30,7 +29,6 @@ const navigation = [
   { name: 'Purchase Orders', href: '/admin/purchase-orders', icon: FileText },
   { name: 'Coupons', href: '/admin/coupons', icon: Tag },
   { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
 export function AdminSidebar() {

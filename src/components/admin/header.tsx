@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
-import { Bell, Menu, LogOut } from 'lucide-react'
+import { Menu, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
@@ -33,12 +33,6 @@ export function AdminHeader({ user }: AdminHeaderProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-4">
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-          </Button>
-
           {/* User menu */}
           <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8">

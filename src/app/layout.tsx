@@ -10,13 +10,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Inblu | Premium Water Filtration Australia",
-    template: "%s | Inblu",
+    default: "Inblu Filters - Premium Water Filtration",
+    template: "%s | Inblu Filters",
   },
   description: "Pure, clean drinking water for Australian homes. Discover premium RO water purifiers, undersink filters, and water ionisers at Inblu.",
   keywords: ["water filter", "RO purifier", "water ioniser", "undersink filter", "australia", "clean water", "water purification"],
-  authors: [{ name: "Inblu" }],
-  creator: "Inblu",
+  authors: [{ name: "Inblu Filters" }],
+  creator: "Inblu Filters",
   icons: {
     icon: [
       { url: "/inblutextlogo.png", sizes: "any" },
@@ -31,21 +31,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_AU",
     url: process.env.NEXT_PUBLIC_APP_URL,
-    siteName: "Inblu",
-    title: "Inblu | Premium Water Filtration Australia",
+    siteName: "Inblu Filters",
+    title: "Inblu Filters - Premium Water Filtration",
     description: "Pure, clean drinking water for Australian homes. Premium water purifiers and filters.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Inblu - Premium Water Filtration",
+        alt: "Inblu Filters - Premium Water Filtration",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Inblu | Premium Water Filtration Australia",
+    title: "Inblu Filters - Premium Water Filtration",
     description: "Pure, clean drinking water for Australian homes. Premium water purifiers and filters.",
     images: ["/og-image.png"],
   },

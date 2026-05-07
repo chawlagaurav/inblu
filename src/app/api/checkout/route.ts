@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalCents,
       currency: 'aud',
-      payment_method_types: ['card', 'klarna', 'afterpay_clearpay', 'link'],
+      payment_method_types: ['card', 'klarna', 'link'],
       metadata: {
         orderId: order.id,
         userId: userId || 'guest',

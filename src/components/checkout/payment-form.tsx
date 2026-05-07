@@ -183,7 +183,7 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
               <PaymentElement
                 options={{
                   layout: 'tabs',
-                  paymentMethodOrder: ['card', 'apple_pay', 'klarna', 'afterpay_clearpay'],
+                  paymentMethodOrder: ['card', 'apple_pay', 'klarna'],
                   wallets: {
                     applePay: 'auto',
                     googlePay: 'auto',

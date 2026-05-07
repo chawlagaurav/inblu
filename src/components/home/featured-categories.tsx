@@ -10,7 +10,7 @@ const categories = [
     name: 'Counter Top Filters',
     description: 'Advanced reverse osmosis purification',
     href: '/products?category=ro-purifiers',
-    image: 'https://res.cloudinary.com/dlnt5kqmh/image/upload/v1778059842/inblu/categories/ro-purifiers.png',
+    image: 'https://res.cloudinary.com/dlnt5kqmh/image/upload/v1778130939/inblu/categories/counter-top-filters.png',
     color: 'from-blue-400 to-blue-500',
   },
   {

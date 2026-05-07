@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
       try {
         const paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentIntent)
         
-        if (paymentIntent.status === 'succeeded' && order.paymentStatus !== 'SUCCEEDED') {
+        if (paymentIntent.status === 'succeeded') {
           console.log('Webhook fallback: Processing successful payment for order', order.id)
           
           // Update order status

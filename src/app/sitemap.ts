@@ -3,6 +3,17 @@ import { prisma } from '@/lib/prisma'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'
 
+// Location pages for local SEO
+const locationCities = [
+  'sydney',
+  'melbourne', 
+  'brisbane',
+  'perth',
+  'adelaide',
+  'canberra',
+  'gold-coast',
+]
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages with priority and changeFrequency
   const staticPages: MetadataRoute.Sitemap = [
@@ -17,6 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/locations`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
     },
     {
       url: `${BASE_URL}/about`,
@@ -62,6 +79,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // Location pages for local SEO (high priority)
+  const locationPages: MetadataRoute.Sitemap = locationCities.map((city) => ({
+    url: `${BASE_URL}/locations/${city}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.85,
+  }))
+
   // Category pages
   const categories = [
     'ro-purifiers',
@@ -101,5 +126,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.log('Sitemap: Database unavailable, skipping product pages')
   }
 
-  return [...staticPages, ...categoryPages, ...productPages]
+  return [...staticPages, ...locationPages, ...categoryPages, ...productPages]
 }

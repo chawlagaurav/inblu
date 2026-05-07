@@ -17,13 +17,14 @@ export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
+  const emailParam = searchParams.get('email') || ''
   const supabase = createClient()
 
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    email: '',
+    email: emailParam,
     password: '',
   })
 

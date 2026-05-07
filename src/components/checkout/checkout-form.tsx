@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, User, MapPin, CreditCard } from 'lucide-react'
+import Link from 'next/link'
+import { Loader2, User, MapPin, CreditCard, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -43,6 +44,8 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
   const [isLoading, setIsLoading] = useState(false)
   const [checkoutData, setCheckoutData] = useState<CheckoutResponse | null>(null)
   const [step, setStep] = useState<'shipping' | 'payment'>('shipping')
+  const [emailExists, setEmailExists] = useState(false)
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false)
   
   const [formData, setFormData] = useState<ShippingAddress & { email: string }>({
     email: userDetails?.email || '',
@@ -72,6 +75,29 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+    // Reset email exists state when email changes
+    if (e.target.name === 'email') {
+      setEmailExists(false)
+    }
+  }
+
+  const checkEmailExists = async (email: string) => {
+    if (!isGuest || !email || !email.includes('@')) return
+    
+    setIsCheckingEmail(true)
+    try {
+      const response = await fetch('/api/auth/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json()
+      setEmailExists(data.exists)
+    } catch (error) {
+      console.error('Failed to check email:', error)
+    } finally {
+      setIsCheckingEmail(false)
+    }
   }
 
   const handleAddressSelect = useCallback((components: {
@@ -101,6 +127,12 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
 
     if (items.length === 0) {
       toast.error('Your cart is empty')
+      return
+    }
+
+    // Check if email exists for guest checkout
+    if (isGuest && emailExists) {
+      toast.error('This email is already registered. Please log in to continue.')
       return
     }
 
@@ -256,9 +288,35 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
                 required
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={(e) => checkEmailExists(e.target.value)}
                 placeholder="you@example.com"
-                className="mt-1"
+                className={`mt-1 ${emailExists ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {isCheckingEmail && (
+                <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Checking email...
+                </p>
+              )}
+              {emailExists && !isCheckingEmail && (
+                <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="text-amber-800 font-medium">Account already exists</p>
+                      <p className="text-amber-700 mt-1">
+                        An account with this email already exists.{' '}
+                        <Link 
+                          href={`/auth/login?redirect=/checkout&email=${encodeURIComponent(formData.email)}`}
+                          className="text-blue-600 hover:text-blue-700 underline font-medium"
+                        >
+                          Log in to continue
+                        </Link>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="phone">Phone Number *</Label>

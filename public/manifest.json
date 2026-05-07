@@ -1,0 +1,28 @@
+{
+  "name": "Inblu Filters - Premium Water Filtration Australia",
+  "short_name": "Inblu Filters",
+  "description": "Australia's leading water filtration specialists. Shop RO water purifiers, countertop filters & undersink systems.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-AU",
+  "icons": [
+    {
+      "src": "/inblufavicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/inblufavicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "prefer_related_applications": false
+}

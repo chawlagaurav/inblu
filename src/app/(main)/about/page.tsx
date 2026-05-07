@@ -3,10 +3,24 @@ import { Heart, Leaf, Users, Award, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { FadeIn, FadeInOnScroll, StaggerContainer, StaggerItem } from '@/components/motion'
+import { BreadcrumbSchema } from '@/components/seo'
+import { PAGE_SEO } from '@/lib/seo'
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'
 
 export const metadata: Metadata = {
-  title: 'About Us',
-  description: 'Learn about Inblu - our story, mission, and commitment to delivering premium water filtration solutions across Australia.',
+  title: PAGE_SEO.about.title,
+  description: PAGE_SEO.about.description,
+  keywords: PAGE_SEO.about.keywords,
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: PAGE_SEO.about.title,
+    description: PAGE_SEO.about.description,
+    url: `${BASE_URL}/about`,
+    type: 'website',
+  },
 }
 
 const values = [
@@ -40,18 +54,25 @@ const stats = [
 ]
 
 export default function AboutPage() {
+  const breadcrumbs = [
+    { name: 'Home', url: BASE_URL },
+    { name: 'About Us', url: `${BASE_URL}/about` },
+  ]
+
   return (
     <div className="bg-white">
+      <BreadcrumbSchema items={breadcrumbs} />
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeIn>
             <div className="mx-auto max-w-2xl text-center">
               <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-                Our Story
+                About Inblu Filters
               </h1>
               <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-                Founded in Australia with a passion for clean water, Inblu brings you premium water filtration solutions designed for healthier living.
+                Australia&apos;s trusted water filtration specialists. Premium RO purifiers and filtration systems designed for healthier living.
               </p>
             </div>
           </FadeIn>

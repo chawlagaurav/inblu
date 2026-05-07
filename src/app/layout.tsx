@@ -19,12 +19,12 @@ export const metadata: Metadata = {
   creator: "Inblu Filters",
   icons: {
     icon: [
-      { url: "/inblutextlogo.png", sizes: "any" },
-      { url: "/inblutextlogo.png", type: "image/png", sizes: "192x192" },
+      { url: "/inblufavicon.png", sizes: "any" },
+      { url: "/inblufavicon.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/inblutextlogo.png",
+    shortcut: "/inblufavicon.png",
     apple: [
-      { url: "/inblutextlogo.png", sizes: "180x180" },
+      { url: "/inblufavicon.png", sizes: "180x180" },
     ],
   },
   openGraph: {

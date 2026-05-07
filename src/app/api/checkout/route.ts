@@ -3,6 +3,7 @@ import stripe from '@/lib/stripe'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { Prisma } from '@prisma/client'
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email'
 
 const SHIPPING_THRESHOLD = 100
 const SHIPPING_COST = 995 // in cents
@@ -283,6 +284,93 @@ export async function GET(request: NextRequest) {
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // Fallback: Check if payment succeeded but webhook didn't process it
+    if (stripe && order.stripePaymentIntent && 
+        (order.paymentStatus === 'PENDING' || order.paymentStatus === 'PROCESSING')) {
+      try {
+        const paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentIntent)
+        
+        if (paymentIntent.status === 'succeeded' && order.paymentStatus !== 'SUCCEEDED') {
+          console.log('Webhook fallback: Processing successful payment for order', order.id)
+          
+          // Update order status
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              status: 'PROCESSING',
+              paymentStatus: 'SUCCEEDED',
+            },
+          })
+
+          // Update product stock
+          for (const item of order.items) {
+            await prisma.product.update({
+              where: { id: item.productId },
+              data: {
+                stock: {
+                  decrement: item.quantity,
+                },
+              },
+            })
+          }
+
+          // Parse shipping address and send emails
+          const shippingAddress = order.shippingAddress as {
+            firstName: string
+            lastName: string
+            address: string
+            apartment?: string
+            city: string
+            state: string
+            postcode: string
+            country: string
+          }
+
+          const emailData = {
+            orderId: order.id,
+            customerName: order.customerName,
+            customerEmail: order.email,
+            items: order.items.map(item => ({
+              name: item.product.name,
+              quantity: item.quantity,
+              price: Number(item.price),
+            })),
+            subtotal: Number(order.subtotal),
+            shipping: Number(order.shippingCost),
+            gst: Number(order.gst),
+            total: Number(order.totalAmount),
+            shippingAddress,
+            orderDate: order.createdAt,
+            isGuest: order.isGuest,
+          }
+
+          // Send emails (don't await to avoid blocking response)
+          sendOrderConfirmationEmail(emailData).catch(err => 
+            console.error('Failed to send order confirmation:', err)
+          )
+          sendAdminOrderNotification(emailData).catch(err => 
+            console.error('Failed to send admin notification:', err)
+          )
+
+          // Return updated order
+          const updatedOrder = await prisma.order.findUnique({
+            where: { id: order.id },
+            include: {
+              items: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+          })
+          return NextResponse.json({ order: updatedOrder })
+        }
+      } catch (stripeError) {
+        console.error('Failed to verify payment intent:', stripeError)
+        // Continue to return the order even if Stripe check fails
+      }
     }
 
     return NextResponse.json({ order })

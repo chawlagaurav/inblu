@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 }
 
 async function BestSellersSection() {
-  const products = await getCachedBestSellerProducts(4)
+  const products = await getCachedBestSellerProducts(3)
   return <BestSellers products={products} />
 }
 

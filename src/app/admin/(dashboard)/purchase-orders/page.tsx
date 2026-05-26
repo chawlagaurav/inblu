@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText, ExternalLink, Package, Trash2, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { FileText, ExternalLink, Package, Trash2, Loader2, ChevronDown, ChevronUp, Plus, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/motion'
+import { AddPOModal } from '@/components/admin/add-po-modal'
 import { toast } from 'sonner'
 
 interface InventoryTransaction {
@@ -41,6 +42,8 @@ export default function PurchaseOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [addPOOpen, setAddPOOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     fetchPurchaseOrders()
@@ -82,6 +85,30 @@ export default function PurchaseOrdersPage() {
     }
   }
 
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const response = await fetch('/api/admin/purchase-orders/export')
+      if (!response.ok) throw new Error('Export failed')
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = response.headers.get('Content-Disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'purchase-orders-export.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      a.remove()
+      toast.success('Export downloaded successfully')
+    } catch (error) {
+      console.error('Export error:', error)
+      toast.error('Failed to export purchase orders')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const totalPOs = purchaseOrders.length
   const withFiles = purchaseOrders.filter((po) => po.fileUrl).length
   const totalUnitsAdded = purchaseOrders.reduce(
@@ -111,9 +138,25 @@ export default function PurchaseOrdersPage() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Purchase Orders</h1>
-          <p className="text-slate-500 mt-1">Track all stock-in purchase orders and documents</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Purchase Orders</h1>
+            <p className="text-slate-500 mt-1">Track all stock-in purchase orders and documents</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExport} disabled={exporting || purchaseOrders.length === 0}>
+              {exporting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              Export
+            </Button>
+            <Button onClick={() => setAddPOOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Purchase Order
+            </Button>
+          </div>
         </div>
       </FadeIn>
 
@@ -162,8 +205,12 @@ export default function PurchaseOrdersPage() {
                 <Package className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">No purchase orders yet</p>
                 <p className="text-sm text-slate-400 mt-1">
-                  Purchase orders are created when you add stock to a product
+                  Click &quot;Add Purchase Order&quot; to create one and update stock
                 </p>
+                <Button className="mt-4" onClick={() => setAddPOOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First PO
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -339,6 +386,12 @@ export default function PurchaseOrdersPage() {
           </CardContent>
         </Card>
       </FadeIn>
+
+      <AddPOModal
+        open={addPOOpen}
+        onOpenChange={setAddPOOpen}
+        onPOCreated={fetchPurchaseOrders}
+      />
     </div>
   )
 }

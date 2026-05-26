@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Loader2, Save, Trash2, Package, PackagePlus } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Trash2, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FadeIn } from '@/components/motion'
 import { AdminLoader } from '@/components/admin/admin-loader'
-import { InventoryModal } from '@/components/admin/inventory-modal'
 import { ImageUpload, MultiImageUpload, DocumentUpload } from '@/components/admin/image-upload'
 import { toast } from 'sonner'
 
@@ -56,7 +55,6 @@ export default function EditProductPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [product, setProduct] = useState<Product | null>(null)
   const [allProducts, setAllProducts] = useState<ProductListItem[]>([])
-  const [inventoryOpen, setInventoryOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -231,10 +229,6 @@ export default function EditProductPage() {
             <h1 className="text-3xl font-bold text-slate-900">Edit Product</h1>
             <p className="text-slate-500 mt-1">Update product information</p>
           </div>
-          <Button variant="outline" onClick={() => setInventoryOpen(true)}>
-            <PackagePlus className="h-4 w-4 mr-2" />
-            Update Stock
-          </Button>
         </div>
       </FadeIn>
 
@@ -493,20 +487,6 @@ export default function EditProductPage() {
           </div>
         </form>
       </FadeIn>
-
-      {product && (
-        <InventoryModal
-          open={inventoryOpen}
-          onOpenChange={setInventoryOpen}
-          productId={product.id}
-          productName={product.name}
-          currentStock={parseInt(formData.stock) || 0}
-          onStockUpdated={(newStock) => {
-            setFormData((prev) => ({ ...prev, stock: String(newStock) }))
-            setProduct((prev) => prev ? { ...prev, stock: newStock } : prev)
-          }}
-        />
-      )}
     </div>
   )
 }

@@ -1,12 +1,7 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
-import { Package, ShoppingCart, ShoppingBag, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, AlertTriangle, Eye, Wallet } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import prisma from '@/lib/prisma'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { DashboardStats } from '@/components/admin/dashboard-stats'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
@@ -16,52 +11,43 @@ export const metadata: Metadata = {
 // Enable dynamic rendering but cache the data
 export const dynamic = 'force-dynamic'
 
-const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-700',
-  PROCESSING: 'bg-blue-100 text-blue-700',
-  SHIPPED: 'bg-purple-100 text-purple-700',
-  DELIVERED: 'bg-green-100 text-green-700',
-  CANCELLED: 'bg-red-100 text-red-700',
-}
-
 // Cache dashboard data for 30 seconds
 const getCachedDashboardData = unstable_cache(
   async () => {
-    const now = new Date()
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-
     // Run all independent queries in parallel
     const [
-      thisMonthOrders,
-      lastMonthOrders,
-      newCustomersThisMonth,
-      newCustomersLastMonth,
+      orders,
+      customers,
       lowStockProducts,
       recentOrders,
       orderStatuses,
       topProductItems,
-      purchaseOrderStats,
-      last7DaysOrders,
+      purchaseOrders,
     ] = await Promise.all([
+      // Get all orders for filtering
       prisma.order.findMany({
-        where: { createdAt: { gte: thisMonth } },
-        select: { totalAmount: true },
+        select: {
+          id: true,
+          customerName: true,
+          totalAmount: true,
+          status: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
       }),
-      prisma.order.findMany({
-        where: { createdAt: { gte: lastMonth, lte: lastMonthEnd } },
-        select: { totalAmount: true },
+      // Get all customers
+      prisma.user.findMany({
+        where: { role: 'CUSTOMER' },
+        select: { id: true, createdAt: true },
       }),
-      prisma.user.count({ where: { createdAt: { gte: thisMonth }, role: 'CUSTOMER' } }),
-      prisma.user.count({ where: { createdAt: { gte: lastMonth, lte: lastMonthEnd }, role: 'CUSTOMER' } }),
+      // Low stock products
       prisma.product.findMany({
         where: { stock: { lte: 5 } },
         orderBy: { stock: 'asc' },
         take: 5,
         select: { id: true, name: true, category: true, stock: true },
       }),
+      // Recent orders
       prisma.order.findMany({
         orderBy: { createdAt: 'desc' },
         take: 5,
@@ -73,84 +59,27 @@ const getCachedDashboardData = unstable_cache(
           createdAt: true,
         },
       }),
+      // Order statuses
       prisma.order.groupBy({
         by: ['status'],
         _count: { status: true },
       }),
+      // Top products
       prisma.orderItem.groupBy({
         by: ['productId'],
         _sum: { quantity: true },
         orderBy: { _sum: { quantity: 'desc' } },
         take: 5,
       }),
-      // Aggregate purchase order costs in a single query
-      prisma.$queryRaw<{ total: number; thisMonth: number; lastMonth: number }[]>`
-        SELECT 
-          COALESCE(SUM(total_cost), 0)::float as total,
-          COALESCE(SUM(CASE WHEN created_at >= ${thisMonth} THEN total_cost ELSE 0 END), 0)::float as "thisMonth",
-          COALESCE(SUM(CASE WHEN created_at >= ${lastMonth} AND created_at < ${thisMonth} THEN total_cost ELSE 0 END), 0)::float as "lastMonth"
-        FROM purchase_orders
-      `,
-      // Fetch all orders from last 7 days in one query
-      prisma.order.findMany({
-        where: { createdAt: { gte: sevenDaysAgo } },
-        select: { totalAmount: true, createdAt: true },
+      // Purchase orders
+      prisma.purchaseOrder.findMany({
+        select: {
+          id: true,
+          totalCost: true,
+          createdAt: true,
+        },
       }),
     ])
-
-    // Process purchase order stats
-    const poStats = purchaseOrderStats[0] || { total: 0, thisMonth: 0, lastMonth: 0 }
-    const totalCostSpent = poStats.total
-    const thisMonthCost = poStats.thisMonth
-    const lastMonthCost = poStats.lastMonth
-    const costChange = lastMonthCost > 0
-      ? ((thisMonthCost - lastMonthCost) / lastMonthCost) * 100
-      : thisMonthCost > 0 ? 100 : 0
-
-    // Revenue calculations
-    const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0)
-    const lastMonthRevenue = lastMonthOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0)
-    const revenueChange = lastMonthRevenue > 0
-      ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
-      : 100
-
-    // Order count
-    const thisMonthOrderCount = thisMonthOrders.length
-    const lastMonthOrderCount = lastMonthOrders.length
-    const orderChange = lastMonthOrderCount > 0
-      ? ((thisMonthOrderCount - lastMonthOrderCount) / lastMonthOrderCount) * 100
-      : 100
-
-    // Customers
-    const customerChange = newCustomersLastMonth > 0
-      ? ((newCustomersThisMonth - newCustomersLastMonth) / newCustomersLastMonth) * 100
-      : 100
-
-    // Avg order value
-    const avgOrderValue = thisMonthOrderCount > 0 ? thisMonthRevenue / thisMonthOrderCount : 0
-    const lastAvgOrderValue = lastMonthOrderCount > 0 ? lastMonthRevenue / lastMonthOrderCount : 0
-    const avgOrderChange = lastAvgOrderValue > 0
-      ? ((avgOrderValue - lastAvgOrderValue) / lastAvgOrderValue) * 100
-      : 100
-
-    // Group daily revenue in JS instead of multiple queries
-    const dailyRevenue: { date: string; revenue: number; orders: number }[] = []
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
-      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-      const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
-      
-      const dayOrders = last7DaysOrders.filter(o => {
-        const orderDate = new Date(o.createdAt)
-        return orderDate >= startOfDay && orderDate < endOfDay
-      })
-      
-      dailyRevenue.push({
-        date: startOfDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        revenue: dayOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0),
-        orders: dayOrders.length,
-      })
-    }
 
     // Fetch all top product details in one query instead of N+1
     const productIds = topProductItems.map(item => item.productId)
@@ -172,23 +101,30 @@ const getCachedDashboardData = unstable_cache(
     })
 
     return {
-      thisMonthRevenue,
-      revenueChange,
-      thisMonthOrderCount,
-      orderChange,
-      newCustomersThisMonth,
-      totalCostSpent,
-      thisMonthCost,
-      costChange,
-      customerChange,
-      avgOrderValue,
-      avgOrderChange,
-      dailyRevenue,
+      orders: orders.map(o => ({
+        id: o.id,
+        customerName: o.customerName,
+        totalAmount: Number(o.totalAmount),
+        status: o.status,
+        createdAt: o.createdAt.toISOString(),
+      })),
+      customers: customers.map(c => ({
+        id: c.id,
+        createdAt: c.createdAt.toISOString(),
+      })),
+      purchaseOrders: purchaseOrders.map(po => ({
+        id: po.id,
+        totalCost: Number(po.totalCost),
+        createdAt: po.createdAt.toISOString(),
+      })),
       topProducts,
       orderStatuses,
       lowStockProducts,
       recentOrders: recentOrders.map(o => ({
-        ...o,
+        id: o.id,
+        customerName: o.customerName,
+        totalAmount: Number(o.totalAmount),
+        status: o.status,
         createdAt: o.createdAt.toISOString(),
       })),
     }
@@ -197,300 +133,18 @@ const getCachedDashboardData = unstable_cache(
   { revalidate: 30, tags: ['admin-dashboard'] }
 )
 
-function ChangeBadge({ value }: { value: number }) {
-  if (value >= 0) {
-    return (
-      <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100">
-        <ArrowUpRight className="h-3 w-3 mr-1" />
-        {Math.abs(value).toFixed(1)}%
-      </Badge>
-    )
-  }
-  return (
-    <Badge variant="secondary" className="bg-red-100 text-red-700">
-      <ArrowDownRight className="h-3 w-3 mr-1" />
-      {Math.abs(value).toFixed(1)}%
-    </Badge>
-  )
-}
-
 export default async function AdminDashboard() {
   const data = await getCachedDashboardData()
-  const maxRevenue = Math.max(...data.dailyRevenue.map(d => d.revenue), 1)
-  const maxStatusCount = Math.max(...data.orderStatuses.map(s => s._count.status), 1)
-
-  const statusLabels: Record<string, string> = {
-    PENDING: 'Pending',
-    PROCESSING: 'Processing',
-    SHIPPED: 'Shipped',
-    DELIVERED: 'Delivered',
-    CANCELLED: 'Cancelled',
-  }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-500 mt-1">Welcome to your admin dashboard</p>
-      </div>
-
-      {/* KPI Cards with month-over-month trends */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">Revenue (This Month)</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(data.thisMonthRevenue)}</p>
-              </div>
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-green-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <ChangeBadge value={data.revenueChange} />
-              <span className="text-xs text-slate-500">vs last month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">Orders (This Month)</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{data.thisMonthOrderCount}</p>
-              </div>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <ShoppingBag className="h-5 w-5 text-blue-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <ChangeBadge value={data.orderChange} />
-              <span className="text-xs text-slate-500">vs last month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">New Customers</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{data.newCustomersThisMonth}</p>
-              </div>
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <ChangeBadge value={data.customerChange} />
-              <span className="text-xs text-slate-500">vs last month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">Avg Order Value</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(data.avgOrderValue)}</p>
-              </div>
-              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-amber-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <ChangeBadge value={data.avgOrderChange} />
-              <span className="text-xs text-slate-500">vs last month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">Purchase Cost (This Month)</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(data.thisMonthCost)}</p>
-              </div>
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <Wallet className="h-5 w-5 text-red-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <ChangeBadge value={data.costChange} />
-              <span className="text-xs text-slate-500">vs last month</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">Total: {formatCurrency(data.totalCostSpent)}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue (Last 7 Days)</CardTitle>
-            <CardDescription>Daily revenue breakdown</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.dailyRevenue.map((day, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500 w-24 shrink-0">{day.date}</span>
-                  <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
-                      style={{ width: `${(day.revenue / maxRevenue) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-slate-900 w-20 text-right">
-                    {formatCurrency(day.revenue)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Order Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Order Status</CardTitle>
-            <CardDescription>Distribution of order statuses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.orderStatuses.map((status) => (
-                <div key={status.status} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500 w-24 shrink-0">
-                    {statusLabels[status.status] || status.status}
-                  </span>
-                  <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        status.status === 'DELIVERED' ? 'bg-green-500' :
-                        status.status === 'CANCELLED' ? 'bg-red-400' :
-                        status.status === 'SHIPPED' ? 'bg-purple-500' :
-                        status.status === 'PROCESSING' ? 'bg-blue-500' :
-                        'bg-amber-400'
-                      }`}
-                      style={{ width: `${(status._count.status / maxStatusCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-slate-900 w-8 text-right">
-                    {status._count.status}
-                  </span>
-                </div>
-              ))}
-              {data.orderStatuses.length === 0 && (
-                <p className="text-sm text-slate-500 text-center py-4">No orders yet</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Middle Row: Top Products + Low Stock */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Selling Products */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Selling Products</CardTitle>
-            <CardDescription>Best performers by quantity sold</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.topProducts.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">No sales data yet</p>
-            ) : (
-              <div className="space-y-3">
-                {data.topProducts.map((product, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-blue-600 w-6">#{index + 1}</span>
-                      <div>
-                        <p className="font-medium text-slate-900">{product.name}</p>
-                        <p className="text-sm text-slate-500">{product.quantity} units sold</p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-semibold text-slate-900">{formatCurrency(product.revenue)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Low Stock Alerts */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Low Stock Alerts
-            </CardTitle>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/products">View All</Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {data.lowStockProducts.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">All products are well stocked</p>
-            ) : (
-              <div className="space-y-3">
-                {data.lowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-amber-50 rounded-xl">
-                    <div>
-                      <p className="font-medium text-slate-900">{product.name}</p>
-                      <p className="text-sm text-slate-500">{product.category}</p>
-                    </div>
-                    <Badge variant={product.stock === 0 ? 'destructive' : 'secondary'}>
-                      {product.stock === 0 ? 'Out of Stock' : `${product.stock} left`}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Orders */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent Orders</CardTitle>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/admin/orders">View All</Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {data.recentOrders.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-4">No orders yet</p>
-          ) : (
-            <div className="space-y-3">
-              {data.recentOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  href={`/admin/orders/${order.id}`}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                >
-                  <div>
-                    <p className="font-medium text-slate-900">{order.customerName}</p>
-                    <p className="text-sm text-slate-500">{formatDate(order.createdAt)}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium">{formatCurrency(Number(order.totalAmount))}</span>
-                    <Badge className={statusColors[order.status]}>{order.status}</Badge>
-                    <Eye className="h-4 w-4 text-slate-400" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <DashboardStats
+      orders={data.orders}
+      customers={data.customers}
+      purchaseOrders={data.purchaseOrders}
+      lowStockProducts={data.lowStockProducts}
+      topProducts={data.topProducts}
+      orderStatuses={data.orderStatuses}
+      recentOrders={data.recentOrders}
+    />
   )
 }

@@ -96,12 +96,6 @@ function ProductCard({
           <Badge className="absolute top-3 left-3">Best Seller</Badge>
         )}
         
-        {product.stock < 10 && product.stock > 0 && (
-          <Badge variant="warning" className="absolute top-3 right-3">
-            Low Stock
-          </Badge>
-        )}
-        
         {product.stock === 0 && (
           <Badge variant="destructive" className="absolute top-3 right-3">
             Out of Stock
@@ -142,9 +136,6 @@ function ProductCard({
           <div className="flex items-center justify-between">
             <span className="text-xl font-bold text-slate-900">
               {formatCurrency(product.price)}
-            </span>
-            <span className="text-xs text-slate-400">
-              {product.stock > 0 ? `${product.stock} in stock` : 'Sold out'}
             </span>
           </div>
         </CardContent>

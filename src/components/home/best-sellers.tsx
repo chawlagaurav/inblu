@@ -118,7 +118,6 @@ function ProductCard({
             <span className="text-lg font-bold text-slate-900">
               {formatCurrency(product.price)}
             </span>
-            <span className="text-xs text-slate-500">{product.stock} in stock</span>
           </div>
         </CardContent>
       </Card>

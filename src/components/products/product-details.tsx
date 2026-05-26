@@ -180,17 +180,10 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
             {/* Stock */}
             <div className="flex items-center gap-2">
-              {product.stock > 10 ? (
+              {product.stock > 0 ? (
                 <>
                   <Check className="h-5 w-5 text-green-500" />
                   <span className="text-sm text-green-600 font-medium">In Stock</span>
-                </>
-              ) : product.stock > 0 ? (
-                <>
-                  <Check className="h-5 w-5 text-yellow-500" />
-                  <span className="text-sm text-yellow-600 font-medium">
-                    Only {product.stock} left
-                  </span>
                 </>
               ) : (
                 <span className="text-sm text-red-600 font-medium">Out of Stock</span>

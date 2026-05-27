@@ -129,10 +129,6 @@ function ProductCard({
             </h3>
           </div>
           
-          <p className="text-sm text-slate-500 line-clamp-2 mb-3 whitespace-pre-line">
-            {product.description}
-          </p>
-          
           <div className="flex items-center justify-between">
             <span className="text-xl font-bold text-slate-900">
               {formatCurrency(product.price)}

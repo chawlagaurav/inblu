@@ -28,7 +28,7 @@ async function BestSellersSection() {
 }
 
 async function TestimonialsSectionWrapper() {
-  const testimonials = await getCachedFeaturedTestimonials(3)
+  const testimonials = await getCachedFeaturedTestimonials(10)
   return <TestimonialsSection testimonials={testimonials} />
 }
 

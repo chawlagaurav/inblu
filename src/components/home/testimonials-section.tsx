@@ -3,7 +3,7 @@
 import { Star, Quote } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { FadeInOnScroll, StaggerContainer, StaggerItem } from '@/components/motion'
+import { FadeInOnScroll } from '@/components/motion'
 import { Testimonial } from '@/types'
 
 interface TestimonialsSectionProps {
@@ -16,8 +16,11 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
     return null
   }
 
+  // Double the testimonials for seamless loop
+  const duplicatedTestimonials = [...testimonials, ...testimonials]
+
   return (
-    <section className="py-16 sm:py-24 bg-white">
+    <section className="py-16 sm:py-24 bg-white overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeInOnScroll>
           <div className="text-center">
@@ -29,14 +32,17 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
             </p>
           </div>
         </FadeInOnScroll>
+      </div>
 
-        <StaggerContainer className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <StaggerItem key={testimonial.id}>
+      {/* Scrolling testimonials container */}
+      <div className="mt-12 relative">
+        <div className="flex animate-marquee-testimonials hover:pause-animation">
+          {duplicatedTestimonials.map((testimonial, index) => (
+            <div key={`${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
               <TestimonialCard testimonial={testimonial} />
-            </StaggerItem>
+            </div>
           ))}
-        </StaggerContainer>
+        </div>
       </div>
     </section>
   )
@@ -45,7 +51,7 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
     <Card className="h-full bg-blue-50/50 border-blue-100">
-      <CardContent className="p-6 flex flex-col h-full">
+      <CardContent className="p-6 flex flex-col h-full min-h-[280px]">
         <div className="flex items-center gap-1 mb-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
@@ -61,7 +67,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
         
         <Quote className="h-8 w-8 text-blue-200 mb-4" />
         
-        <p className="flex-1 text-slate-700 text-sm leading-relaxed">
+        <p className="flex-1 text-slate-700 text-sm leading-relaxed line-clamp-4">
           {testimonial.review}
         </p>
 

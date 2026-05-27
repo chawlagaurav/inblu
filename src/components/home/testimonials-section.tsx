@@ -39,19 +39,23 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
           {/* Right fade gradient */}
           <div className="absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
           
-          <div className="flex animate-marquee-testimonials hover:pause-animation">
+          <div className="flex hover:pause-animation">
             {/* First set */}
-            {testimonials.map((testimonial, index) => (
-              <div key={`first-${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
-                <TestimonialCard testimonial={testimonial} />
-              </div>
-            ))}
+            <div className="flex shrink-0 animate-testimonials-scroll">
+              {testimonials.map((testimonial, index) => (
+                <div key={`first-${testimonial.id}-${index}`} className="shrink-0 w-[350px] px-3">
+                  <TestimonialCard testimonial={testimonial} />
+                </div>
+              ))}
+            </div>
             {/* Second set (duplicate for seamless loop) */}
-            {testimonials.map((testimonial, index) => (
-              <div key={`second-${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
-                <TestimonialCard testimonial={testimonial} />
-              </div>
-            ))}
+            <div className="flex shrink-0 animate-testimonials-scroll" aria-hidden="true">
+              {testimonials.map((testimonial, index) => (
+                <div key={`second-${testimonial.id}-${index}`} className="shrink-0 w-[350px] px-3">
+                  <TestimonialCard testimonial={testimonial} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

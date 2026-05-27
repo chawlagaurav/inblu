@@ -158,27 +158,41 @@ export function HeroSection() {
           initial={{ opacity: 0 }}
           animate={mounted ? { opacity: 1 } : {}}
           transition={{ duration: 0.6, delay: 0.8 }}
+          className="relative flex overflow-hidden"
         >
-          <div className="flex animate-marquee whitespace-nowrap">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex items-center">
-                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
-                  ✦ Free Shipping Australia-Wide
-                </span>
-                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
-                  ✦ 99.9% Contaminant Removal
-                </span>
-                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
-                  ✦ 2-Year Warranty on All Products
-                </span>
-                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
-                  ✦ Pure Water, Healthier Life
-                </span>
-                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
-                  ✦ Trusted by 5000+ Australian Homes
-                </span>
-              </div>
-            ))}
+          <div className="flex shrink-0 animate-marquee-scroll items-center">
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ Free Shipping Australia-Wide
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ 99.9% Contaminant Removal
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ 2-Year Warranty on All Products
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ Pure Water, Healthier Life
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ Trusted by 5000+ Australian Homes
+            </span>
+          </div>
+          <div className="flex shrink-0 animate-marquee-scroll items-center" aria-hidden="true">
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ Free Shipping Australia-Wide
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ 99.9% Contaminant Removal
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ 2-Year Warranty on All Products
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ Pure Water, Healthier Life
+            </span>
+            <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+              ✦ Trusted by 5000+ Australian Homes
+            </span>
           </div>
         </motion.div>
       </div>

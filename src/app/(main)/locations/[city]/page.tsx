@@ -70,28 +70,38 @@ const cities = {
 
 type CityKey = keyof typeof cities
 
-const features = [
-  {
-    icon: Truck,
-    title: 'Fast Shipping',
-    description: 'Quick delivery to your doorstep Australia-wide.',
-  },
-  {
-    icon: Clock,
-    title: 'Sydney Installation',
-    description: 'Professional installation available in Sydney within 2-3 weeks.',
-  },
-  {
-    icon: Shield,
-    title: 'Local Warranty Support',
-    description: 'Full warranty backed by local Australian service and support.',
-  },
-  {
-    icon: Star,
-    title: 'Trusted by Locals',
-    description: 'Thousands of satisfied customers across Australia.',
-  },
-]
+const getFeatures = (hasInstallation: boolean, cityName: string) => {
+  const baseFeatures = [
+    {
+      icon: Truck,
+      title: 'Fast Shipping',
+      description: `Quick delivery to ${cityName} and Australia-wide.`,
+    },
+  ]
+  
+  if (hasInstallation) {
+    baseFeatures.push({
+      icon: Clock,
+      title: 'Professional Installation',
+      description: 'Installation available in Sydney within 2-3 weeks.',
+    })
+  }
+  
+  baseFeatures.push(
+    {
+      icon: Shield,
+      title: 'Local Warranty Support',
+      description: 'Full warranty backed by local Australian service and support.',
+    },
+    {
+      icon: Star,
+      title: 'Trusted by Locals',
+      description: 'Thousands of satisfied customers across Australia.',
+    },
+  )
+  
+  return baseFeatures
+}
 
 const localFAQs = (city: string, hasInstallation: boolean) => {
   const faqs = [
@@ -243,8 +253,8 @@ export default async function CityPage({ params }: CityPageProps) {
               Why Choose Inblu in {cityData.name}?
             </h2>
           </FadeInOnScroll>
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
+          <StaggerContainer className={`grid grid-cols-1 md:grid-cols-2 ${cityData.hasInstallation ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
+            {getFeatures(cityData.hasInstallation, cityData.name).map((feature, index) => (
               <StaggerItem key={index}>
                 <Card className="h-full">
                   <CardContent className="p-6 text-center">

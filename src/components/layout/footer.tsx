@@ -9,7 +9,11 @@ const footerNavigation = {
     { name: 'New Arrivals', href: '/products?filter=new' },
   ],
   locations: [
-    { name: 'All Locations', href: '/locations' },
+    { name: 'Sydney', href: '/locations/sydney' },
+    { name: 'Melbourne', href: '/locations/melbourne' },
+    { name: 'Brisbane', href: '/locations/brisbane' },
+    { name: 'Perth', href: '/locations/perth' },
+    { name: 'Adelaide', href: '/locations/adelaide' },
   ],
   company: [
     { name: 'About Us', href: '/about' },

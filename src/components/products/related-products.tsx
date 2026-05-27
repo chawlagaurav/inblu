@@ -34,7 +34,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         <StaggerContainer className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.map((product) => (
             <StaggerItem key={product.id}>
-              <Link href={`/products/${product.id}`} className="group block h-full">
+              <Link href={`/products/${product.slug}`} className="group block h-full">
                 <div className="h-full overflow-hidden rounded-lg bg-white border border-slate-100 transition-all duration-200 hover:shadow-md hover:border-blue-200">
                   <div className="relative aspect-[4/3] overflow-hidden bg-blue-50">
                     {product.imageUrl ? (

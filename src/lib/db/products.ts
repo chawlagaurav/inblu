@@ -8,6 +8,7 @@ import { unstable_cache } from 'next/cache'
  */
 function transformProduct(product: {
   id: string
+  slug: string | null
   name: string
   description: string
   price: unknown
@@ -24,6 +25,7 @@ function transformProduct(product: {
 }): Product {
   return {
     id: product.id,
+    slug: product.slug || product.id,
     name: product.name,
     description: product.description,
     price: Number(product.price),
@@ -131,11 +133,38 @@ export async function getProductById(id: string): Promise<Product | null> {
 }
 
 /**
+ * Get a single product by slug
+ */
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const product = await prisma.product.findUnique({
+    where: { slug },
+  })
+
+  if (!product) {
+    return null
+  }
+
+  return transformProduct(product)
+}
+
+/**
  * Get cached product by ID
  */
 export const getCachedProductById = unstable_cache(
   async (id: string) => getProductById(id),
   ['product'],
+  {
+    revalidate: 60,
+    tags: ['products'],
+  }
+)
+
+/**
+ * Get cached product by slug
+ */
+export const getCachedProductBySlug = unstable_cache(
+  async (slug: string) => getProductBySlug(slug),
+  ['product-slug'],
   {
     revalidate: 60,
     tags: ['products'],

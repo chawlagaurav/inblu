@@ -43,6 +43,16 @@ export async function GET() {
   }
 }
 
+// Helper function to generate slug from name
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+    .replace(/-+/g, '-')           // Replace multiple hyphens with single
+    .replace(/^-|-$/g, '')         // Remove leading/trailing hyphens
+}
+
 // POST create new product
 export async function POST(request: NextRequest) {
   try {
@@ -69,9 +79,19 @@ export async function POST(request: NextRequest) {
       isActive
     } = body
 
+    // Generate slug from name
+    let slug = generateSlug(name)
+    
+    // Check if slug exists and make it unique if necessary
+    const existingProduct = await prisma.product.findUnique({ where: { slug } })
+    if (existingProduct) {
+      slug = `${slug}-${Date.now()}`
+    }
+
     const product = await prisma.product.create({
       data: {
         name,
+        slug,
         description,
         price,
         stock: stock || 0,

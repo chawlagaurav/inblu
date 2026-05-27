@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ProductDetails } from '@/components/products/product-details'
 import { RelatedProducts } from '@/components/products/related-products'
-import { getCachedProductById, getCachedRelatedProducts, getCachedProducts } from '@/lib/db/products'
+import { getCachedProductBySlug, getCachedRelatedProducts, getCachedProducts } from '@/lib/db/products'
 import { ProductSchema, BreadcrumbSchema } from '@/components/seo'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'
@@ -11,12 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'
 export const dynamicParams = true
 
 interface ProductPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const { id } = await params
-  const product = await getCachedProductById(id)
+  const { slug } = await params
+  const product = await getCachedProductBySlug(slug)
   
   if (!product) {
     return {
@@ -38,12 +38,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       `${product.category} water filter`,
     ],
     alternates: {
-      canonical: `/products/${id}`,
+      canonical: `/products/${product.slug}`,
     },
     openGraph: {
       title: seoTitle,
       description: seoDescription,
-      url: `${BASE_URL}/products/${id}`,
+      url: `${BASE_URL}/products/${product.slug}`,
       type: 'website',
       images: product.imageUrl ? [
         {
@@ -64,8 +64,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { id } = await params
-  const product = await getCachedProductById(id)
+  const { slug } = await params
+  const product = await getCachedProductBySlug(slug)
   
   if (!product) {
     notFound()
@@ -76,7 +76,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const breadcrumbs = [
     { name: 'Home', url: BASE_URL },
     { name: 'Products', url: `${BASE_URL}/products` },
-    { name: product.name, url: `${BASE_URL}/products/${product.id}` },
+    { name: product.name, url: `${BASE_URL}/products/${product.slug}` },
   ]
 
   return (
@@ -90,7 +90,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         sku={product.sku || undefined}
         category={product.category}
         availability={product.stock > 0 ? 'InStock' : 'OutOfStock'}
-        url={`${BASE_URL}/products/${product.id}`}
+        url={`${BASE_URL}/products/${product.slug}`}
       />
       <ProductDetails product={product} />
       

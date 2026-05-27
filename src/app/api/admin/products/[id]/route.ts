@@ -3,6 +3,16 @@ import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
+// Helper function to generate slug from name
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+    .replace(/-+/g, '-')           // Replace multiple hyphens with single
+    .replace(/^-|-$/g, '')         // Remove leading/trailing hyphens
+}
+
 // Verify admin access
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -82,10 +92,25 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       isActive
     } = body
 
+    // Get current product to check if name changed
+    const currentProduct = await prisma.product.findUnique({ where: { id } })
+    
+    // Generate new slug if name changed
+    let newSlug = currentProduct?.slug
+    if (name && currentProduct && name !== currentProduct.name) {
+      newSlug = generateSlug(name)
+      // Check if slug already exists for another product
+      const existingProduct = await prisma.product.findUnique({ where: { slug: newSlug } })
+      if (existingProduct && existingProduct.id !== id) {
+        newSlug = `${newSlug}-${Date.now()}`
+      }
+    }
+
     const product = await prisma.product.update({
       where: { id },
       data: {
         name,
+        slug: newSlug,
         description,
         price,
         stock,
@@ -105,7 +130,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Revalidate product pages cache
     revalidatePath('/products', 'page')
-    revalidatePath(`/products/${id}`, 'page')
+    if (product.slug) {
+      revalidatePath(`/products/${product.slug}`, 'page')
+    }
     revalidatePath('/', 'page')
 
     return NextResponse.json(product)

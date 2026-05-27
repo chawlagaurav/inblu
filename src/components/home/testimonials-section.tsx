@@ -37,6 +37,11 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
       {/* Scrolling testimonials container */}
       <div className="mt-12 mx-auto max-w-7xl px-6 lg:px-8">
         <div className="relative overflow-hidden">
+          {/* Left fade gradient */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+          {/* Right fade gradient */}
+          <div className="absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+          
           <div className="flex animate-marquee-testimonials hover:pause-animation">
             {duplicatedTestimonials.map((testimonial, index) => (
               <div key={`${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">

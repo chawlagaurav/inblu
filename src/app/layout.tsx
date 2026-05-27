@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     default: "Water Filters Australia | RO Purifiers & Filtration Systems | Inblu",
     template: "%s | Inblu Filters Australia",
   },
-  description: "Australia's leading water filtration specialists. Shop RO water purifiers, countertop filters, undersink systems & water ionisers. Free installation & shipping Australia-wide. Pure, clean drinking water for your home.",
+  description: "Australia's leading water filtration specialists. Shop RO water purifiers, countertop filters, undersink systems & water ionisers. Fast installation & shipping Australia-wide. Pure, clean drinking water for your home.",
   keywords: [
     "water filter Australia",
     "RO water filter",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     url: BASE_URL,
     siteName: "Inblu Filters",
     title: "Water Filters Australia | RO Purifiers & Filtration Systems | Inblu",
-    description: "Australia's leading water filtration specialists. Shop RO water purifiers, countertop filters, undersink systems. Free installation & shipping Australia-wide.",
+    description: "Australia's leading water filtration specialists. Shop RO water purifiers, countertop filters, undersink systems. Fast installation & shipping Australia-wide.",
     images: [
       {
         url: "/og-image.png",

@@ -192,28 +192,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
             <Separator />
 
-            {/* Description */}
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
-              <p className="text-slate-600 leading-relaxed">{product.description}</p>
-            </div>
-
-            {/* Download Manual Button */}
-            {product.manualUrl && (
-              <a
-                href={product.manualUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Download manual for ${product.name}`}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-500 text-white hover:bg-blue-600 shadow-md transition-colors px-6 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-              >
-                <Download className="h-5 w-5" />
-                Download {product.name} Manual
-              </a>
-            )}
-
-            <Separator />
-
             {/* Quantity & Add to Cart */}
             <div className="space-y-4">
               {/* Quantity */}
@@ -263,6 +241,28 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 </Button>
               </div>
             </div>
+
+            <Separator />
+
+            {/* Description */}
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-line">{product.description}</p>
+            </div>
+
+            {/* Download Manual Button */}
+            {product.manualUrl && (
+              <a
+                href={product.manualUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Download manual for ${product.name}`}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-500 text-white hover:bg-blue-600 shadow-md transition-colors px-6 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              >
+                <Download className="h-5 w-5" />
+                Download {product.name} Manual
+              </a>
+            )}
 
             <Separator />
 

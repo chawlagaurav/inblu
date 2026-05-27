@@ -15,12 +15,12 @@ import { AdminLoader } from '@/components/admin/admin-loader'
 import { ImageUpload, MultiImageUpload, DocumentUpload } from '@/components/admin/image-upload'
 import { toast } from 'sonner'
 
-const categories = [
-  { value: 'ro-purifiers', label: 'Counter Top Filters' },
-  { value: 'water-ionisers', label: 'Water Ionisers' },
-  { value: 'undersink-filters', label: 'Undersink Filters' },
-  { value: 'replacement-filters', label: 'Replacement Filters' },
-]
+interface Category {
+  id: string
+  value: string
+  label: string
+  isActive: boolean
+}
 
 interface Product {
   id: string
@@ -55,6 +55,7 @@ export default function EditProductPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [product, setProduct] = useState<Product | null>(null)
   const [allProducts, setAllProducts] = useState<ProductListItem[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -93,7 +94,20 @@ export default function EditProductPage() {
   useEffect(() => {
     fetchProduct()
     fetchAllProducts()
+    fetchCategories()
   }, [productId])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setCategories(data.filter((c: Category) => c.isActive))
+      }
+    } catch {
+      console.error('Failed to fetch categories')
+    }
+  }
 
   const fetchAllProducts = async () => {
     try {
@@ -385,7 +399,7 @@ export default function EditProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Documents & Specifications</CardTitle>
+              <CardTitle>Documents</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -397,22 +411,6 @@ export default function EditProductPage() {
                   folder="manuals"
                   label="PDF Manual"
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="specifications">Specifications (JSON format)</Label>
-                <Textarea
-                  id="specifications"
-                  name="specifications"
-                  value={formData.specifications}
-                  onChange={handleChange}
-                  rows={6}
-                  className="mt-1 font-mono text-sm"
-                  placeholder='{"Weight": "2.5 kg", "Dimensions": "30x20x15 cm"}'
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Enter specifications as JSON object
-                </p>
               </div>
             </CardContent>
           </Card>

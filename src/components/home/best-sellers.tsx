@@ -113,7 +113,6 @@ function ProductCard({
           <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
             {product.name}
           </h3>
-          <p className="mt-1 text-sm text-slate-500 line-clamp-1">{product.description}</p>
           <div className="mt-3 flex items-center justify-between">
             <span className="text-lg font-bold text-slate-900">
               {formatCurrency(product.price)}

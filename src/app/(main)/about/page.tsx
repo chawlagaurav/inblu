@@ -50,7 +50,7 @@ const stats = [
   { value: '5K+', label: 'Installations' },
   { value: '15+', label: 'Premium Products' },
   { value: '4.9', label: 'Average Rating' },
-  { value: 'Free', label: 'Installation' },
+  { value: 'Fast', label: 'Installation' },
 ]
 
 export default function AboutPage() {

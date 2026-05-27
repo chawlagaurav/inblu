@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, Plus } from 'lucide-react'
@@ -13,16 +13,17 @@ import { FadeIn } from '@/components/motion'
 import { ImageUpload, MultiImageUpload, DocumentUpload } from '@/components/admin/image-upload'
 import { toast } from 'sonner'
 
-const categories = [
-  { value: 'ro-purifiers', label: 'Counter Top Filters' },
-  { value: 'water-ionisers', label: 'Water Ionisers' },
-  { value: 'undersink-filters', label: 'Undersink Filters' },
-  { value: 'replacement-filters', label: 'Replacement Filters' },
-]
+interface Category {
+  id: string
+  value: string
+  label: string
+  isActive: boolean
+}
 
 export default function NewProductPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -38,6 +39,22 @@ export default function NewProductPage() {
     isActive: true,
     specifications: '',
   })
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setCategories(data.filter((c: Category) => c.isActive))
+      }
+    } catch {
+      console.error('Failed to fetch categories')
+    }
+  }
 
   const toggleCategory = (value: string) => {
     setFormData((prev) => ({
@@ -303,7 +320,7 @@ export default function NewProductPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Documents & Specifications</CardTitle>
+              <CardTitle>Documents</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -315,22 +332,6 @@ export default function NewProductPage() {
                   folder="manuals"
                   label="PDF Manual"
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="specifications">Specifications (JSON format)</Label>
-                <Textarea
-                  id="specifications"
-                  name="specifications"
-                  value={formData.specifications}
-                  onChange={handleChange}
-                  rows={6}
-                  className="mt-1 font-mono text-sm"
-                  placeholder='{"Weight": "2.5 kg", "Dimensions": "30x20x15 cm"}'
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Enter specifications as JSON object
-                </p>
               </div>
             </CardContent>
           </Card>

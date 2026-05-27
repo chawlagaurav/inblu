@@ -13,51 +13,58 @@ const cities = {
   sydney: {
     name: 'Sydney',
     state: 'NSW',
-    description: 'Premium water filters and RO purifiers in Sydney. Free installation across Sydney metro, North Shore, Eastern Suburbs, Inner West, and Western Sydney.',
+    description: 'Premium water filters and RO purifiers in Sydney. Installation available across Sydney metro, North Shore, Eastern Suburbs, Inner West, and Western Sydney.',
     areas: ['CBD', 'North Shore', 'Eastern Suburbs', 'Inner West', 'Western Sydney', 'Parramatta', 'Sutherland', 'Northern Beaches'],
     waterInfo: 'Sydney water comes from protected catchments but still contains chlorine and fluoride. Our RO filters remove 99% of contaminants for pure drinking water.',
+    hasInstallation: true,
   },
   melbourne: {
     name: 'Melbourne',
     state: 'VIC',
-    description: 'Premium water filters and RO purifiers in Melbourne. Free installation across Melbourne CBD, Inner suburbs, Eastern suburbs, and Mornington Peninsula.',
+    description: 'Premium water filters and RO purifiers available in Melbourne. Shipping to Melbourne CBD, Inner suburbs, Eastern suburbs, and Mornington Peninsula.',
     areas: ['CBD', 'Inner North', 'Inner South', 'Eastern Suburbs', 'Western Suburbs', 'Bayside', 'Mornington Peninsula'],
     waterInfo: 'Melbourne tap water is sourced from mountain catchments but contains treatment chemicals. Our filtration systems provide crystal-clear, pure water.',
+    hasInstallation: false,
   },
   brisbane: {
     name: 'Brisbane',
     state: 'QLD',
-    description: 'Premium water filters and RO purifiers in Brisbane. Free installation across Brisbane, Gold Coast, and South East Queensland.',
+    description: 'Premium water filters and RO purifiers available in Brisbane. Shipping to Brisbane, Gold Coast, and South East Queensland.',
     areas: ['CBD', 'Northside', 'Southside', 'Eastern Suburbs', 'Western Suburbs', 'Gold Coast', 'Sunshine Coast'],
     waterInfo: 'Brisbane water can have higher chlorine levels due to warmer climate. Our RO systems ensure fresh, clean tasting water year-round.',
+    hasInstallation: false,
   },
   perth: {
     name: 'Perth',
     state: 'WA',
-    description: 'Premium water filters and RO purifiers in Perth. Free installation across Perth metro, Fremantle, Joondalup, and surrounding areas.',
+    description: 'Premium water filters and RO purifiers available in Perth. Shipping to Perth metro, Fremantle, Joondalup, and surrounding areas.',
     areas: ['CBD', 'Fremantle', 'Joondalup', 'Rockingham', 'Mandurah', 'Northern Suburbs', 'Southern Suburbs'],
     waterInfo: 'Perth relies heavily on desalinated water. Our filters improve taste and remove residual chemicals for better drinking water.',
+    hasInstallation: false,
   },
   adelaide: {
     name: 'Adelaide',
     state: 'SA',
-    description: 'Premium water filters and RO purifiers in Adelaide. Free installation across Adelaide metro and surrounding regions.',
+    description: 'Premium water filters and RO purifiers available in Adelaide. Shipping to Adelaide metro and surrounding regions.',
     areas: ['CBD', 'North Adelaide', 'Eastern Suburbs', 'Western Suburbs', 'Southern Suburbs', 'Adelaide Hills'],
     waterInfo: 'Adelaide water is known for its harder mineral content. Our RO systems soften water and remove impurities for improved taste.',
+    hasInstallation: false,
   },
   canberra: {
     name: 'Canberra',
     state: 'ACT',
-    description: 'Premium water filters and RO purifiers in Canberra. Free installation across the ACT and Queanbeyan.',
+    description: 'Premium water filters and RO purifiers available in Canberra. Shipping across the ACT and Queanbeyan.',
     areas: ['Civic', 'Belconnen', 'Woden', 'Tuggeranong', 'Gungahlin', 'Weston Creek', 'Queanbeyan'],
     waterInfo: 'Canberra water quality is good but can be improved with filtration. Our systems ensure the purest water for your family.',
+    hasInstallation: false,
   },
   'gold-coast': {
     name: 'Gold Coast',
     state: 'QLD',
-    description: 'Premium water filters and RO purifiers on the Gold Coast. Free installation from Coolangatta to Ormeau.',
+    description: 'Premium water filters and RO purifiers available on the Gold Coast. Shipping from Coolangatta to Ormeau.',
     areas: ['Surfers Paradise', 'Broadbeach', 'Southport', 'Robina', 'Burleigh', 'Coolangatta', 'Helensvale'],
     waterInfo: 'Gold Coast water quality varies by area. Our RO filters provide consistent, pure water regardless of your location.',
+    hasInstallation: false,
   },
 }
 
@@ -66,13 +73,13 @@ type CityKey = keyof typeof cities
 const features = [
   {
     icon: Truck,
-    title: 'Free Local Installation',
-    description: 'Professional installation by certified technicians at no extra cost.',
+    title: 'Fast Shipping',
+    description: 'Quick delivery to your doorstep Australia-wide.',
   },
   {
     icon: Clock,
-    title: 'Same Week Service',
-    description: 'Fast turnaround with installation available within days of ordering.',
+    title: 'Sydney Installation',
+    description: 'Professional installation available in Sydney within 2-3 weeks.',
   },
   {
     icon: Shield,
@@ -86,24 +93,32 @@ const features = [
   },
 ]
 
-const localFAQs = (city: string) => [
-  {
-    question: `What is the best water filter for ${city} homes?`,
-    answer: `For ${city} homes, we recommend reverse osmosis (RO) water filters as they effectively remove chlorine, fluoride, and other contaminants found in local tap water. Our countertop and undersink RO systems are popular choices for ${city} residents.`,
-  },
-  {
-    question: `Do you offer free installation in ${city}?`,
-    answer: `Yes! Inblu Filters offers free professional installation across the ${city} metropolitan area. Our certified technicians will install your water filter system at a time that suits you.`,
-  },
-  {
-    question: `How long does water filter installation take in ${city}?`,
-    answer: `Most installations in ${city} are completed within 1-2 hours. Countertop systems require no installation at all - simply plug in and start filtering.`,
-  },
-  {
-    question: `What areas in ${city} do you service?`,
-    answer: `We provide water filter installation and service across all ${city} suburbs and surrounding areas. Contact us to confirm service availability in your specific area.`,
-  },
-]
+const localFAQs = (city: string, hasInstallation: boolean) => {
+  const faqs = [
+    {
+      question: `What is the best water filter for ${city} homes?`,
+      answer: `For ${city} homes, we recommend reverse osmosis (RO) water filters as they effectively remove chlorine, fluoride, and other contaminants found in local tap water. Our countertop and undersink RO systems are popular choices for ${city} residents.`,
+    },
+    {
+      question: `What areas in ${city} do you service?`,
+      answer: `We provide water filter shipping across all ${city} suburbs and surrounding areas. Contact us to confirm availability in your specific area.`,
+    },
+  ]
+  
+  if (hasInstallation) {
+    faqs.push({
+      question: `Do you offer installation in ${city}?`,
+      answer: `Yes! Inblu Filters offers professional installation across the ${city} metropolitan area. Installation is typically completed within 2-3 weeks of your order.`,
+    })
+  } else {
+    faqs.push({
+      question: `Do you offer installation in ${city}?`,
+      answer: `Installation service is currently only available in Sydney. For ${city}, we offer fast shipping and our countertop systems require no installation - simply plug in and start filtering.`,
+    })
+  }
+  
+  return faqs
+}
 
 interface CityPageProps {
   params: Promise<{ city: string }>
@@ -119,8 +134,13 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
     }
   }
 
-  const title = `Water Filters ${cityData.name} | RO Purifiers & Installation | Inblu`
-  const description = `Buy water filters in ${cityData.name}. Premium RO purifiers, countertop & undersink filters with FREE installation across ${cityData.name} ${cityData.state}. Shop now!`
+  const title = cityData.hasInstallation 
+    ? `Water Filters ${cityData.name} | RO Purifiers & Installation | Inblu`
+    : `Water Filters ${cityData.name} | RO Purifiers | Inblu`
+  
+  const description = cityData.hasInstallation
+    ? `Buy water filters in ${cityData.name}. Premium RO purifiers, countertop & undersink filters with installation across ${cityData.name} ${cityData.state}. Shop now!`
+    : `Buy water filters in ${cityData.name}. Premium RO purifiers, countertop & undersink filters. Fast shipping to ${cityData.name} ${cityData.state}. Shop now!`
 
   return {
     title,
@@ -133,7 +153,6 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
       `undersink filter ${cityData.name}`,
       `countertop water filter ${cityData.name}`,
       `best water filter ${cityData.name}`,
-      `water filter installation ${cityData.name}`,
       `buy water filter ${cityData.name}`,
       `water filtration ${cityData.state}`,
     ],
@@ -181,7 +200,7 @@ export default async function CityPage({ params }: CityPageProps) {
   return (
     <div className="bg-white">
       <BreadcrumbSchema items={breadcrumbs} />
-      <FAQSchema faqs={localFAQs(cityData.name)} />
+      <FAQSchema faqs={localFAQs(cityData.name, cityData.hasInstallation)} />
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-blue-50 to-white py-16 sm:py-24">
@@ -304,7 +323,9 @@ export default async function CityPage({ params }: CityPageProps) {
               </h2>
               <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
                 Browse our best-selling RO purifiers, countertop filters, and undersink systems. 
-                All with free installation across {cityData.name}.
+                {cityData.hasInstallation 
+                  ? ` Installation available across ${cityData.name} within 2-3 weeks.`
+                  : ` Fast shipping to ${cityData.name}.`}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link href="/products?category=ro-purifiers">
@@ -336,7 +357,7 @@ export default async function CityPage({ params }: CityPageProps) {
             </h2>
           </FadeInOnScroll>
           <div className="space-y-6">
-            {localFAQs(cityData.name).map((faq, index) => (
+            {localFAQs(cityData.name, cityData.hasInstallation).map((faq, index) => (
               <FadeInOnScroll key={index} delay={index * 0.1}>
                 <Card>
                   <CardContent className="p-6">

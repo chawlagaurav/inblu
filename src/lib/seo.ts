@@ -6,7 +6,7 @@ export const SEO_CONFIG = {
   siteName: 'Inblu Filters',
   siteUrl: 'https://inblu.com.au',
   defaultTitle: 'Inblu Filters | Premium Water Filtration Systems Australia',
-  defaultDescription: 'Australia\'s leading water filtration specialists. Shop RO water purifiers, countertop filters, undersink systems & water ionisers. Free installation & shipping Australia-wide.',
+  defaultDescription: 'Australia\'s leading water filtration specialists. Shop RO water purifiers, countertop filters, undersink systems & water ionisers. Fast installation & shipping Australia-wide.',
   businessInfo: {
     name: 'Inblu Filters',
     legalName: 'Inblu Filters Pty Ltd',
@@ -85,7 +85,7 @@ export const SECONDARY_KEYWORDS = {
 export const LONGTAIL_KEYWORDS = [
   'best RO water filter for home Australia 2026',
   'buy reverse osmosis filter online Australia',
-  'water filter free installation Sydney',
+  'water filter fast installation Sydney',
   'undersink water filter Sydney Melbourne',
   'countertop RO filter no installation',
   'remove fluoride from tap water Australia',
@@ -115,13 +115,13 @@ export const LOCAL_KEYWORDS = [
 export const PAGE_SEO = {
   home: {
     title: 'Water Filters Australia | RO Purifiers & Filtration Systems | Inblu',
-    description: 'Shop premium RO water purifiers, countertop filters & undersink systems. Free installation Australia-wide. Pure, clean drinking water for your home. Shop now!',
+    description: 'Shop premium RO water purifiers, countertop filters & undersink systems. Fast installation Australia-wide. Pure, clean drinking water for your home. Shop now!',
     keywords: PRIMARY_KEYWORDS.slice(0, 5),
     h1: 'Premium Water Filtration Systems for Australian Homes',
   },
   products: {
     title: 'Water Filters & Purifiers | Shop RO Systems | Inblu Australia',
-    description: 'Browse our range of RO water purifiers, countertop filters, undersink systems & water ionisers. Free shipping & installation. Best prices in Australia.',
+    description: 'Browse our range of RO water purifiers, countertop filters, undersink systems & water ionisers. Free shipping & fast installation. Best prices in Australia.',
     keywords: [...PRIMARY_KEYWORDS, ...SECONDARY_KEYWORDS.ro],
     h1: 'Water Filters & Purification Systems',
   },
@@ -146,13 +146,13 @@ export const PAGE_SEO = {
     },
     undersink: {
       title: 'Undersink Water Filters Australia | Professional Install | Inblu',
-      description: 'Premium undersink water filtration systems with free professional installation. RO purifiers, carbon filters & more. Space-saving kitchen water solutions.',
+      description: 'Premium undersink water filtration systems with fast professional installation. RO purifiers, carbon filters & more. Space-saving kitchen water solutions.',
       keywords: SECONDARY_KEYWORDS.undersink,
       h1: 'Undersink Water Filtration Systems',
     },
     ro: {
       title: 'RO Water Purifiers Australia | Reverse Osmosis Systems | Inblu',
-      description: 'Advanced reverse osmosis water purifiers for Australian homes. Remove 99% of contaminants. Tankless, high-flow RO systems with free installation.',
+      description: 'Advanced reverse osmosis water purifiers for Australian homes. Remove 99% of contaminants. Tankless, high-flow RO systems with fast installation.',
       keywords: SECONDARY_KEYWORDS.ro,
       h1: 'RO Water Purification Systems',
     },
@@ -179,7 +179,7 @@ export const FAQ_DATA = [
   },
   {
     question: 'How much does a water filter cost in Australia?',
-    answer: 'Water filter prices in Australia range from $200 for basic countertop filters to $2,000+ for premium undersink RO systems. Inblu offers competitive pricing with free installation and shipping, making quality water filtration accessible for every budget.',
+    answer: 'Water filter prices in Australia range from $200 for basic countertop filters to $2,000+ for premium undersink RO systems. Inblu offers competitive pricing with fast installation and shipping, making quality water filtration accessible for every budget.',
   },
   {
     question: 'Is RO water safe to drink?',
@@ -190,8 +190,8 @@ export const FAQ_DATA = [
     answer: 'Filter replacement frequency depends on the type: sediment filters every 6-12 months, carbon filters every 6-12 months, and RO membranes every 2-3 years. Inblu provides service reminders and replacement filter subscriptions to ensure optimal water quality.',
   },
   {
-    question: 'Does Inblu offer free installation?',
-    answer: 'Yes, Inblu offers free professional installation for all undersink water filtration systems across major Australian cities. Our certified technicians ensure proper setup and provide guidance on system maintenance.',
+    question: 'Does Inblu offer fast installation?',
+    answer: 'Yes, Inblu offers fast professional installation for all undersink water filtration systems across major Australian cities. Our certified technicians ensure proper setup and provide guidance on system maintenance.',
   },
   {
     question: 'What contaminants do RO filters remove?',

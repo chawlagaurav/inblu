@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Water Filters & Purifiers | Shop RO Systems | Inblu Australia',
-    description: 'Browse our range of RO water purifiers, countertop filters, undersink systems & water ionisers. Free shipping & installation. Best prices in Australia.',
+    description: 'Browse our range of RO water purifiers, countertop filters, undersink systems & water ionisers. Free shipping & fast installation. Best prices in Australia.',
     url: `${BASE_URL}/products`,
     type: 'website',
   },
@@ -54,7 +54,7 @@ export default async function ProductsPage({
                 Water Filters & Purification Systems
               </h1>
               <p className="mt-4 text-lg text-slate-600">
-                Shop Australia&apos;s best RO water purifiers, countertop filters, undersink systems and water ionisers. Free shipping and professional installation available.
+                Shop Australia&apos;s best RO water purifiers, countertop filters, undersink systems and water ionisers. Free shipping and fast professional installation available.
               </p>
             </div>
           </FadeIn>

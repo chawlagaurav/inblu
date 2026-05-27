@@ -129,7 +129,7 @@ function ProductCard({
             </h3>
           </div>
           
-          <p className="text-sm text-slate-500 line-clamp-2 mb-3">
+          <p className="text-sm text-slate-500 line-clamp-2 mb-3 whitespace-pre-line">
             {product.description}
           </p>
           

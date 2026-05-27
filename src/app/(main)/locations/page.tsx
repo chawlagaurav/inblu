@@ -8,8 +8,8 @@ import { BreadcrumbSchema } from '@/components/seo'
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'
 
 export const metadata: Metadata = {
-  title: 'Water Filter Locations Australia | Free Installation | Inblu',
-  description: 'Inblu Filters services all major Australian cities. Free water filter installation in Sydney, Melbourne, Brisbane, Perth, Adelaide, Canberra & Gold Coast.',
+  title: 'Water Filter Locations Australia | Inblu',
+  description: 'Inblu Filters delivers premium water filters across Australia. Installation available in Sydney. Fast shipping to Melbourne, Brisbane, Perth, Adelaide, Canberra & Gold Coast.',
   keywords: [
     'water filter Sydney',
     'water filter Melbourne', 
@@ -18,16 +18,16 @@ export const metadata: Metadata = {
     'water filter Adelaide',
     'water filter Canberra',
     'water filter Gold Coast',
-    'RO filter installation Australia',
+    'RO filter installation Sydney',
     'water purifier near me',
-    'water filter installation near me',
+    'water filter Australia',
   ],
   alternates: {
     canonical: '/locations',
   },
   openGraph: {
     title: 'Water Filter Locations Australia | Inblu Filters',
-    description: 'Free water filter installation across Australia. Sydney, Melbourne, Brisbane, Perth, Adelaide & more.',
+    description: 'Premium water filters delivered across Australia. Installation in Sydney. Fast shipping nationwide.',
     url: `${BASE_URL}/locations`,
     type: 'website',
   },
@@ -38,43 +38,43 @@ const locations = [
     city: 'Sydney',
     slug: 'sydney',
     state: 'NSW',
-    description: 'Free installation across Sydney metro and surrounding areas.',
+    description: 'Installation available across Sydney metro. Delivery within 2-3 weeks.',
   },
   {
     city: 'Melbourne',
     slug: 'melbourne',
     state: 'VIC',
-    description: 'Serving Melbourne CBD, suburbs, and Mornington Peninsula.',
+    description: 'Fast shipping to Melbourne CBD, suburbs, and Mornington Peninsula.',
   },
   {
     city: 'Brisbane',
     slug: 'brisbane',
     state: 'QLD',
-    description: 'Coverage across Brisbane and South East Queensland.',
+    description: 'Fast shipping across Brisbane and South East Queensland.',
   },
   {
     city: 'Perth',
     slug: 'perth',
     state: 'WA',
-    description: 'Perth metro, Fremantle, Joondalup and surrounds.',
+    description: 'Fast shipping to Perth metro, Fremantle, Joondalup and surrounds.',
   },
   {
     city: 'Adelaide',
     slug: 'adelaide',
     state: 'SA',
-    description: 'Adelaide metro and Adelaide Hills region.',
+    description: 'Fast shipping to Adelaide metro and Adelaide Hills region.',
   },
   {
     city: 'Canberra',
     slug: 'canberra',
     state: 'ACT',
-    description: 'All ACT suburbs and Queanbeyan.',
+    description: 'Fast shipping to all ACT suburbs and Queanbeyan.',
   },
   {
     city: 'Gold Coast',
     slug: 'gold-coast',
     state: 'QLD',
-    description: 'From Coolangatta to Ormeau and surrounds.',
+    description: 'Fast shipping from Coolangatta to Ormeau and surrounds.',
   },
 ]
 
@@ -97,8 +97,8 @@ export default function LocationsPage() {
                 Water Filters Across Australia
               </h1>
               <p className="mt-6 text-lg text-slate-600">
-                Inblu Filters provides premium water filtration systems with free professional 
-                installation across all major Australian cities. Find your location below.
+                Inblu Filters provides premium water filtration systems across Australia. 
+                Professional installation available in Sydney. Fast shipping to all other cities.
               </p>
             </div>
           </FadeIn>

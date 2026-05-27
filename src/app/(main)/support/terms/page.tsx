@@ -43,7 +43,7 @@ export default function TermsPage() {
               <h2>3. Products and Services</h2>
               <p>
                 Inblu offers premium water filtration products including RO purifiers, water ionisers, 
-                and undersink filters. All products come with free professional installation for 
+                and undersink filters. All products come with fast professional installation for 
                 Australian customers.
               </p>
 
@@ -75,7 +75,7 @@ export default function TermsPage() {
               <h2>5. Delivery and Installation</h2>
               <p>
                 Delivery times are estimates only. We are not liable for any delays in delivery. 
-                Free installation is provided for all water purifier purchases within Australia.
+                Fast installation is provided for all water purifier purchases within Australia.
               </p>
 
               <h2>6. Returns and Refunds</h2>

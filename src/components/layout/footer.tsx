@@ -8,16 +8,10 @@ const footerNavigation = {
     { name: 'Best Sellers', href: '/products?filter=best-sellers' },
     { name: 'New Arrivals', href: '/products?filter=new' },
   ],
-  locations: [
-    { name: 'Sydney', href: '/locations/sydney' },
-    { name: 'Melbourne', href: '/locations/melbourne' },
-    { name: 'Brisbane', href: '/locations/brisbane' },
-    { name: 'Perth', href: '/locations/perth' },
-    { name: 'All Locations', href: '/locations' },
-  ],
   company: [
     { name: 'About Us', href: '/about' },
     { name: 'Contact Us', href: '/support/contact' },
+    { name: 'Get Quote', href: '/support/contact' },
     { name: 'Service Request', href: '/support/service-request' },
     { name: 'Shipping & Returns', href: '/support/shipping' },
   ],
@@ -64,26 +58,11 @@ export function Footer() {
           </div>
 
           {/* Navigation */}
-          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0 md:grid-cols-4">
+          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0 md:grid-cols-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">Shop</h3>
               <ul role="list" className="mt-4 space-y-3">
                 {footerNavigation.shop.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="text-sm text-slate-600 hover:text-blue-600 transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">Locations</h3>
-              <ul role="list" className="mt-4 space-y-3">
-                {footerNavigation.locations.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}

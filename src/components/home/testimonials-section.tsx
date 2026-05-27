@@ -16,9 +16,6 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
     return null
   }
 
-  // Double the testimonials for seamless loop
-  const duplicatedTestimonials = [...testimonials, ...testimonials]
-
   return (
     <section className="py-16 sm:py-24 bg-white overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -43,8 +40,15 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
           <div className="absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
           
           <div className="flex animate-marquee-testimonials hover:pause-animation">
-            {duplicatedTestimonials.map((testimonial, index) => (
-              <div key={`${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
+            {/* First set */}
+            {testimonials.map((testimonial, index) => (
+              <div key={`first-${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
+                <TestimonialCard testimonial={testimonial} />
+              </div>
+            ))}
+            {/* Second set (duplicate for seamless loop) */}
+            {testimonials.map((testimonial, index) => (
+              <div key={`second-${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
                 <TestimonialCard testimonial={testimonial} />
               </div>
             ))}

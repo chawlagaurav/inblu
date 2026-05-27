@@ -152,6 +152,37 @@ export function HeroSection() {
         </motion.div>
       </div>
 
+      {/* Marketing Marquee */}
+      <div className="absolute bottom-0 left-0 right-0 bg-blue-600 py-3 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={mounted ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <div className="flex animate-marquee whitespace-nowrap">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="flex items-center">
+                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
+                  ✦ Free Shipping Australia-Wide
+                </span>
+                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
+                  ✦ 99.9% Contaminant Removal
+                </span>
+                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
+                  ✦ 2-Year Warranty on All Products
+                </span>
+                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
+                  ✦ Pure Water, Healthier Life
+                </span>
+                <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider">
+                  ✦ Trusted by 5000+ Australian Homes
+                </span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
     </section>
   )
 }

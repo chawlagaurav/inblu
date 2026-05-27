@@ -15,7 +15,8 @@ import {
   MessageSquareText,
   FileText,
   Wrench,
-  FolderOpen
+  FolderOpen,
+  MessageSquare
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
   { name: 'Purchase Orders', href: '/admin/purchase-orders', icon: FileText },
+  { name: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
   { name: 'Coupons', href: '/admin/coupons', icon: Tag },
   { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
 ]

@@ -106,7 +106,7 @@ export async function generateStaticParams() {
     // Fetch all products for static generation
     const products = await getCachedProducts({ limit: 100 })
     return products.map((product) => ({
-      id: product.id,
+      slug: product.slug,
     }))
   } catch (error) {
     // If database is unavailable during build, generate pages on-demand

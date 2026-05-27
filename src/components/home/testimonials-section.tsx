@@ -35,13 +35,15 @@ export function TestimonialsSection({ testimonials }: TestimonialsSectionProps) 
       </div>
 
       {/* Scrolling testimonials container */}
-      <div className="mt-12 relative">
-        <div className="flex animate-marquee-testimonials hover:pause-animation">
-          {duplicatedTestimonials.map((testimonial, index) => (
-            <div key={`${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
-              <TestimonialCard testimonial={testimonial} />
-            </div>
-          ))}
+      <div className="mt-12 mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="relative overflow-hidden">
+          <div className="flex animate-marquee-testimonials hover:pause-animation">
+            {duplicatedTestimonials.map((testimonial, index) => (
+              <div key={`${testimonial.id}-${index}`} className="flex-shrink-0 w-[350px] px-3">
+                <TestimonialCard testimonial={testimonial} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

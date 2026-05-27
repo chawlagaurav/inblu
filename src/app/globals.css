@@ -130,12 +130,12 @@ body {
 }
 
 .animate-marquee-testimonials {
-  animation: marquee-testimonials 40s linear infinite;
+  animation: marquee-testimonials 20s linear infinite;
 }
 
 @media (max-width: 768px) {
   .animate-marquee-testimonials {
-    animation: marquee-testimonials 20s linear infinite;
+    animation: marquee-testimonials 12s linear infinite;
   }
 }
 

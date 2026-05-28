@@ -121,12 +121,12 @@ body {
 }
 
 .animate-marquee-scroll {
-  animation: marquee-scroll 15s linear infinite;
+  animation: marquee-scroll 20s linear infinite;
 }
 
 @media (max-width: 768px) {
   .animate-marquee-scroll {
-    animation: marquee-scroll 10s linear infinite;
+    animation: marquee-scroll 15s linear infinite;
   }
 }
 
@@ -141,12 +141,12 @@ body {
 }
 
 .animate-testimonials-scroll {
-  animation: testimonials-scroll 25s linear infinite;
+  animation: testimonials-scroll 35s linear infinite;
 }
 
 @media (max-width: 768px) {
   .animate-testimonials-scroll {
-    animation: testimonials-scroll 15s linear infinite;
+    animation: testimonials-scroll 25s linear infinite;
   }
 }
 

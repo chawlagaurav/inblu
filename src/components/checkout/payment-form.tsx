@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js'
+import { useStripe, useElements, PaymentElement, ExpressCheckoutElement } from '@stripe/react-stripe-js'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { useRouter } from 'next/navigation'
 import { Loader2, Lock, CreditCard, ShieldCheck } from 'lucide-react'
@@ -179,18 +179,71 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
 
           {/* Stripe Payment */}
           {activeTab === 'stripe' && (
-            <form onSubmit={handleStripeSubmit} id="stripe-form">
-              <PaymentElement
+            <div className="space-y-4">
+              {/* Express Checkout (Apple Pay, Google Pay) */}
+              <ExpressCheckoutElement
                 options={{
-                  layout: 'tabs',
-                  paymentMethodOrder: ['card', 'apple_pay', 'klarna'],
                   wallets: {
-                    applePay: 'auto',
-                    googlePay: 'auto',
+                    applePay: 'always',
+                    googlePay: 'always',
                   },
                 }}
+                onConfirm={async () => {
+                  if (!stripe || !elements) return
+                  setIsProcessing(true)
+                  setErrorMessage(null)
+                  
+                  try {
+                    const { error, paymentIntent } = await stripe.confirmPayment({
+                      elements,
+                      confirmParams: {
+                        return_url: `${window.location.origin}/order/success?order_id=${orderId}`,
+                      },
+                      redirect: 'if_required',
+                    })
+
+                    if (error) {
+                      setErrorMessage(error.message || 'Payment failed')
+                      toast.error(error.message || 'Payment failed')
+                    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+                      clearCart()
+                      toast.success('Payment successful!')
+                      router.push(`/order/success?order_id=${orderId}`)
+                    } else {
+                      clearCart()
+                      router.push(`/order/success?order_id=${orderId}`)
+                    }
+                  } catch (err) {
+                    console.error('Express checkout error:', err)
+                    setErrorMessage('Failed to process payment')
+                    toast.error('Failed to process payment')
+                  } finally {
+                    setIsProcessing(false)
+                  }
+                }}
               />
-            </form>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-slate-500">Or pay with card</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleStripeSubmit} id="stripe-form">
+                <PaymentElement
+                  options={{
+                    layout: 'tabs',
+                    wallets: {
+                      applePay: 'never',
+                      googlePay: 'never',
+                    },
+                  }}
+                />
+              </form>
+            </div>
           )}
 
           {/* PayPal Payment */}

@@ -3,8 +3,8 @@
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useSearchParams } from 'next/navigation'
-import { CheckCircle, Package, ArrowRight, ShoppingBag, Loader2, Mail, MapPin, Calendar } from 'lucide-react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { CheckCircle, Package, ArrowRight, ShoppingBag, Loader2, Mail, MapPin, Calendar, XCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -51,17 +51,29 @@ interface Order {
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const orderId = searchParams.get('order_id')
   const paymentIntent = searchParams.get('payment_intent')
+  const redirectStatus = searchParams.get('redirect_status')
   const clearCart = useCartStore((state) => state.clearCart)
   const [order, setOrder] = useState<Order | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [paymentFailed, setPaymentFailed] = useState(false)
+
+  // Check if payment was cancelled or failed
+  useEffect(() => {
+    if (redirectStatus && redirectStatus !== 'succeeded') {
+      setPaymentFailed(true)
+    }
+  }, [redirectStatus])
 
   useEffect(() => {
-    // Clear cart after successful payment
-    clearCart()
-  }, [clearCart])
+    // Only clear cart if payment succeeded
+    if (redirectStatus === 'succeeded' || (!redirectStatus && order?.paymentStatus === 'PAID')) {
+      clearCart()
+    }
+  }, [clearCart, redirectStatus, order?.paymentStatus])
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -82,6 +94,10 @@ function OrderSuccessContent() {
           setError(data.error)
         } else {
           setOrder(data.order)
+          // Also check order payment status from database
+          if (data.order.paymentStatus === 'PENDING' || data.order.paymentStatus === 'FAILED') {
+            setPaymentFailed(true)
+          }
         }
       } catch (err) {
         console.error('Failed to fetch order:', err)
@@ -100,9 +116,62 @@ function OrderSuccessContent() {
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
-            <p className="text-slate-600">Loading order details...</p>
+            <p className="text-slate-600">Verifying payment status...</p>
           </CardContent>
         </Card>
+      </div>
+    )
+  }
+
+  // Payment failed or cancelled
+  if (paymentFailed) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-12">
+        <FadeIn>
+          <Card className="max-w-md w-full">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                <XCircle className="h-10 w-10 text-red-500" />
+              </div>
+
+              <h1 className="text-2xl font-bold text-slate-900 mb-2">
+                Payment {redirectStatus === 'failed' ? 'Failed' : 'Cancelled'}
+              </h1>
+
+              <p className="text-slate-600 mb-6">
+                {redirectStatus === 'failed' 
+                  ? 'Your payment could not be processed. Please try again or use a different payment method.'
+                  : 'Your payment was cancelled. Your order has not been placed and you have not been charged.'}
+              </p>
+
+              {orderId && (
+                <p className="text-sm text-slate-500 mb-6 bg-slate-100 rounded-xl p-3">
+                  Order Reference: {orderId.slice(0, 8).toUpperCase()}
+                </p>
+              )}
+
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => router.push('/checkout')}
+                  className="w-full"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Try Again
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/products">
+                    Continue Shopping
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+
+              <p className="text-xs text-slate-400 mt-6">
+                If you continue to experience issues, please contact our support team.
+              </p>
+            </CardContent>
+          </Card>
+        </FadeIn>
       </div>
     )
   }
@@ -113,32 +182,23 @@ function OrderSuccessContent() {
         <FadeIn>
           <Card className="max-w-md w-full">
             <CardContent className="p-8 text-center">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                <CheckCircle className="h-10 w-10 text-green-500" />
+              <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6">
+                <Package className="h-10 w-10 text-amber-500" />
               </div>
 
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                Order Confirmed!
+                Order Not Found
               </h1>
 
               <p className="text-slate-600 mb-6">
-                Thank you for your purchase. We&apos;ve sent a confirmation email with your order details.
+                We couldn&apos;t find your order details. If you completed a payment, please check your email for confirmation or contact support.
               </p>
 
               {orderId && (
                 <p className="text-sm text-slate-500 mb-6 bg-slate-100 rounded-xl p-3">
-                  Order ID: {orderId.slice(0, 8).toUpperCase()}
+                  Order Reference: {orderId.slice(0, 8).toUpperCase()}
                 </p>
               )}
-
-              <div className="bg-blue-50 rounded-2xl p-4 mb-6">
-                <div className="flex items-center justify-center gap-3 text-blue-700">
-                  <Package className="h-5 w-5" />
-                  <span className="text-sm font-medium">
-                    Estimated delivery: 5-7 business days
-                  </span>
-                </div>
-              </div>
 
               <div className="space-y-3">
                 <Button asChild className="w-full">
@@ -148,7 +208,7 @@ function OrderSuccessContent() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href="/">Back to Home</Link>
+                  <Link href="/support">Contact Support</Link>
                 </Button>
               </div>
             </CardContent>

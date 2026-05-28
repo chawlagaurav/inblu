@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -40,6 +41,13 @@ export function AdminSidebar() {
   const router = useRouter()
   const supabase = createClient()
 
+  // Prefetch all admin routes on mount for faster navigation
+  useEffect(() => {
+    navigation.forEach((item) => {
+      router.prefetch(item.href)
+    })
+  }, [router])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/admin/login')
@@ -68,6 +76,7 @@ export function AdminSidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
+                  prefetch={true}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors',
                     isActive

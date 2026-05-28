@@ -12,9 +12,39 @@ import { FadeIn } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
 import { formatCurrency, calculateGST } from '@/lib/utils'
 import { toast } from 'sonner'
+import confetti from 'canvas-confetti'
 
 const SHIPPING_THRESHOLD = 100
 const SHIPPING_COST = 9.95
+
+// Celebration animation for successful coupon
+const celebrateCoupon = () => {
+  // First burst
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ec4899'],
+  })
+  
+  // Second burst after slight delay
+  setTimeout(() => {
+    confetti({
+      particleCount: 50,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors: ['#3b82f6', '#22c55e', '#eab308'],
+    })
+    confetti({
+      particleCount: 50,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors: ['#3b82f6', '#22c55e', '#eab308'],
+    })
+  }, 150)
+}
 
 export function OrderSummary() {
   const { items, getTotal, appliedCoupon, applyCoupon, removeCoupon } = useCartStore()
@@ -229,6 +259,10 @@ function CouponInput({
         description: data.description,
       })
       setCouponCode('')
+      
+      // Trigger celebration animation
+      celebrateCoupon()
+      
       toast.success(`Coupon "${data.code}" applied! You save ${formatCurrency(data.discountAmount)}`)
     } catch {
       setCouponError('Failed to validate coupon')

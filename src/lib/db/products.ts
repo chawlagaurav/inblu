@@ -99,17 +99,26 @@ export const getCachedProducts = unstable_cache(
 )
 
 /**
- * Get best seller products
+ * Get best seller products - returns products marked as best sellers, ordered by displayOrder
  */
-export async function getBestSellerProducts(limit = 4): Promise<Product[]> {
-  return getProducts({ bestSellersOnly: true, limit })
+export async function getBestSellerProducts(limit = 3): Promise<Product[]> {
+  const products = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      isBestSeller: true,
+    },
+    take: limit,
+    orderBy: { displayOrder: 'asc' },
+  })
+  
+  return products.map(transformProduct)
 }
 
 /**
  * Get cached best seller products
  */
 export const getCachedBestSellerProducts = unstable_cache(
-  async (limit = 4) => getBestSellerProducts(limit),
+  async (limit = 3) => getBestSellerProducts(limit),
   ['best-sellers'],
   {
     revalidate: 60,

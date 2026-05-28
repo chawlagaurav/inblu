@@ -203,11 +203,13 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create Stripe Payment Intent with multiple payment methods
+    // Create Stripe Payment Intent with automatic payment methods (includes Apple Pay, Google Pay, etc.)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalCents,
       currency: 'aud',
-      payment_method_types: ['card', 'klarna', 'link'],
+      automatic_payment_methods: {
+        enabled: true,
+      },
       metadata: {
         orderId: order.id,
         userId: userId || 'guest',

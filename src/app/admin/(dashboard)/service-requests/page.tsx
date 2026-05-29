@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FadeIn } from '@/components/motion'
 import { toast } from 'sonner'
@@ -110,6 +111,8 @@ export default function AdminServiceRequestsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [saving, setSaving] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
   
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -138,6 +141,45 @@ export default function AdminServiceRequestsPage() {
       toast.error('Failed to load service requests')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredRequests.map(r => r.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds)
+    if (checked) {
+      newSelected.add(id)
+    } else {
+      newSelected.delete(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} service request(s)?`)) return
+
+    setBulkDeleting(true)
+    try {
+      const deletePromises = Array.from(selectedIds).map(id =>
+        fetch(`/api/admin/service-requests/${id}`, { method: 'DELETE' })
+      )
+      await Promise.all(deletePromises)
+      setRequests(prev => prev.filter(r => !selectedIds.has(r.id)))
+      setSelectedIds(new Set())
+      toast.success(`Deleted ${selectedIds.size} service request(s)`)
+    } catch (error) {
+      console.error('Error deleting service requests:', error)
+      toast.error('Failed to delete some service requests')
+    } finally {
+      setBulkDeleting(false)
     }
   }
 
@@ -228,9 +270,25 @@ export default function AdminServiceRequestsPage() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Service Requests</h1>
-          <p className="text-slate-500 mt-1">Manage and track customer service requests</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Service Requests</h1>
+            <p className="text-slate-500 mt-1">Manage and track customer service requests</p>
+          </div>
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+            >
+              {bulkDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Delete ({selectedIds.size})
+            </Button>
+          )}
         </div>
       </FadeIn>
 
@@ -307,10 +365,21 @@ export default function AdminServiceRequestsPage() {
       <FadeIn delay={0.15}>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
-              Service Requests ({filteredRequests.length})
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="h-5 w-5" />
+                Service Requests ({filteredRequests.length})
+              </CardTitle>
+              {filteredRequests.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={filteredRequests.length > 0 && filteredRequests.every(r => selectedIds.has(r.id))}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <span className="text-sm text-slate-500">Select All</span>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {filteredRequests.length === 0 ? (
@@ -339,6 +408,11 @@ export default function AdminServiceRequestsPage() {
                       >
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <Checkbox
+                              checked={selectedIds.has(request.id)}
+                              onCheckedChange={(checked) => handleSelectOne(request.id, checked as boolean)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="font-mono font-semibold text-blue-600">

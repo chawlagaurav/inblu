@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -67,6 +68,9 @@ export async function POST(request: NextRequest) {
         isActive: isActive ?? true,
       },
     })
+
+    // Revalidate categories cache
+    revalidateTag('categories')
 
     return NextResponse.json(category, { status: 201 })
   } catch (error) {

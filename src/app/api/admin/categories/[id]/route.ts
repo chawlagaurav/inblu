@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -85,6 +86,9 @@ export async function PUT(
       },
     })
 
+    // Revalidate categories cache
+    revalidateTag('categories')
+
     return NextResponse.json(category)
   } catch (error) {
     console.error('Error updating category:', error)
@@ -116,6 +120,9 @@ export async function DELETE(
     await prisma.category.delete({
       where: { id },
     })
+
+    // Revalidate categories cache
+    revalidateTag('categories')
 
     return NextResponse.json({ success: true })
   } catch (error) {

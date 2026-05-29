@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import { ProductsGrid, ProductsGridSkeleton } from '@/components/products/products-grid'
 import { ProductsFilter } from '@/components/products/products-filter'
 import { FadeIn } from '@/components/motion'
-import { getCachedProducts } from '@/lib/db/products'
+import { getCachedProducts, getCachedAllCategories } from '@/lib/db/products'
 import { BreadcrumbSchema } from '@/components/seo'
 import { PAGE_SEO } from '@/lib/seo'
 
@@ -27,6 +27,11 @@ export const metadata: Metadata = {
 async function ProductsGridWrapper({ category, search }: { category?: string; search?: string }) {
   const products = await getCachedProducts()
   return <ProductsGrid products={products} category={category} search={search} />
+}
+
+async function ProductsFilterWrapper() {
+  const categories = await getCachedAllCategories()
+  return <ProductsFilter categories={categories} />
 }
 
 export default async function ProductsPage({
@@ -67,7 +72,7 @@ export default async function ProductsPage({
           {/* Filters */}
           <aside className="lg:w-64 flex-shrink-0">
             <Suspense fallback={<div>Loading filters...</div>}>
-              <ProductsFilter />
+              <ProductsFilterWrapper />
             </Suspense>
           </aside>
 

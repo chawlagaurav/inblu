@@ -9,15 +9,17 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-const categories = [
-  { id: 'all', name: 'All Products' },
-  { id: 'ro-purifiers', name: 'Counter Top Filters' },
-  { id: 'water-ionisers', name: 'Water Ionisers' },
-  { id: 'undersink-filters', name: 'Undersink Filters' },
-  { id: 'replacement-filters', name: 'Replacement Filters' },
-]
+interface CategoryItem {
+  id: string
+  value: string
+  label: string
+}
 
-export function ProductsFilter() {
+interface ProductsFilterProps {
+  categories?: CategoryItem[]
+}
+
+export function ProductsFilter({ categories = [] }: ProductsFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
@@ -25,12 +27,18 @@ export function ProductsFilter() {
 
   const currentCategory = searchParams.get('category') || 'all'
 
-  const handleCategoryChange = (category: string) => {
+  // Prepend "All Products" to categories list
+  const allCategories = [
+    { id: 'all', value: 'all', label: 'All Products' },
+    ...categories,
+  ]
+
+  const handleCategoryChange = (categoryValue: string) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (category === 'all') {
+    if (categoryValue === 'all') {
       params.delete('category')
     } else {
-      params.set('category', category)
+      params.set('category', categoryValue)
     }
     router.push(`/products?${params.toString()}`)
   }
@@ -109,18 +117,18 @@ export function ProductsFilter() {
             Categories
           </Label>
           <div className="space-y-2">
-            {categories.map((category) => (
+            {allCategories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => handleCategoryChange(category.id)}
+                onClick={() => handleCategoryChange(category.value)}
                 className={cn(
                   'w-full text-left px-3 py-2 rounded-xl text-sm transition-colors',
-                  currentCategory === category.id
+                  currentCategory === category.value
                     ? 'bg-blue-100 text-blue-700 font-medium'
                     : 'text-slate-600 hover:bg-slate-50'
                 )}
               >
-                {category.name}
+                {category.label}
               </button>
             ))}
           </div>

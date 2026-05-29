@@ -233,7 +233,7 @@ export const getCachedRelatedProducts = unstable_cache(
 )
 
 /**
- * Get all unique categories
+ * Get all unique categories (from products)
  */
 export async function getCategories(): Promise<string[]> {
   const categories = await prisma.product.findMany({
@@ -246,7 +246,7 @@ export async function getCategories(): Promise<string[]> {
 }
 
 /**
- * Get cached categories
+ * Get cached categories (from products)
  */
 export const getCachedCategories = unstable_cache(
   async () => getCategories(),
@@ -254,5 +254,49 @@ export const getCachedCategories = unstable_cache(
   {
     revalidate: 300, // Cache for 5 minutes
     tags: ['products', 'categories'],
+  }
+)
+
+/**
+ * Category type from database
+ */
+export interface CategoryItem {
+  id: string
+  value: string
+  label: string
+  description: string | null
+  imageUrl: string | null
+  displayOrder: number
+}
+
+/**
+ * Get all active categories from Category model
+ */
+export async function getAllCategories(): Promise<CategoryItem[]> {
+  const categories = await prisma.category.findMany({
+    where: { isActive: true },
+    orderBy: { displayOrder: 'asc' },
+    select: {
+      id: true,
+      value: true,
+      label: true,
+      description: true,
+      imageUrl: true,
+      displayOrder: true,
+    },
+  })
+
+  return categories
+}
+
+/**
+ * Get cached categories from Category model
+ */
+export const getCachedAllCategories = unstable_cache(
+  async () => getAllCategories(),
+  ['all-categories'],
+  {
+    revalidate: 60, // Cache for 1 minute
+    tags: ['categories'],
   }
 )

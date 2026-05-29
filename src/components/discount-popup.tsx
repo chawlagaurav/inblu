@@ -12,10 +12,11 @@ const STORAGE_KEY = 'discount_popup_state'
 // Default fallback values
 const DEFAULT_SETTINGS = {
   enabled: true,
-  headline: 'GET 10% OFF YOUR FIRST ORDER',
+  headline: 'GET $50 OFF YOUR FIRST ORDER',
   subtext: 'Join our community and get exclusive offers on water purification products.',
-  discountCode: 'WELCOME10',
-  discountPercentage: 10,
+  discountCode: 'WELCOME50',
+  discountType: 'fixed' as const,
+  discountValue: 50,
   delay: 5,
 }
 
@@ -24,7 +25,8 @@ interface PopupSettings {
   headline: string
   subtext: string
   discountCode: string
-  discountPercentage: number
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
   delay: number
 }
 
@@ -57,7 +59,8 @@ export function DiscountPopup() {
             headline: data.headline || DEFAULT_SETTINGS.headline,
             subtext: data.subtext || DEFAULT_SETTINGS.subtext,
             discountCode: data.discountCode || DEFAULT_SETTINGS.discountCode,
-            discountPercentage: data.discountPercentage ?? DEFAULT_SETTINGS.discountPercentage,
+            discountType: data.discountType || DEFAULT_SETTINGS.discountType,
+            discountValue: data.discountValue ?? DEFAULT_SETTINGS.discountValue,
             delay: data.delay ?? DEFAULT_SETTINGS.delay,
           })
         }

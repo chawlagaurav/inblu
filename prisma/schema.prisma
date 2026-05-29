@@ -159,10 +159,11 @@ model Subscriber {
 model MarketingSettings {
   id                 String    @id @default(uuid())
   popupEnabled       Boolean   @default(true) @map("popup_enabled")
-  popupHeadline      String    @default("GET 10% OFF YOUR FIRST ORDER") @map("popup_headline")
+  popupHeadline      String    @default("GET $50 OFF YOUR FIRST ORDER") @map("popup_headline")
   popupSubtext       String    @default("Join our community and get exclusive offers on water purification products.") @map("popup_subtext")
-  discountCode       String    @default("CLEANWATER10") @map("discount_code")
-  discountPercentage Int       @default(10) @map("discount_percentage")
+  discountCode       String    @default("WELCOME50") @map("discount_code")
+  discountType       String    @default("fixed") @map("discount_type") // "percentage" or "fixed"
+  discountValue      Decimal   @default(50) @db.Decimal(10, 2) @map("discount_value")
   popupDelay         Int       @default(5) @map("popup_delay") // seconds
   startDate          DateTime? @map("start_date")
   endDate            DateTime? @map("end_date")

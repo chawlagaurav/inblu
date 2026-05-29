@@ -37,10 +37,11 @@ export async function GET(request: NextRequest) {
       settings = await prisma.marketingSettings.create({
         data: {
           popupEnabled: true,
-          popupHeadline: 'GET 10% OFF YOUR FIRST ORDER',
+          popupHeadline: 'GET $50 OFF YOUR FIRST ORDER',
           popupSubtext: 'Join our community and get exclusive offers on water purification products.',
-          discountCode: 'CLEANWATER10',
-          discountPercentage: 10,
+          discountCode: 'WELCOME50',
+          discountType: 'fixed',
+          discountValue: 50,
           popupDelay: 5,
         },
       })
@@ -63,7 +64,10 @@ export async function GET(request: NextRequest) {
       if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
-      return NextResponse.json(settings)
+      return NextResponse.json({
+        ...settings,
+        discountValue: Number(settings.discountValue),
+      })
     }
 
     // For public requests, return only necessary data
@@ -72,7 +76,8 @@ export async function GET(request: NextRequest) {
       headline: settings.popupHeadline,
       subtext: settings.popupSubtext,
       discountCode: settings.discountCode,
-      discountPercentage: settings.discountPercentage,
+      discountType: settings.discountType,
+      discountValue: Number(settings.discountValue),
       delay: settings.popupDelay,
     })
   } catch (error) {
@@ -98,7 +103,8 @@ export async function PUT(request: NextRequest) {
       popupHeadline,
       popupSubtext,
       discountCode,
-      discountPercentage,
+      discountType,
+      discountValue,
       popupDelay,
       startDate,
       endDate,
@@ -116,7 +122,8 @@ export async function PUT(request: NextRequest) {
           popupHeadline: popupHeadline ?? settings.popupHeadline,
           popupSubtext: popupSubtext ?? settings.popupSubtext,
           discountCode: discountCode ?? settings.discountCode,
-          discountPercentage: discountPercentage ?? settings.discountPercentage,
+          discountType: discountType ?? settings.discountType,
+          discountValue: discountValue !== undefined ? discountValue : settings.discountValue,
           popupDelay: popupDelay ?? settings.popupDelay,
           startDate: startDate !== undefined ? (startDate ? new Date(startDate) : null) : settings.startDate,
           endDate: endDate !== undefined ? (endDate ? new Date(endDate) : null) : settings.endDate,
@@ -127,10 +134,11 @@ export async function PUT(request: NextRequest) {
       settings = await prisma.marketingSettings.create({
         data: {
           popupEnabled: popupEnabled ?? true,
-          popupHeadline: popupHeadline ?? 'GET 10% OFF YOUR FIRST ORDER',
+          popupHeadline: popupHeadline ?? 'GET $50 OFF YOUR FIRST ORDER',
           popupSubtext: popupSubtext ?? 'Join our community and get exclusive offers on water purification products.',
-          discountCode: discountCode ?? 'CLEANWATER10',
-          discountPercentage: discountPercentage ?? 10,
+          discountCode: discountCode ?? 'WELCOME50',
+          discountType: discountType ?? 'fixed',
+          discountValue: discountValue ?? 50,
           popupDelay: popupDelay ?? 5,
           startDate: startDate ? new Date(startDate) : null,
           endDate: endDate ? new Date(endDate) : null,
@@ -138,7 +146,10 @@ export async function PUT(request: NextRequest) {
       })
     }
 
-    return NextResponse.json(settings)
+    return NextResponse.json({
+      ...settings,
+      discountValue: Number(settings.discountValue),
+    })
   } catch (error) {
     console.error('Error updating marketing settings:', error)
     return NextResponse.json(

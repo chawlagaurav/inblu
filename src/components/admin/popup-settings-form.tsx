@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Loader2, Percent, MessageSquare, Clock, Calendar, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Save, Loader2, Percent, DollarSign, MessageSquare, Clock, Calendar, ToggleLeft, ToggleRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,8 @@ interface PopupSettings {
   popupHeadline: string
   popupSubtext: string
   discountCode: string
-  discountPercentage: number
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
   popupDelay: number
   startDate: string | null
   endDate: string | null
@@ -27,10 +28,11 @@ export function PopupSettingsForm() {
   const [settings, setSettings] = useState<PopupSettings>({
     id: '',
     popupEnabled: true,
-    popupHeadline: 'GET 10% OFF YOUR FIRST ORDER',
+    popupHeadline: 'GET $50 OFF YOUR FIRST ORDER',
     popupSubtext: 'Join our community and get exclusive offers on water purification products.',
-    discountCode: 'CLEANWATER10',
-    discountPercentage: 10,
+    discountCode: 'WELCOME50',
+    discountType: 'fixed',
+    discountValue: 50,
     popupDelay: 5,
     startDate: null,
     endDate: null,
@@ -48,10 +50,11 @@ export function PopupSettingsForm() {
         setSettings({
           id: data.id || '',
           popupEnabled: data.popupEnabled ?? true,
-          popupHeadline: data.popupHeadline || 'GET 10% OFF YOUR FIRST ORDER',
+          popupHeadline: data.popupHeadline || 'GET $50 OFF YOUR FIRST ORDER',
           popupSubtext: data.popupSubtext || 'Join our community and get exclusive offers on water purification products.',
-          discountCode: data.discountCode || 'CLEANWATER10',
-          discountPercentage: data.discountPercentage ?? 10,
+          discountCode: data.discountCode || 'WELCOME50',
+          discountType: data.discountType || 'fixed',
+          discountValue: data.discountValue ?? 50,
           popupDelay: data.popupDelay ?? 5,
           startDate: data.startDate ? new Date(data.startDate).toISOString().split('T')[0] : null,
           endDate: data.endDate ? new Date(data.endDate).toISOString().split('T')[0] : null,
@@ -165,32 +168,78 @@ export function PopupSettingsForm() {
           />
         </div>
 
-        {/* Discount Code and Percentage */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Discount Code and Value */}
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="discount_code">Discount Code</Label>
             <Input
               id="discount_code"
               value={settings.discountCode}
               onChange={(e) => setSettings(prev => ({ ...prev, discountCode: e.target.value.toUpperCase() }))}
-              placeholder="CLEANWATER10"
+              placeholder="WELCOME50"
               className="uppercase"
             />
           </div>
+          
+          {/* Discount Type Toggle */}
           <div className="space-y-2">
-            <Label htmlFor="discount_percentage" className="flex items-center gap-1">
-              <Percent className="h-3 w-3" />
-              Discount Percentage
+            <Label>Discount Type</Label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSettings(prev => ({ ...prev, discountType: 'fixed' }))}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                  settings.discountType === 'fixed'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <DollarSign className="h-4 w-4" />
+                Fixed Amount
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettings(prev => ({ ...prev, discountType: 'percentage' }))}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                  settings.discountType === 'percentage'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <Percent className="h-4 w-4" />
+                Percentage
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="discount_value" className="flex items-center gap-1">
+              {settings.discountType === 'fixed' ? (
+                <>
+                  <DollarSign className="h-3 w-3" />
+                  Discount Amount ($)
+                </>
+              ) : (
+                <>
+                  <Percent className="h-3 w-3" />
+                  Discount Percentage (%)
+                </>
+              )}
             </Label>
             <Input
-              id="discount_percentage"
+              id="discount_value"
               type="number"
               min={1}
-              max={100}
-              value={settings.discountPercentage}
-              onChange={(e) => setSettings(prev => ({ ...prev, discountPercentage: parseInt(e.target.value) || 0 }))}
-              placeholder="10"
+              max={settings.discountType === 'percentage' ? 100 : 10000}
+              value={settings.discountValue}
+              onChange={(e) => setSettings(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
+              placeholder={settings.discountType === 'fixed' ? "50" : "10"}
             />
+            <p className="text-xs text-slate-500">
+              {settings.discountType === 'fixed' 
+                ? 'Enter the fixed dollar amount off (e.g., 50 for $50 off)'
+                : 'Enter the percentage discount (e.g., 10 for 10% off)'}
+            </p>
           </div>
         </div>
 

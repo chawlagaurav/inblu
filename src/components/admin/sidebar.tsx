@@ -24,16 +24,16 @@ import { createClient } from '@/lib/supabase/client'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Enquiries', href: '/admin/enquiries', icon: MessageSquareText },
-  { name: 'Service Requests', href: '/admin/service-requests', icon: Wrench },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
+  { name: 'Purchase Orders', href: '/admin/purchase-orders', icon: FileText },
+  { name: 'Service Requests', href: '/admin/service-requests', icon: Wrench },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Products', href: '/admin/products', icon: Package },
-  { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
-  { name: 'Purchase Orders', href: '/admin/purchase-orders', icon: FileText },
-  { name: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
-  { name: 'Coupons', href: '/admin/coupons', icon: Tag },
   { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
+  { name: 'Coupons', href: '/admin/coupons', icon: Tag },
+  { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
+  { name: 'Enquiries', href: '/admin/enquiries', icon: MessageSquareText },
+  { name: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
 ]
 
 export function AdminSidebar() {

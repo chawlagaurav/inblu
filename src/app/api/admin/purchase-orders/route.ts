@@ -29,7 +29,7 @@ export async function GET() {
         inventoryTransactions: {
           include: {
             product: {
-              select: { id: true, name: true, imageUrl: true },
+              select: { id: true, name: true, imageUrl: true, stock: true, sku: true },
             },
           },
         },

@@ -41,13 +41,35 @@ interface POItem {
   unitCost: string
 }
 
+interface EditPOData {
+  id: string
+  poNumber: string | null
+  vendorName: string | null
+  fileUrl: string | null
+  notes?: string | null
+  inventoryTransactions: Array<{
+    id: string
+    productId: string
+    quantity: number
+    unitCost: string | null
+    product: {
+      id: string
+      name: string
+      imageUrl: string
+      stock: number
+      sku: string | null
+    }
+  }>
+}
+
 interface AddPOModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onPOCreated: () => void
+  editData?: EditPOData | null
 }
 
-export function AddPOModal({ open, onOpenChange, onPOCreated }: AddPOModalProps) {
+export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOModalProps) {
   const [submitting, setSubmitting] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
   const [loadingProducts, setLoadingProducts] = useState(true)
@@ -64,12 +86,35 @@ export function AddPOModal({ open, onOpenChange, onPOCreated }: AddPOModalProps)
 
   // Product search dropdown
   const [showProductDropdown, setShowProductDropdown] = useState(false)
+  
+  const isEditMode = !!editData
 
   useEffect(() => {
     if (open) {
       fetchProducts()
+      if (editData) {
+        // Populate form with existing data
+        setPoNumber(editData.poNumber || '')
+        setVendorName(editData.vendorName || '')
+        setNotes(editData.notes || '')
+        setItems(
+          editData.inventoryTransactions.map((t) => ({
+            productId: t.productId,
+            product: {
+              id: t.product.id,
+              name: t.product.name,
+              imageUrl: t.product.imageUrl,
+              // Calculate original stock (current stock minus what was added by this PO)
+              stock: t.product.stock - t.quantity,
+              sku: t.product.sku,
+            },
+            quantity: t.quantity,
+            unitCost: t.unitCost || '',
+          }))
+        )
+      }
     }
-  }, [open])
+  }, [open, editData])
 
   const fetchProducts = async () => {
     setLoadingProducts(true)
@@ -167,27 +212,35 @@ export function AddPOModal({ open, onOpenChange, onPOCreated }: AddPOModalProps)
       const itemsData = items.map((item) => ({
         productId: item.productId,
         quantity: parseInt(item.quantity.toString(), 10),
-        unitCost: item.unitCost ? parseFloat(item.unitCost) : null,
+        unitCost: item.unitCost ? parseFloat(item.unitCost.toString()) : null,
       }))
       formData.append('items', JSON.stringify(itemsData))
 
-      const res = await fetch('/api/admin/purchase-orders', {
-        method: 'POST',
+      const url = isEditMode 
+        ? `/api/admin/purchase-orders/${editData!.id}` 
+        : '/api/admin/purchase-orders'
+      
+      const res = await fetch(url, {
+        method: isEditMode ? 'PUT' : 'POST',
         body: formData,
       })
 
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to create purchase order')
+        throw new Error(data.error || `Failed to ${isEditMode ? 'update' : 'create'} purchase order`)
       }
 
       const totalQty = items.reduce((sum, item) => sum + parseInt(item.quantity.toString(), 10), 0)
-      toast.success(`Purchase order created. ${totalQty} units added to stock.`)
+      toast.success(
+        isEditMode 
+          ? `Purchase order updated successfully.` 
+          : `Purchase order created. ${totalQty} units added to stock.`
+      )
       resetForm()
       onOpenChange(false)
       onPOCreated()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create purchase order')
+      toast.error(err instanceof Error ? err.message : `Failed to ${isEditMode ? 'update' : 'create'} purchase order`)
     } finally {
       setSubmitting(false)
     }
@@ -206,10 +259,12 @@ export function AddPOModal({ open, onOpenChange, onPOCreated }: AddPOModalProps)
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Add Purchase Order
+            {isEditMode ? 'Edit Purchase Order' : 'Add Purchase Order'}
           </DialogTitle>
           <DialogDescription>
-            Create a new purchase order and update stock for multiple products
+            {isEditMode 
+              ? 'Update purchase order details and stock quantities' 
+              : 'Create a new purchase order and update stock for multiple products'}
           </DialogDescription>
         </DialogHeader>
 
@@ -369,12 +424,20 @@ export function AddPOModal({ open, onOpenChange, onPOCreated }: AddPOModalProps)
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-slate-900 truncate">{item.product.name}</p>
-                          <p className="text-xs text-slate-500">
-                            Current stock: {item.product.stock}
-                          </p>
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <span>Current: {item.product.stock}</span>
+                            {parseInt(item.quantity.toString(), 10) > 0 && (
+                              <>
+                                <span>→</span>
+                                <span className="text-green-600 font-medium">
+                                  New: {item.product.stock + parseInt(item.quantity.toString(), 10)}
+                                </span>
+                              </>
+                            )}
+                          </div>
                           <div className="flex items-center gap-3 mt-2">
                             <div className="flex items-center gap-2">
-                              <Label className="text-xs">Qty:</Label>
+                              <Label className="text-xs">Stock to Add:</Label>
                               <Input
                                 type="number"
                                 min="1"
@@ -462,12 +525,21 @@ export function AddPOModal({ open, onOpenChange, onPOCreated }: AddPOModalProps)
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
+                  {isEditMode ? 'Updating...' : 'Creating...'}
                 </>
               ) : (
                 <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create PO & Update Stock
+                  {isEditMode ? (
+                    <>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Update Purchase Order
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create PO & Update Stock
+                    </>
+                  )}
                 </>
               )}
             </Button>

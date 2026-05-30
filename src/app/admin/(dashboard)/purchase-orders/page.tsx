@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText, ExternalLink, Package, Trash2, Loader2, ChevronDown, ChevronUp, Plus, Download } from 'lucide-react'
+import { FileText, ExternalLink, Package, Trash2, Loader2, ChevronDown, ChevronUp, Plus, Download, Pencil } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,10 +14,14 @@ import { toast } from 'sonner'
 interface InventoryTransaction {
   id: string
   quantity: number
+  unitCost: string | null
+  productId: string
   product: {
     id: string
     name: string
     imageUrl: string
+    stock: number
+    sku: string | null
   }
 }
 
@@ -43,6 +47,7 @@ export default function PurchaseOrdersPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [addPOOpen, setAddPOOpen] = useState(false)
+  const [editingPO, setEditingPO] = useState<PurchaseOrder | null>(null)
   const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
@@ -82,6 +87,18 @@ export default function PurchaseOrdersPage() {
       toast.error('Failed to delete purchase order')
     } finally {
       setDeleting(null)
+    }
+  }
+
+  const handleEdit = (po: PurchaseOrder) => {
+    setEditingPO(po)
+    setAddPOOpen(true)
+  }
+
+  const handleModalClose = (open: boolean) => {
+    setAddPOOpen(open)
+    if (!open) {
+      setEditingPO(null)
     }
   }
 
@@ -290,6 +307,14 @@ export default function PurchaseOrdersPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEdit(po)}
+                              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleDelete(po.id)}
                               disabled={deleting === po.id}
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
@@ -389,8 +414,9 @@ export default function PurchaseOrdersPage() {
 
       <AddPOModal
         open={addPOOpen}
-        onOpenChange={setAddPOOpen}
+        onOpenChange={handleModalClose}
         onPOCreated={fetchPurchaseOrders}
+        editData={editingPO}
       />
     </div>
   )

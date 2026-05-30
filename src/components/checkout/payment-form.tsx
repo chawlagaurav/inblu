@@ -236,10 +236,6 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
                 <PaymentElement
                   options={{
                     layout: 'tabs',
-                    wallets: {
-                      applePay: 'never',
-                      googlePay: 'never',
-                    },
                   }}
                 />
               </form>

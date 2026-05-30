@@ -174,7 +174,7 @@ export function HeroSection() {
               ✦ Pure Water, Healthier Life
             </span>
             <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
-              ✦ Trusted by 5000+ Australian Homes
+              ✦ Trusted by 500+ Australian Homes
             </span>
           </div>
           <div className="flex shrink-0 animate-marquee-scroll items-center" aria-hidden="true">
@@ -191,7 +191,7 @@ export function HeroSection() {
               ✦ Pure Water, Healthier Life
             </span>
             <span className="mx-8 text-sm font-semibold text-white uppercase tracking-wider whitespace-nowrap">
-              ✦ Trusted by 5000+ Australian Homes
+              ✦ Trusted by 500+ Australian Homes
             </span>
           </div>
         </motion.div>

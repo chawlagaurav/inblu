@@ -456,3 +456,64 @@ export function HowToSchema({
     />
   )
 }
+
+// ============================================================
+// SITE NAVIGATION SCHEMA (For Google Sitelinks)
+// ============================================================
+export function SiteNavigationSchema() {
+  const siteLinks = [
+    {
+      name: 'All Water Filters',
+      description: 'Browse our complete range of premium water filtration systems',
+      url: `${SEO_CONFIG.siteUrl}/products`,
+    },
+    {
+      name: 'Counter Top Filters',
+      description: 'Advanced RO purifiers for clean drinking water at home',
+      url: `${SEO_CONFIG.siteUrl}/products?category=ro-purifiers`,
+    },
+    {
+      name: 'Water Ionisers',
+      description: 'Alkaline antioxidant water systems for healthy hydration',
+      url: `${SEO_CONFIG.siteUrl}/products?category=water-ionisers`,
+    },
+    {
+      name: 'Undersink Filters',
+      description: 'Space-saving under sink water filtration solutions',
+      url: `${SEO_CONFIG.siteUrl}/products?category=undersink-filters`,
+    },
+    {
+      name: 'About Us',
+      description: 'Learn about Inblu Filters and our mission for clean water',
+      url: `${SEO_CONFIG.siteUrl}/about`,
+    },
+    {
+      name: 'Contact & Support',
+      description: 'Get in touch with our water filtration experts',
+      url: `${SEO_CONFIG.siteUrl}/support/contact`,
+    },
+  ]
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    '@id': `${SEO_CONFIG.siteUrl}/#sitenavigation`,
+    name: 'Site Navigation',
+    description: 'Main navigation links for Inblu Filters Australia',
+    itemListElement: siteLinks.map((link, index) => ({
+      '@type': 'SiteNavigationElement',
+      position: index + 1,
+      name: link.name,
+      description: link.description,
+      url: link.url,
+    })),
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+

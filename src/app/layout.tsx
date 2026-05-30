@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { OrganizationSchema, LocalBusinessSchema, WebsiteSchema } from "@/components/seo";
+import { OrganizationSchema, LocalBusinessSchema, WebsiteSchema, SiteNavigationSchema } from "@/components/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -123,6 +123,7 @@ export default function RootLayout({
         <OrganizationSchema />
         <LocalBusinessSchema />
         <WebsiteSchema />
+        <SiteNavigationSchema />
       </head>
       <body className={`${inter.variable} font-sans antialiased bg-white text-slate-900`}>
         {children}

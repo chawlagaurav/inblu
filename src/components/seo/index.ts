@@ -8,4 +8,5 @@ export {
   ProductListSchema,
   ArticleSchema,
   HowToSchema,
+  SiteNavigationSchema,
 } from './structured-data'

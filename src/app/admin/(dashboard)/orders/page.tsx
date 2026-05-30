@@ -12,6 +12,9 @@ export const metadata: Metadata = {
 export default async function AdminOrdersPage() {
   const [orders, orderStats] = await Promise.all([
     prisma.order.findMany({
+      where: {
+        paymentStatus: 'SUCCEEDED', // Only show orders with successful payment
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         items: {
@@ -21,6 +24,9 @@ export default async function AdminOrdersPage() {
       },
     }),
     prisma.order.groupBy({
+      where: {
+        paymentStatus: 'SUCCEEDED', // Only count orders with successful payment
+      },
       by: ['status'],
       _count: true,
     }),

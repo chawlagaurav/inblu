@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         orders: {
+          where: { paymentStatus: 'SUCCEEDED' },
           select: {
             id: true,
             totalAmount: true,
@@ -55,10 +56,11 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    // Guest orders
+    // Guest orders (only paid orders)
     const guestOrders = type === 'registered' ? [] : await prisma.order.findMany({
       where: {
         isGuest: true,
+        paymentStatus: 'SUCCEEDED',
         ...(search ? {
           OR: [
             { email: { contains: search, mode: 'insensitive' } },

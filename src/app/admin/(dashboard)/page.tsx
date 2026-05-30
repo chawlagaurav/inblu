@@ -24,8 +24,9 @@ const getCachedDashboardData = unstable_cache(
       topProductItems,
       purchaseOrders,
     ] = await Promise.all([
-      // Get all orders for filtering
+      // Get all orders for filtering (only paid orders)
       prisma.order.findMany({
+        where: { paymentStatus: 'SUCCEEDED' },
         select: {
           id: true,
           customerName: true,
@@ -47,8 +48,9 @@ const getCachedDashboardData = unstable_cache(
         take: 5,
         select: { id: true, name: true, category: true, stock: true },
       }),
-      // Recent orders
+      // Recent orders (only paid orders)
       prisma.order.findMany({
+        where: { paymentStatus: 'SUCCEEDED' },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: {
@@ -59,8 +61,9 @@ const getCachedDashboardData = unstable_cache(
           createdAt: true,
         },
       }),
-      // Order statuses
+      // Order statuses (only paid orders)
       prisma.order.groupBy({
+        where: { paymentStatus: 'SUCCEEDED' },
         by: ['status'],
         _count: { status: true },
       }),

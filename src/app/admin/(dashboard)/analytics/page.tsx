@@ -20,16 +20,17 @@ async function getAnalyticsData() {
   // const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   // const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  // This month's orders
+  // This month's orders (only paid)
   const thisMonthOrders = await prisma.order.findMany({
-    where: { createdAt: { gte: thisMonth } },
+    where: { createdAt: { gte: thisMonth }, paymentStatus: 'SUCCEEDED' },
     include: { items: true },
   })
 
-  // Last month's orders
+  // Last month's orders (only paid)
   const lastMonthOrders = await prisma.order.findMany({
     where: {
       createdAt: { gte: lastMonth, lte: lastMonthEnd },
+      paymentStatus: 'SUCCEEDED',
     },
   })
 
@@ -75,6 +76,7 @@ async function getAnalyticsData() {
     const dayOrders = await prisma.order.findMany({
       where: {
         createdAt: { gte: startOfDay, lt: endOfDay },
+        paymentStatus: 'SUCCEEDED',
       },
     })
     

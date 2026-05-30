@@ -35,8 +35,11 @@ export async function GET(request: NextRequest) {
   try {
     const orders = await prisma.order.findMany({
       where: {
+        // Default to only showing paid orders unless explicitly filtered
+        paymentStatus: paymentStatus && paymentStatus !== 'all' 
+          ? paymentStatus as 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED'
+          : 'SUCCEEDED',
         ...(status && status !== 'all' ? { status: status as 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' } : {}),
-        ...(paymentStatus && paymentStatus !== 'all' ? { paymentStatus: paymentStatus as 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED' } : {}),
         ...(search ? {
           OR: [
             { customerName: { contains: search, mode: 'insensitive' } },

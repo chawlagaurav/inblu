@@ -420,7 +420,7 @@ export function DiscountPopup() {
                         You&apos;re In! 🎉
                       </h2>
                       <p className="text-slate-600 text-sm mb-6">
-                        Use this code at checkout to get {settings.discountPercentage}% off your first order.
+                        Use this code at checkout to get {settings.discountType === 'fixed' ? `$${settings.discountValue}` : `${settings.discountValue}%`} off your first order.
                       </p>
 
                       {/* Coupon Code */}

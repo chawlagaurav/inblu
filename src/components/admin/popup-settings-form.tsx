@@ -305,7 +305,9 @@ export function PopupSettingsForm() {
                 <span className="font-mono bg-white px-2 py-1 rounded border border-blue-200 text-blue-600">
                   {settings.discountCode}
                 </span>
-                <span className="text-slate-500 ml-2">→ {settings.discountPercentage}% off</span>
+                <span className="text-slate-500 ml-2">
+                  → {settings.discountType === 'fixed' ? `$${settings.discountValue}` : `${settings.discountValue}%`} off
+                </span>
               </p>
             </div>
           </div>

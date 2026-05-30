@@ -46,7 +46,21 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
   const [step, setStep] = useState<'shipping' | 'payment'>('shipping')
   const [emailExists, setEmailExists] = useState(false)
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; phone?: string }>({})
   
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const validatePhone = (phone: string): boolean => {
+    // Australian phone formats: 04xx xxx xxx, +61 4xx xxx xxx, or landlines
+    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
+    const ausPhoneRegex = /^(\+?61|0)?[2-9]\d{8}$/
+    return ausPhoneRegex.test(cleanPhone)
+  }
+
   const [formData, setFormData] = useState<ShippingAddress & { email: string }>({
     email: userDetails?.email || '',
     firstName: userDetails?.name?.split(' ')[0] || '',
@@ -74,10 +88,27 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
   }, [userDetails])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+    
     // Reset email exists state when email changes
-    if (e.target.name === 'email') {
+    if (name === 'email') {
       setEmailExists(false)
+      // Validate email format
+      if (value && !validateEmail(value)) {
+        setValidationErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }))
+      } else {
+        setValidationErrors(prev => ({ ...prev, email: undefined }))
+      }
+    }
+    
+    // Validate phone format
+    if (name === 'phone') {
+      if (value && !validatePhone(value)) {
+        setValidationErrors(prev => ({ ...prev, phone: 'Please enter a valid Australian phone number' }))
+      } else {
+        setValidationErrors(prev => ({ ...prev, phone: undefined }))
+      }
     }
   }
 
@@ -133,6 +164,20 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
     // Check if email exists for guest checkout
     if (isGuest && emailExists) {
       toast.error('This email is already registered. Please log in to continue.')
+      return
+    }
+
+    // Validate email format
+    if (!validateEmail(formData.email)) {
+      setValidationErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }))
+      toast.error('Please enter a valid email address')
+      return
+    }
+
+    // Validate phone format
+    if (formData.phone && !validatePhone(formData.phone)) {
+      setValidationErrors(prev => ({ ...prev, phone: 'Please enter a valid Australian phone number' }))
+      toast.error('Please enter a valid Australian phone number (e.g., 0412 345 678)')
       return
     }
 
@@ -290,8 +335,11 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
                 onChange={handleChange}
                 onBlur={(e) => checkEmailExists(e.target.value)}
                 placeholder="you@example.com"
-                className={`mt-1 ${emailExists ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className={`mt-1 ${emailExists || validationErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {validationErrors.email && !emailExists && (
+                <p className="text-sm text-red-500 mt-1">{validationErrors.email}</p>
+              )}
               {isCheckingEmail && (
                 <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -328,8 +376,11 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="04XX XXX XXX"
-                className="mt-1"
+                className={`mt-1 ${validationErrors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {validationErrors.phone && (
+                <p className="text-sm text-red-500 mt-1">{validationErrors.phone}</p>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -126,7 +126,7 @@ body {
 
 @media (max-width: 768px) {
   .animate-marquee-scroll {
-    animation: marquee-scroll 20s linear infinite;
+    animation: marquee-scroll 30s linear infinite;
   }
 }
 
@@ -146,7 +146,7 @@ body {
 
 @media (max-width: 768px) {
   .animate-testimonials-scroll {
-    animation: testimonials-scroll 30s linear infinite;
+    animation: testimonials-scroll 40s linear infinite;
   }
 }
 

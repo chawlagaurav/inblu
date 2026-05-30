@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useCartStore } from '@/store/cart'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import type { StripeExpressCheckoutElementReadyEvent } from '@stripe/stripe-js'
 
 interface PaymentFormProps {
   orderId: string
@@ -25,6 +26,7 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<PaymentTab>('stripe')
+  const [expressCheckoutAvailable, setExpressCheckoutAvailable] = useState(false)
   const clearCart = useCartStore((state) => state.clearCart)
 
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
@@ -180,13 +182,33 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
           {/* Stripe Payment */}
           {activeTab === 'stripe' && (
             <div className="space-y-4">
-              {/* Express Checkout (Apple Pay, Google Pay) */}
+              {/* Express Checkout (Apple Pay, Google Pay, Link) */}
               <ExpressCheckoutElement
                 options={{
-                  wallets: {
+                  buttonType: {
+                    applePay: 'buy',
+                    googlePay: 'buy',
+                  },
+                  buttonTheme: {
+                    applePay: 'black',
+                    googlePay: 'black',
+                  },
+                  layout: {
+                    maxColumns: 2,
+                    maxRows: 2,
+                  },
+                  paymentMethods: {
                     applePay: 'always',
                     googlePay: 'always',
                   },
+                }}
+                onReady={(event: StripeExpressCheckoutElementReadyEvent) => {
+                  // Check if any payment methods are available
+                  const hasWallets = event.availablePaymentMethods && 
+                    (event.availablePaymentMethods.applePay || 
+                     event.availablePaymentMethods.googlePay ||
+                     event.availablePaymentMethods.link)
+                  setExpressCheckoutAvailable(!!hasWallets)
                 }}
                 onConfirm={async () => {
                   if (!stripe || !elements) return
@@ -223,19 +245,26 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
                 }}
               />
               
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-slate-200" />
+              {/* Only show divider if express checkout is available */}
+              {expressCheckoutAvailable && (
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-slate-500">Or pay with card</span>
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-slate-500">Or pay with card</span>
-                </div>
-              </div>
+              )}
 
               <form onSubmit={handleStripeSubmit} id="stripe-form">
                 <PaymentElement
                   options={{
                     layout: 'tabs',
+                    wallets: {
+                      applePay: 'auto',
+                      googlePay: 'auto',
+                    },
                   }}
                 />
               </form>

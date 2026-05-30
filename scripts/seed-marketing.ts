@@ -20,10 +20,11 @@ async function main() {
   await prisma.marketingSettings.create({
     data: {
       popupEnabled: true,
-      popupHeadline: 'GET 10% OFF YOUR FIRST ORDER',
+      popupHeadline: 'GET $50 OFF YOUR FIRST ORDER',
       popupSubtext: 'Join our community and get exclusive offers on water purification products.',
-      discountCode: 'CLEANWATER10',
-      discountPercentage: 10,
+      discountCode: 'CLEANWATER50',
+      discountType: 'fixed',
+      discountValue: 50,
       popupDelay: 5,
     },
   })

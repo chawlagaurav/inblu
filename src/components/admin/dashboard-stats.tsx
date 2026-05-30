@@ -661,7 +661,7 @@ export function DashboardStats({
               {recentOrders.map((order) => (
                 <Link
                   key={order.id}
-                  href={`/admin/orders/${order.id}`}
+                  href={`/admin05/orders/${order.id}`}
                   className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
                 >
                   <div>

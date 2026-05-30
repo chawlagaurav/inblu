@@ -110,7 +110,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
           ].map((tab) => (
             <Link
               key={tab.key}
-              href={`/admin/products${tab.key === 'all' ? '' : `?status=${tab.key}`}`}
+              href={`/admin05/products${tab.key === 'all' ? '' : `?status=${tab.key}`}`}
             >
               <Badge
                 variant={statusFilter === tab.key || (!params.status && tab.key === 'all') ? 'default' : 'outline'}

@@ -110,7 +110,7 @@ export default async function AdminInventoryPage() {
                       <p className="text-sm text-slate-500">{product.category}</p>
                     </div>
                     <Button size="sm" asChild>
-                      <Link href={`/admin/products/${product.id}`}>Update Stock</Link>
+                      <Link href={`/admin05/products/${product.id}`}>Update Stock</Link>
                     </Button>
                   </div>
                 ))}
@@ -143,7 +143,7 @@ export default async function AdminInventoryPage() {
                         {product.stock} left
                       </Badge>
                       <Button size="sm" variant="outline" asChild>
-                        <Link href={`/admin/products/${product.id}`}>Update</Link>
+                        <Link href={`/admin05/products/${product.id}`}>Update</Link>
                       </Button>
                     </div>
                   </div>
@@ -180,7 +180,7 @@ export default async function AdminInventoryPage() {
                   {products.map(product => (
                     <tr key={product.id} className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors">
                       <td className="py-3 px-4">
-                        <Link href={`/admin/products/${product.id}`} className="font-medium text-slate-900 hover:text-blue-600">
+                        <Link href={`/admin05/products/${product.id}`} className="font-medium text-slate-900 hover:text-blue-600">
                           {product.name}
                         </Link>
                       </td>

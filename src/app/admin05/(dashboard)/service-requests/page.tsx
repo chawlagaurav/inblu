@@ -512,7 +512,7 @@ export default function AdminServiceRequestsPage() {
                                         <ShoppingCart className="h-4 w-4 text-slate-400" />
                                         <span className="text-slate-500">Order:</span>
                                         <Link 
-                                          href={`/admin/orders/${request.order.id}`}
+                                          href={`/admin05/orders/${request.order.id}`}
                                           className="font-mono text-blue-600 hover:underline"
                                           onClick={(e) => e.stopPropagation()}
                                         >

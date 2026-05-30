@@ -572,7 +572,7 @@ function generateServiceRequestAdminHtml(data: ServiceRequestEmailData): string 
           </div>
 
           <div style="text-align: center; margin-top: 24px;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'}/admin/service-requests" style="display: inline-block; background: #0a508e; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'}/admin05/service-requests" style="display: inline-block; background: #0a508e; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
               View in Admin Panel
             </a>
           </div>

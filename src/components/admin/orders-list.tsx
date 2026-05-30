@@ -638,7 +638,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                       </td>
                       <td className="py-3 px-4 text-right">
                         <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/admin/orders/${order.id}`}>
+                          <Link href={`/admin05/orders/${order.id}`}>
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Link>

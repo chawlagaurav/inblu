@@ -357,7 +357,7 @@ export default function PurchaseOrdersPage() {
                             {po.inventoryTransactions.map((t) => (
                               <Link
                                 key={t.id}
-                                href={`/admin/products/${t.product.id}`}
+                                href={`/admin05/products/${t.product.id}`}
                                 className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"
                               >
                                 <div className="h-12 w-12 rounded-lg overflow-hidden bg-blue-100 flex-shrink-0">

@@ -141,7 +141,7 @@ export default async function AdminEmailsPage() {
                     {recentOrders.map(order => (
                       <tr key={order.id} className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors">
                         <td className="py-3 px-4">
-                          <Link href={`/admin/orders/${order.id}`} className="font-mono text-sm text-blue-600 hover:underline">
+                          <Link href={`/admin05/orders/${order.id}`} className="font-mono text-sm text-blue-600 hover:underline">
                             #{order.id.slice(0, 8).toUpperCase()}
                           </Link>
                         </td>
@@ -169,7 +169,7 @@ export default async function AdminEmailsPage() {
                               </a>
                             </Button>
                             <Button size="sm" variant="ghost" asChild>
-                              <Link href={`/admin/orders/${order.id}`}>
+                              <Link href={`/admin05/orders/${order.id}`}>
                                 View
                               </Link>
                             </Button>

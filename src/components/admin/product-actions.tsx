@@ -54,7 +54,7 @@ export function ProductActions({ product }: ProductActionsProps) {
     <>
       <div className="flex items-center justify-end gap-2">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/admin/products/${product.id}`}>
+          <Link href={`/admin05/products/${product.id}`}>
             <Pencil className="h-4 w-4" />
           </Link>
         </Button>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, User, MapPin, CreditCard, AlertCircle } from 'lucide-react'
@@ -47,6 +47,20 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
   const [emailExists, setEmailExists] = useState(false)
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
   const [validationErrors, setValidationErrors] = useState<{ email?: string; phone?: string }>({})
+  
+  // Refs for form fields to enable scrolling
+  const formRef = useRef<HTMLFormElement>(null)
+  
+  // Helper function to scroll to a field and focus it
+  const scrollToField = (fieldId: string) => {
+    const element = document.getElementById(fieldId)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setTimeout(() => {
+        element.focus()
+      }, 300) // Small delay to let scroll complete
+    }
+  }
   
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -164,27 +178,74 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
     // Check if email exists for guest checkout
     if (isGuest && emailExists) {
       toast.error('This email is already registered. Please log in to continue.')
+      scrollToField('email')
       return
     }
 
     // Validate email format
+    if (!formData.email) {
+      setValidationErrors(prev => ({ ...prev, email: 'Email is required' }))
+      toast.error('Please enter your email address')
+      scrollToField('email')
+      return
+    }
+    
     if (!validateEmail(formData.email)) {
       setValidationErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }))
       toast.error('Please enter a valid email address')
+      scrollToField('email')
       return
     }
 
-    // Validate phone format
-    if (formData.phone && !validatePhone(formData.phone)) {
+    // Validate phone - required and must be valid format
+    if (!formData.phone) {
+      setValidationErrors(prev => ({ ...prev, phone: 'Phone number is required' }))
+      toast.error('Please enter your phone number')
+      scrollToField('phone')
+      return
+    }
+    
+    if (!validatePhone(formData.phone)) {
       setValidationErrors(prev => ({ ...prev, phone: 'Please enter a valid Australian phone number' }))
       toast.error('Please enter a valid Australian phone number (e.g., 0412 345 678)')
+      scrollToField('phone')
       return
     }
 
-    // Validate form
-    if (!formData.email || !formData.firstName || !formData.lastName || 
-        !formData.address || !formData.city || !formData.state || !formData.postcode) {
-      toast.error('Please fill in all required fields')
+    // Validate other required fields
+    if (!formData.firstName) {
+      toast.error('Please enter your first name')
+      scrollToField('firstName')
+      return
+    }
+    
+    if (!formData.lastName) {
+      toast.error('Please enter your last name')
+      scrollToField('lastName')
+      return
+    }
+    
+    if (!formData.address) {
+      toast.error('Please enter your street address')
+      scrollToField('address')
+      return
+    }
+    
+    if (!formData.city) {
+      toast.error('Please enter your city/suburb')
+      scrollToField('city')
+      return
+    }
+    
+    if (!formData.state) {
+      toast.error('Please select your state')
+      scrollToField('state')
+      return
+    }
+    
+    if (!formData.postcode) {
+      toast.error('Please enter your postcode')
+      scrollToField('postcode')
       return
     }
 
@@ -464,7 +525,7 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
                   value={formData.state}
                   onValueChange={(value) => setFormData({ ...formData, state: value })}
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger id="state" className="mt-1">
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>

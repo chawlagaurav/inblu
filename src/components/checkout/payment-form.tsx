@@ -155,7 +155,7 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
               )}
             >
               <CreditCard className="h-4 w-4" />
-              Card
+              Card / Wallet
             </button>
             {paypalClientId && (
               <button

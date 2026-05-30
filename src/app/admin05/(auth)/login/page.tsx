@@ -28,7 +28,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
       .single()
 
     if (userData?.role === 'ADMIN') {
-      redirect('/admin')
+      redirect('/admin05')
     }
   }
 

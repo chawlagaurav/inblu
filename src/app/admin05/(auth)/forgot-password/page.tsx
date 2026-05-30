@@ -76,7 +76,7 @@ export default function AdminForgotPasswordPage() {
                   try again
                 </button>
               </p>
-              <Link href="/admin/login">
+              <Link href="/admin05/login">
                 <Button variant="outline" className="mt-4">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to admin sign in
@@ -133,7 +133,7 @@ export default function AdminForgotPasswordPage() {
             </form>
 
             <p className="text-center text-sm text-slate-500">
-              <Link href="/admin/login" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
+              <Link href="/admin05/login" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
                 <ArrowLeft className="h-3 w-3" />
                 Back to admin sign in
               </Link>

@@ -124,7 +124,7 @@ export default function NewProductPage() {
       }
 
       toast.success('Product created successfully')
-      router.push('/admin/products')
+      router.push('/admin05/products')
       router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to create product')
@@ -138,7 +138,7 @@ export default function NewProductPage() {
       <FadeIn>
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/products">
+            <Link href="/admin05/products">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
@@ -351,7 +351,7 @@ export default function NewProductPage() {
               )}
             </Button>
             <Button type="button" variant="outline" asChild>
-              <Link href="/admin/products">Cancel</Link>
+              <Link href="/admin05/products">Cancel</Link>
             </Button>
           </div>
         </form>

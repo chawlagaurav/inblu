@@ -118,7 +118,7 @@ export default function AdminMarketingPage() {
             <p className="text-slate-500 mt-1">Manage homepage content and promotions</p>
           </div>
           <Button asChild>
-            <Link href="/admin/marketing/newsletter">
+            <Link href="/admin05/marketing/newsletter">
               <Mail className="h-4 w-4 mr-2" />
               Newsletter
             </Link>

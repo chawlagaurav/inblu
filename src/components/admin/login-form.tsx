@@ -56,7 +56,7 @@ export function AdminLoginForm() {
       }
 
       toast.success('Welcome back!')
-      router.push('/admin')
+      router.push('/admin05')
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
@@ -119,7 +119,7 @@ export function AdminLoginForm() {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link
-                href="/admin/forgot-password"
+                href="/admin05/forgot-password"
                 className="text-sm text-blue-600 hover:text-blue-700"
               >
                 Forgot password?

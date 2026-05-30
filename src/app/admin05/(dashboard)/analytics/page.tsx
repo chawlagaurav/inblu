@@ -411,14 +411,14 @@ export default async function AdminAnalyticsPage() {
                   <h4 className="font-medium text-slate-900 mb-3">Quick Actions</h4>
                   <div className="grid grid-cols-2 gap-2">
                     <a 
-                      href="/admin/products?filter=low-stock" 
+                      href="/admin05/products?filter=low-stock" 
                       className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
                     >
                       <Package className="h-4 w-4" />
                       View low stock
                     </a>
                     <a 
-                      href="/admin/orders?status=PENDING" 
+                      href="/admin05/orders?status=PENDING" 
                       className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
                     >
                       <ShoppingBag className="h-4 w-4" />

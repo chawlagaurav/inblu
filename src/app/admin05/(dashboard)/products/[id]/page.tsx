@@ -147,7 +147,7 @@ export default function EditProductPage() {
       })
     } catch {
       toast.error('Failed to load product')
-      router.push('/admin/products')
+      router.push('/admin05/products')
     } finally {
       setIsLoading(false)
     }
@@ -205,7 +205,7 @@ export default function EditProductPage() {
       }
 
       toast.success('Product updated successfully')
-      router.push('/admin/products')
+      router.push('/admin05/products')
       router.refresh()
     } catch {
       toast.error('Failed to update product')
@@ -224,7 +224,7 @@ export default function EditProductPage() {
         <Package className="h-12 w-12 text-slate-300 mx-auto mb-4" />
         <p className="text-slate-500">Product not found</p>
         <Button asChild className="mt-4">
-          <Link href="/admin/products">Back to Products</Link>
+          <Link href="/admin05/products">Back to Products</Link>
         </Button>
       </div>
     )
@@ -235,7 +235,7 @@ export default function EditProductPage() {
       <FadeIn>
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/products">
+            <Link href="/admin05/products">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
@@ -480,7 +480,7 @@ export default function EditProductPage() {
               )}
             </Button>
             <Button type="button" variant="outline" asChild>
-              <Link href="/admin/products">Cancel</Link>
+              <Link href="/admin05/products">Cancel</Link>
             </Button>
           </div>
         </form>

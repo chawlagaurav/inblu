@@ -135,7 +135,7 @@ export default function AdminTestimonialsPage() {
             </p>
           </div>
           <Button asChild>
-            <Link href="/admin/testimonials/new">
+            <Link href="/admin05/testimonials/new">
               <Plus className="h-4 w-4 mr-2" />
               Add Testimonial
             </Link>
@@ -150,7 +150,7 @@ export default function AdminTestimonialsPage() {
               <MessageSquare className="h-12 w-12 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-500">No testimonials yet.</p>
               <Button asChild className="mt-4">
-                <Link href="/admin/testimonials/new">
+                <Link href="/admin05/testimonials/new">
                   <Plus className="h-4 w-4 mr-2" />
                   Add First Testimonial
                 </Link>

@@ -620,7 +620,7 @@ export function DashboardStats({
               Low Stock Alerts
             </CardTitle>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/products">View All</Link>
+              <Link href="/admin05/products">View All</Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -650,7 +650,7 @@ export function DashboardStats({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Orders</CardTitle>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/admin/orders">View All</Link>
+            <Link href="/admin05/orders">View All</Link>
           </Button>
         </CardHeader>
         <CardContent>

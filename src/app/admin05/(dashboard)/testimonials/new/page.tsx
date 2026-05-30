@@ -49,7 +49,7 @@ export default function NewTestimonialPage() {
       }
 
       toast.success('Testimonial created successfully')
-      router.push('/admin/testimonials')
+      router.push('/admin05/testimonials')
     } catch {
       toast.error('Failed to create testimonial')
     } finally {
@@ -61,7 +61,7 @@ export default function NewTestimonialPage() {
     <FadeIn className="max-w-2xl mx-auto">
       <div className="mb-6">
         <Link
-          href="/admin/testimonials"
+          href="/admin05/testimonials"
           className="inline-flex items-center text-sm text-slate-600 hover:text-blue-600"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
@@ -151,7 +151,7 @@ export default function NewTestimonialPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push('/admin/testimonials')}
+                onClick={() => router.push('/admin05/testimonials')}
               >
                 Cancel
               </Button>

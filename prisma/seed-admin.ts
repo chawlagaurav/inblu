@@ -55,7 +55,7 @@ async function main() {
   console.log(`   Email: ${admin.email}`)
   console.log(`   Name: ${admin.name}`)
   console.log(`   Role: ${admin.role}`)
-  console.log('\n🎉 You can now log in at /admin/login')
+  console.log('\n🎉 You can now log in at /admin05/login')
 }
 
 main()

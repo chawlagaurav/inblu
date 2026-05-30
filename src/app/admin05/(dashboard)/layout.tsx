@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
-    redirect('/admin/login')
+    redirect('/admin05/login')
   }
 
   // Check if user is admin using Prisma for consistent database access

@@ -75,9 +75,9 @@ export async function GET(request: Request) {
     })
 
     // If trying to access admin, verify admin role
-    if (redirect.startsWith('/admin')) {
+    if (redirect.startsWith('/admin05')) {
       if (dbUser.role !== 'ADMIN') {
-        finalRedirect = '/admin/login?error=not_admin'
+        finalRedirect = '/admin05/login?error=not_admin'
       }
     }
   } catch (dbError) {

@@ -40,15 +40,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected admin routes - require authentication and admin role
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  if (request.nextUrl.pathname.startsWith('/admin05')) {
     // Allow access to admin login and forgot-password without authentication
-    if (request.nextUrl.pathname === '/admin/login' || request.nextUrl.pathname === '/admin/forgot-password') {
+    if (request.nextUrl.pathname === '/admin05/login' || request.nextUrl.pathname === '/admin05/forgot-password') {
       return supabaseResponse
     }
     
     if (!user) {
       const url = request.nextUrl.clone()
-      url.pathname = '/admin/login'
+      url.pathname = '/admin05/login'
       url.searchParams.set('redirect', request.nextUrl.pathname)
       return NextResponse.redirect(url)
     }

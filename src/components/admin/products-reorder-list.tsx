@@ -222,7 +222,7 @@ export function ProductsReorderList({ products: initialProducts }: ProductsReord
           <Package className="h-12 w-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-500">No products found</p>
           <Button asChild className="mt-4">
-            <Link href="/admin/products/new">Add your first product</Link>
+            <Link href="/admin05/products/new">Add your first product</Link>
           </Button>
         </div>
       ) : (

@@ -23,17 +23,17 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-  { name: 'Purchase Orders', href: '/admin/purchase-orders', icon: FileText },
-  { name: 'Service Requests', href: '/admin/service-requests', icon: Wrench },
-  { name: 'Customers', href: '/admin/customers', icon: Users },
-  { name: 'Products', href: '/admin/products', icon: Package },
-  { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
-  { name: 'Coupons', href: '/admin/coupons', icon: Tag },
-  { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
-  { name: 'Enquiries', href: '/admin/enquiries', icon: MessageSquareText },
-  { name: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
+  { name: 'Dashboard', href: '/admin05', icon: LayoutDashboard },
+  { name: 'Orders', href: '/admin05/orders', icon: ShoppingCart },
+  { name: 'Purchase Orders', href: '/admin05/purchase-orders', icon: FileText },
+  { name: 'Service Requests', href: '/admin05/service-requests', icon: Wrench },
+  { name: 'Customers', href: '/admin05/customers', icon: Users },
+  { name: 'Products', href: '/admin05/products', icon: Package },
+  { name: 'Marketing', href: '/admin05/marketing', icon: Megaphone },
+  { name: 'Coupons', href: '/admin05/coupons', icon: Tag },
+  { name: 'Categories', href: '/admin05/categories', icon: FolderOpen },
+  { name: 'Enquiries', href: '/admin05/enquiries', icon: MessageSquareText },
+  { name: 'Testimonials', href: '/admin05/testimonials', icon: MessageSquare },
 ]
 
 export function AdminSidebar() {
@@ -50,7 +50,7 @@ export function AdminSidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/admin/login')
+    router.push('/admin05/login')
   }
 
   return (
@@ -60,7 +60,7 @@ export function AdminSidebar() {
         <div className="flex flex-col flex-grow bg-white border-r border-blue-100 pt-5 pb-4 overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-6">
-            <Link href="/admin" className="flex items-center gap-2">
+            <Link href="/admin05" className="flex items-center gap-2">
               <Image src="/inblutextlogo.png" alt="Inblu" width={160} height={64} className="h-16 w-auto" />
               <span className="text-sm font-semibold text-slate-500">Admin</span>
             </Link>
@@ -70,7 +70,7 @@ export function AdminSidebar() {
           <nav className="mt-8 flex-1 px-4 space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href || 
-                (item.href !== '/admin' && pathname.startsWith(item.href))
+                (item.href !== '/admin05' && pathname.startsWith(item.href))
               
               return (
                 <Link

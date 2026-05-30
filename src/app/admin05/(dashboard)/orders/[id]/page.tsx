@@ -72,7 +72,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <Link
-              href="/admin/orders"
+              href="/admin05/orders"
               className="inline-flex items-center text-sm text-slate-500 hover:text-blue-600 mb-2"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />

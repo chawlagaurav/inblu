@@ -248,11 +248,11 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <div>
               <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
               <p 
-                className="text-slate-600 leading-relaxed whitespace-pre-line"
+                className="text-slate-600 leading-relaxed whitespace-pre-line [&_strong]:font-bold [&_strong]:text-slate-900"
                 dangerouslySetInnerHTML={{
                   __html: product.description
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
                 }}
               />
             </div>

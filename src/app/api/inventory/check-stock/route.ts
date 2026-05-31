@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
           productId: item.productId,
           productName: product.name,
           available: false,
-          reason: 'Product is no longer available',
+          reason: 'No longer available',
           requested: item.quantity,
           inStock: product.stock,
           reserved: 0,
@@ -74,11 +74,21 @@ export async function POST(request: NextRequest) {
       const availableQuantity = Math.max(0, product.stock - reserved)
       const isAvailable = availableQuantity >= item.quantity
 
+      // Customer-friendly messages - don't mention reservations
+      let reason: string | null = null
+      if (!isAvailable) {
+        if (availableQuantity === 0) {
+          reason = 'Sold out'
+        } else {
+          reason = `Only ${availableQuantity} in stock`
+        }
+      }
+
       return {
         productId: item.productId,
         productName: product.name,
         available: isAvailable,
-        reason: isAvailable ? null : `Only ${availableQuantity} available (${reserved} reserved by other customers)`,
+        reason,
         requested: item.quantity,
         inStock: product.stock,
         reserved,

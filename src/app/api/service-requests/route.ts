@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { ServiceType } from '@prisma/client'
 import { sendServiceRequestConfirmation, sendServiceRequestAdminNotification } from '@/lib/email'
+import { checkRateLimit, rateLimiters, getClientIP } from '@/lib/rate-limit'
 
 /**
  * Generate ticket number: SR-YYYYMMDD-XXXX
@@ -16,6 +17,22 @@ function generateTicketNumber(): string {
 // POST: Create new service request (public)
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting - prevent spam
+    const ip = getClientIP(request)
+    const rateLimit = checkRateLimit(`service-request:${ip}`, rateLimiters.enquiry)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests submitted. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil(rateLimit.resetIn / 1000)),
+          },
+        }
+      )
+    }
+
     const body = await request.json()
     const {
       name,

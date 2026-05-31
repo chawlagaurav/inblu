@@ -455,12 +455,18 @@ export function DocumentUpload({
         body: formData,
       })
 
+      const text = await response.text()
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error('Upload failed - server error')
+      }
+
       if (!response.ok) {
-        const data = await response.json()
         throw new Error(data.error || 'Upload failed')
       }
 
-      const data = await response.json()
       onChange(data.url)
       toast.success('Document uploaded successfully')
     } catch (error) {

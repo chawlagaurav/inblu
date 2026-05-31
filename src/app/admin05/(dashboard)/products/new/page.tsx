@@ -104,7 +104,7 @@ export default function NewProductPage() {
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
+          stock: 0, // Stock managed via Inventory section
           category: formData.categories[0],
           categories: formData.categories,
           imageUrl: formData.imageUrl || '/products/placeholder.jpg',
@@ -197,21 +197,6 @@ export default function NewProductPage() {
                     onChange={handleChange}
                     className="mt-1"
                     placeholder="0.00"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="stock">Stock Quantity *</Label>
-                  <Input
-                    id="stock"
-                    name="stock"
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.stock}
-                    onChange={handleChange}
-                    className="mt-1"
-                    placeholder="0"
                   />
                 </div>
 

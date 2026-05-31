@@ -1,17 +1,107 @@
 'use client'
 
-import { Fragment } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Minus, Plus, ShoppingBag } from 'lucide-react'
+import { X, Minus, Plus, ShoppingBag, AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/cart'
 import { formatCurrency } from '@/lib/utils'
+import { toast } from 'sonner'
+
+interface StockStatus {
+  productId: string
+  productName: string
+  available: boolean
+  reason: string | null
+  requested: number
+  inStock: number
+  availableQuantity: number
+}
 
 export function CartDrawer() {
+  const router = useRouter()
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, getTotal } = useCartStore()
   const total = getTotal()
+  const [isCheckingStock, setIsCheckingStock] = useState(false)
+  const [stockStatus, setStockStatus] = useState<StockStatus[]>([])
+
+  // Check stock availability when cart opens or items change
+  useEffect(() => {
+    if (isOpen && items.length > 0) {
+      checkStockAvailability()
+    }
+  }, [isOpen, items])
+
+  const checkStockAvailability = async () => {
+    if (items.length === 0) return
+
+    try {
+      const response = await fetch('/api/inventory/check-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity
+          }))
+        })
+      })
+
+      const data = await response.json()
+      setStockStatus(data.items || [])
+    } catch (error) {
+      console.error('Failed to check stock:', error)
+    }
+  }
+
+  const handleProceedToCheckout = async () => {
+    if (items.length === 0) return
+
+    setIsCheckingStock(true)
+
+    try {
+      const response = await fetch('/api/inventory/check-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity
+          }))
+        })
+      })
+
+      const data = await response.json()
+
+      if (!data.available) {
+        setStockStatus(data.items || [])
+        const unavailable = data.unavailableItems || []
+        
+        if (unavailable.length === 1) {
+          toast.error(`${unavailable[0].productName} is ${unavailable[0].reason}`)
+        } else {
+          toast.error(`${unavailable.length} items are no longer available in the requested quantity`)
+        }
+        return
+      }
+
+      // All items available, proceed to checkout
+      setIsOpen(false)
+      router.push('/checkout')
+    } catch (error) {
+      console.error('Stock check failed:', error)
+      toast.error('Unable to verify stock. Please try again.')
+    } finally {
+      setIsCheckingStock(false)
+    }
+  }
+
+  const getItemStockStatus = (productId: string): StockStatus | undefined => {
+    return stockStatus.find(s => s.productId === productId)
+  }
 
   return (
     <AnimatePresence>
@@ -61,14 +151,18 @@ export function CartDrawer() {
                   </div>
                 ) : (
                   <ul className="space-y-4">
-                    {items.map((item) => (
+                    {items.map((item) => {
+                      const itemStock = getItemStockStatus(item.product.id)
+                      const isUnavailable = itemStock && !itemStock.available
+                      
+                      return (
                       <motion.li
                         key={item.product.id}
                         layout
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="flex gap-4 rounded-2xl bg-blue-50/50 p-4"
+                        className={`flex gap-4 rounded-2xl p-4 ${isUnavailable ? 'bg-red-50 border border-red-200' : 'bg-blue-50/50'}`}
                       >
                         <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-blue-100">
                           {item.product.imageUrl ? (
@@ -95,6 +189,12 @@ export function CartDrawer() {
                               <p className="text-sm text-slate-500">
                                 {formatCurrency(item.product.price)}
                               </p>
+                              {isUnavailable && (
+                                <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  <span>{itemStock.reason}</span>
+                                </div>
+                              )}
                             </div>
                             <button
                               onClick={() => removeItem(item.product.id)}
@@ -133,7 +233,7 @@ export function CartDrawer() {
                           </div>
                         </div>
                       </motion.li>
-                    ))}
+                    )})}
                   </ul>
                 )}
               </div>
@@ -154,10 +254,17 @@ export function CartDrawer() {
                     <Button
                       className="w-full"
                       size="lg"
-                      onClick={() => setIsOpen(false)}
-                      asChild
+                      onClick={handleProceedToCheckout}
+                      disabled={isCheckingStock}
                     >
-                      <Link href="/checkout">Proceed to Checkout</Link>
+                      {isCheckingStock ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Checking availability...
+                        </>
+                      ) : (
+                        'Proceed to Checkout'
+                      )}
                     </Button>
                     <Button
                       variant="outline"

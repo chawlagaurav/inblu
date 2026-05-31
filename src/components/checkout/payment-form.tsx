@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { useStripe, useElements, PaymentElement, ExpressCheckoutElement } from '@stripe/react-stripe-js'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { useRouter } from 'next/navigation'
-import { Loader2, Lock, CreditCard, ShieldCheck } from 'lucide-react'
+import { Loader2, Lock, CreditCard, ShieldCheck, Clock, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useCartStore } from '@/store/cart'
@@ -15,11 +15,20 @@ import type { StripeExpressCheckoutElementReadyEvent } from '@stripe/stripe-js'
 interface PaymentFormProps {
   orderId: string
   totalAmount: number
+  reservationExpiresAt?: string
+  reservationSessionId?: string
+  onReservationExpired?: () => void
 }
 
 type PaymentTab = 'stripe' | 'paypal'
 
-export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
+export function PaymentForm({ 
+  orderId, 
+  totalAmount, 
+  reservationExpiresAt,
+  reservationSessionId,
+  onReservationExpired 
+}: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
@@ -27,7 +36,41 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<PaymentTab>('stripe')
   const [expressCheckoutAvailable, setExpressCheckoutAvailable] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+  const [isExpired, setIsExpired] = useState(false)
   const clearCart = useCartStore((state) => state.clearCart)
+
+  // Timer effect
+  useEffect(() => {
+    if (!reservationExpiresAt) return
+
+    const expiresAt = new Date(reservationExpiresAt).getTime()
+    
+    const updateTimer = () => {
+      const now = Date.now()
+      const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+      setTimeRemaining(remaining)
+      
+      if (remaining <= 0) {
+        setIsExpired(true)
+        onReservationExpired?.()
+      }
+    }
+
+    // Update immediately
+    updateTimer()
+
+    // Update every second
+    const interval = setInterval(updateTimer, 1000)
+
+    return () => clearInterval(interval)
+  }, [reservationExpiresAt, onReservationExpired])
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
 
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
 
@@ -135,8 +178,77 @@ export function PaymentForm({ orderId, totalAmount }: PaymentFormProps) {
     }).format(amount)
   }
 
+  // If reservation expired, show message and don't allow payment
+  if (isExpired) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-red-900 mb-2">Reservation Expired</h3>
+            <p className="text-sm text-red-700 mb-4">
+              Your cart reservation has expired. Please return to checkout to reserve your items again.
+            </p>
+            <Button onClick={() => router.push('/checkout')} variant="outline">
+              Return to Checkout
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
+      {/* Timer Banner */}
+      {timeRemaining !== null && timeRemaining > 0 && (
+        <Card className={cn(
+          "border",
+          timeRemaining <= 60 ? "border-red-300 bg-red-50" : 
+          timeRemaining <= 180 ? "border-amber-300 bg-amber-50" : 
+          "border-blue-200 bg-blue-50"
+        )}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className={cn(
+                  "h-5 w-5",
+                  timeRemaining <= 60 ? "text-red-600" : 
+                  timeRemaining <= 180 ? "text-amber-600" : 
+                  "text-blue-600"
+                )} />
+                <div>
+                  <p className={cn(
+                    "text-sm font-medium",
+                    timeRemaining <= 60 ? "text-red-900" : 
+                    timeRemaining <= 180 ? "text-amber-900" : 
+                    "text-blue-900"
+                  )}>
+                    Items reserved for you
+                  </p>
+                  <p className={cn(
+                    "text-xs",
+                    timeRemaining <= 60 ? "text-red-700" : 
+                    timeRemaining <= 180 ? "text-amber-700" : 
+                    "text-blue-700"
+                  )}>
+                    Complete payment to secure your order
+                  </p>
+                </div>
+              </div>
+              <div className={cn(
+                "text-2xl font-bold tabular-nums",
+                timeRemaining <= 60 ? "text-red-600" : 
+                timeRemaining <= 180 ? "text-amber-600" : 
+                "text-blue-600"
+              )}>
+                {formatTime(timeRemaining)}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardContent className="p-6 space-y-6">
           <div className="flex items-center gap-2 text-slate-700 mb-2">

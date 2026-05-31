@@ -95,6 +95,8 @@ export interface CheckoutResponse {
   clientSecret: string
   orderId: string
   paymentIntentId: string
+  reservationSessionId?: string
+  reservationExpiresAt?: string
 }
 
 export interface ApiResponse<T> {

@@ -313,3 +313,19 @@ model Category {
 
   @@map("categories")
 }
+
+// Stock reservation for concurrent checkout protection
+model StockReservation {
+  id          String   @id @default(uuid())
+  sessionId   String   @map("session_id") // unique identifier for checkout session
+  productId   String   @map("product_id")
+  quantity    Int
+  expiresAt   DateTime @map("expires_at") // when the reservation expires (e.g., 10 minutes)
+  orderId     String?  @map("order_id") // linked to order once payment succeeds
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([sessionId, productId])
+  @@index([expiresAt])
+  @@index([productId])
+  @@map("stock_reservations")
+}

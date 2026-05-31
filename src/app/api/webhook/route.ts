@@ -79,6 +79,24 @@ export async function POST(request: NextRequest) {
           })
         }
 
+        // Mark stock reservations as completed (link to order)
+        await prisma.stockReservation.updateMany({
+          where: {
+            sessionId: order.id, // Session ID is set to order ID during checkout
+            orderId: null
+          },
+          data: {
+            orderId: order.id
+          }
+        })
+
+        // Clean up any reservations for this order's products that might have been orphaned
+        await prisma.stockReservation.deleteMany({
+          where: {
+            orderId: order.id
+          }
+        })
+
         // Parse shipping address
         const shippingAddress = order.shippingAddress as {
           firstName: string

@@ -274,6 +274,17 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
 
       const data = await response.json()
 
+      // Handle stock unavailability
+      if (response.status === 409 && data.unavailableItems) {
+        const unavailable = data.unavailableItems
+        if (unavailable.length === 1) {
+          toast.error(`${unavailable[0].productName}: ${unavailable[0].reason}`)
+        } else {
+          toast.error(`${unavailable.length} items are no longer available. Please update your cart.`)
+        }
+        return
+      }
+
       if (data.error) {
         throw new Error(data.error)
       }
@@ -348,6 +359,13 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
             <PaymentForm 
               orderId={checkoutData.orderId}
               totalAmount={total}
+              reservationExpiresAt={checkoutData.reservationExpiresAt}
+              reservationSessionId={checkoutData.reservationSessionId}
+              onReservationExpired={() => {
+                toast.error('Your reservation has expired. Please start checkout again.')
+                setStep('shipping')
+                setCheckoutData(null)
+              }}
             />
           </StripeProvider>
         </div>

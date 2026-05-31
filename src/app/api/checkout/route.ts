@@ -39,12 +39,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { items, shippingAddress, email, isGuest, couponCode } = body as {
+    const { items, shippingAddress, email, isGuest, couponCode, reservationSessionId } = body as {
       items: CartItem[]
       shippingAddress: ShippingAddress
       email: string
       isGuest?: boolean
       couponCode?: string | null
+      reservationSessionId?: string
     }
 
     if (!items || items.length === 0) {
@@ -54,6 +55,100 @@ export async function POST(request: NextRequest) {
     if (!email || !shippingAddress) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    const productIds = items.map(item => item.productId)
+
+    // ===== STOCK VALIDATION =====
+    // Clean up expired reservations first
+    const now = new Date()
+    await prisma.stockReservation.deleteMany({
+      where: {
+        expiresAt: { lt: now },
+        orderId: null
+      }
+    })
+
+    // Get current stock for all products
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true, stock: true, isActive: true, price: true }
+    })
+
+    // Get active reservations (excluding our session if we have one)
+    const reservations = await prisma.stockReservation.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { in: productIds },
+        expiresAt: { gt: now },
+        orderId: null,
+        ...(reservationSessionId ? { sessionId: { not: reservationSessionId } } : {})
+      },
+      _sum: {
+        quantity: true
+      }
+    })
+
+    const reservedMap = new Map(
+      reservations.map(r => [r.productId, r._sum.quantity || 0])
+    )
+
+    // Check stock availability
+    const unavailableItems: Array<{
+      productId: string
+      productName: string
+      reason: string
+      requested: number
+      available: number
+    }> = []
+
+    for (const item of items) {
+      const product = products.find(p => p.id === item.productId)
+      
+      if (!product) {
+        unavailableItems.push({
+          productId: item.productId,
+          productName: 'Unknown Product',
+          reason: 'Product not found',
+          requested: item.quantity,
+          available: 0
+        })
+        continue
+      }
+
+      if (!product.isActive) {
+        unavailableItems.push({
+          productId: item.productId,
+          productName: product.name,
+          reason: 'Product is no longer available',
+          requested: item.quantity,
+          available: 0
+        })
+        continue
+      }
+
+      const reserved = reservedMap.get(item.productId) || 0
+      const availableQuantity = Math.max(0, product.stock - reserved)
+
+      if (availableQuantity < item.quantity) {
+        unavailableItems.push({
+          productId: item.productId,
+          productName: product.name,
+          reason: availableQuantity === 0 
+            ? 'Out of stock' 
+            : `Only ${availableQuantity} available`,
+          requested: item.quantity,
+          available: availableQuantity
+        })
+      }
+    }
+
+    if (unavailableItems.length > 0) {
+      return NextResponse.json({
+        error: 'Some items are no longer available',
+        unavailableItems
+      }, { status: 409 })
+    }
+    // ===== END STOCK VALIDATION =====
 
     // Get authenticated user if not guest
     let userId: string | null = null
@@ -83,12 +178,6 @@ export async function POST(request: NextRequest) {
         userId = dbUser.id
       }
     }
-
-    // Fetch actual product prices from database to prevent price manipulation
-    const productIds = items.map(item => item.productId)
-    const products = await prisma.product.findMany({
-      where: { id: { in: productIds } }
-    })
 
     // Create a map of product prices
     const productPriceMap = new Map(
@@ -246,10 +335,33 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Create or update stock reservations for payment page
+    const RESERVATION_DURATION_MINUTES = 10
+    const expiresAt = new Date(Date.now() + RESERVATION_DURATION_MINUTES * 60 * 1000)
+    const sessionId = reservationSessionId || order.id // Use order ID as session if no existing session
+
+    // Delete any existing reservations for this session
+    await prisma.stockReservation.deleteMany({
+      where: { sessionId, orderId: null }
+    })
+
+    // Create new reservations linked to this session
+    await prisma.stockReservation.createMany({
+      data: validatedItems.map(item => ({
+        sessionId,
+        productId: item.productId,
+        quantity: item.quantity,
+        expiresAt,
+        orderId: null // Will be linked when payment succeeds
+      }))
+    })
+
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       orderId: order.id,
       paymentIntentId: paymentIntent.id,
+      reservationSessionId: sessionId,
+      reservationExpiresAt: expiresAt.toISOString(),
     })
   } catch (error) {
     console.error('Checkout error:', error)

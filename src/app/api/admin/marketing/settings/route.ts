@@ -146,6 +146,31 @@ export async function PUT(request: NextRequest) {
       })
     }
 
+    // Auto-create or update the coupon in Coupon table so it can be redeemed
+    const couponCode = settings.discountCode.toUpperCase().trim()
+    if (couponCode) {
+      await prisma.coupon.upsert({
+        where: { code: couponCode },
+        update: {
+          discountType: settings.discountType,
+          discountValue: String(settings.discountValue),
+          isActive: settings.popupEnabled,
+          description: 'Popup discount',
+          startDate: settings.startDate,
+          endDate: settings.endDate,
+        },
+        create: {
+          code: couponCode,
+          discountType: settings.discountType,
+          discountValue: String(settings.discountValue),
+          isActive: settings.popupEnabled,
+          description: 'Popup discount',
+          startDate: settings.startDate,
+          endDate: settings.endDate,
+        },
+      })
+    }
+
     return NextResponse.json({
       ...settings,
       discountValue: Number(settings.discountValue),

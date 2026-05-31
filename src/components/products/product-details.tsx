@@ -247,7 +247,14 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             {/* Description */}
             <div>
               <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
-              <p className="text-slate-600 leading-relaxed whitespace-pre-line">{product.description}</p>
+              <p 
+                className="text-slate-600 leading-relaxed whitespace-pre-line"
+                dangerouslySetInnerHTML={{
+                  __html: product.description
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                }}
+              />
             </div>
 
             {/* Download Manual Button */}

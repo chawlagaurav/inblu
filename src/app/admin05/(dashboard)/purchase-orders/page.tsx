@@ -28,9 +28,15 @@ interface InventoryTransaction {
 interface PurchaseOrder {
   id: string
   poNumber: string | null
+  poDate: string | null
   vendorName: string | null
   fileUrl: string | null
   totalCost: string | null
+  tax: number | null
+  deliveryStatus: string | null
+  approvedBy: string | null
+  paymentStatus: string | null
+  notes: string | null
   createdAt: string
   inventoryTransactions: InventoryTransaction[]
 }

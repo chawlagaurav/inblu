@@ -44,9 +44,14 @@ interface POItem {
 interface EditPOData {
   id: string
   poNumber: string | null
+  poDate: string | null
   vendorName: string | null
   fileUrl: string | null
   notes?: string | null
+  tax: number | null
+  deliveryStatus: string | null
+  approvedBy: string | null
+  paymentStatus: string | null
   inventoryTransactions: Array<{
     id: string
     productId: string
@@ -77,9 +82,14 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
 
   // PO Details
   const [poNumber, setPoNumber] = useState('')
+  const [poDate, setPoDate] = useState('')
   const [vendorName, setVendorName] = useState('')
   const [poFile, setPoFile] = useState<File | null>(null)
   const [notes, setNotes] = useState('')
+  const [tax, setTax] = useState('')
+  const [deliveryStatus, setDeliveryStatus] = useState('PENDING')
+  const [approvedBy, setApprovedBy] = useState('')
+  const [paymentStatus, setPaymentStatus] = useState('UNPAID')
 
   // Selected products
   const [items, setItems] = useState<POItem[]>([])
@@ -95,8 +105,13 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
       if (editData) {
         // Populate form with existing data
         setPoNumber(editData.poNumber || '')
+        setPoDate(editData.poDate ? editData.poDate.split('T')[0] : '')
         setVendorName(editData.vendorName || '')
         setNotes(editData.notes || '')
+        setTax(editData.tax?.toString() || '')
+        setDeliveryStatus(editData.deliveryStatus || 'PENDING')
+        setApprovedBy(editData.approvedBy || '')
+        setPaymentStatus(editData.paymentStatus || 'UNPAID')
         setItems(
           editData.inventoryTransactions.map((t) => ({
             productId: t.productId,
@@ -133,9 +148,14 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
 
   const resetForm = () => {
     setPoNumber('')
+    setPoDate('')
     setVendorName('')
     setPoFile(null)
     setNotes('')
+    setTax('')
+    setDeliveryStatus('PENDING')
+    setApprovedBy('')
+    setPaymentStatus('UNPAID')
     setItems([])
     setSearchQuery('')
   }
@@ -204,8 +224,13 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
     try {
       const formData = new FormData()
       if (poNumber) formData.append('poNumber', poNumber)
+      if (poDate) formData.append('poDate', poDate)
       if (vendorName) formData.append('vendorName', vendorName)
       if (notes) formData.append('notes', notes)
+      if (tax) formData.append('tax', tax)
+      formData.append('deliveryStatus', deliveryStatus)
+      if (approvedBy) formData.append('approvedBy', approvedBy)
+      formData.append('paymentStatus', paymentStatus)
       if (poFile) formData.append('file', poFile)
 
       // Add items as JSON
@@ -269,8 +294,8 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          {/* PO Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* PO Details - Row 1 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="poNumber">PO Number</Label>
               <Input
@@ -282,12 +307,62 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
               />
             </div>
             <div>
-              <Label htmlFor="vendorName">Vendor Name</Label>
+              <Label htmlFor="poDate">PO Date</Label>
+              <Input
+                id="poDate"
+                type="date"
+                value={poDate}
+                onChange={(e) => setPoDate(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="vendorName">Supplier</Label>
               <Input
                 id="vendorName"
                 placeholder="e.g. Supplier Co."
                 value={vendorName}
                 onChange={(e) => setVendorName(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          {/* PO Details - Row 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="deliveryStatus">Delivery Status</Label>
+              <select
+                id="deliveryStatus"
+                value={deliveryStatus}
+                onChange={(e) => setDeliveryStatus(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              >
+                <option value="PENDING">Pending</option>
+                <option value="IN_TRANSIT">In Transit</option>
+                <option value="DELIVERED">Delivered</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="paymentStatus">Payment Status</Label>
+              <select
+                id="paymentStatus"
+                value={paymentStatus}
+                onChange={(e) => setPaymentStatus(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              >
+                <option value="UNPAID">Unpaid</option>
+                <option value="PARTIAL">Partial</option>
+                <option value="PAID">Paid</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="approvedBy">Approved By</Label>
+              <Input
+                id="approvedBy"
+                placeholder="Name of approver"
+                value={approvedBy}
+                onChange={(e) => setApprovedBy(e.target.value)}
                 className="mt-1"
               />
             </div>
@@ -475,12 +550,30 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
                 ))}
 
                 {/* Total Cost Summary */}
-                {calculateTotalCost() > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <span className="text-sm font-medium text-slate-700">Total Cost:</span>
-                    <Badge className="bg-green-100 text-green-700 text-sm">
-                      {formatCurrency(calculateTotalCost())}
-                    </Badge>
+                {items.length > 0 && (
+                  <div className="p-3 bg-slate-50 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-600">Subtotal:</span>
+                      <span className="font-medium">{formatCurrency(calculateTotalCost())}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-600">Tax:</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="$0.00"
+                        value={tax}
+                        onChange={(e) => setTax(e.target.value)}
+                        className="w-28 h-8 text-sm text-right"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <span className="font-medium text-slate-700">Total:</span>
+                      <Badge className="bg-green-100 text-green-700 text-sm">
+                        {formatCurrency(calculateTotalCost() + (parseFloat(tax) || 0))}
+                      </Badge>
+                    </div>
                   </div>
                 )}
               </div>

@@ -65,7 +65,14 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
       const response = await fetch('/api/admin/products')
       if (response.ok) {
         const data = await response.json()
-        setProducts(data.filter((p: Product & { isActive: boolean }) => p.isActive))
+        // Convert price to number (comes as Decimal/string from API)
+        const productsWithPrice = data
+          .filter((p: Product & { isActive: boolean }) => p.isActive)
+          .map((p: Product & { isActive: boolean }) => ({
+            ...p,
+            price: Number(p.price),
+          }))
+        setProducts(productsWithPrice)
       }
     } catch {
       toast.error('Failed to load products')
@@ -95,7 +102,7 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
       productId: product.id,
       productName: product.name,
       quantity: 1,
-      price: product.price,
+      price: Number(product.price),
     }])
     setSelectedProduct('')
   }
@@ -342,7 +349,7 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
                   <option value="">Select a product...</option>
                   {products.map(product => (
                     <option key={product.id} value={product.id}>
-                      {product.name} - ${product.price.toFixed(2)}
+                      {product.name} - ${Number(product.price).toFixed(2)}
                     </option>
                   ))}
                 </select>
@@ -383,7 +390,7 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
                           className="w-24"
                         />
                         <span className="text-slate-700 font-medium w-24 text-right">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ${(Number(item.price) * item.quantity).toFixed(2)}
                         </span>
                         <button
                           type="button"

@@ -247,12 +247,34 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             {/* Description */}
             <div>
               <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
-              <p 
-                className="text-slate-600 leading-relaxed whitespace-pre-line [&_strong]:font-bold [&_strong]:text-slate-900"
+              <div 
+                className="text-slate-600 leading-relaxed prose prose-slate prose-sm max-w-none [&_strong]:font-bold [&_strong]:text-slate-900 [&_em]:italic [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:my-2 [&_li]:my-1 [&_h4]:font-semibold [&_h4]:text-slate-900 [&_h4]:mt-4 [&_h4]:mb-2"
                 dangerouslySetInnerHTML={{
                   __html: product.description
+                    // Headers
+                    .replace(/^####\s+(.+)$/gm, '<h4>$1</h4>')
+                    // Bold
                     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
                     .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+                    // Italic
+                    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+                    .replace(/(?<!_)_([^_]+)_(?!_)/g, '<em>$1</em>')
+                    // Bullet points - process entire list blocks
+                    .replace(/(?:^[-•]\s+.+$\n?)+/gm, (match) => {
+                      const items = match.trim().split('\n').map(line => 
+                        `<li>${line.replace(/^[-•]\s+/, '')}</li>`
+                      ).join('');
+                      return `<ul>${items}</ul>`;
+                    })
+                    // Numbered lists
+                    .replace(/(?:^\d+\.\s+.+$\n?)+/gm, (match) => {
+                      const items = match.trim().split('\n').map(line => 
+                        `<li>${line.replace(/^\d+\.\s+/, '')}</li>`
+                      ).join('');
+                      return `<ol>${items}</ol>`;
+                    })
+                    // Line breaks
+                    .replace(/\n/g, '<br/>')
                 }}
               />
             </div>

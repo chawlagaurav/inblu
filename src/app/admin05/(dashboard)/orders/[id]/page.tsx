@@ -258,6 +258,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
               paymentStatus: order.paymentStatus,
               trackingNumber: order.trackingNumber,
               notes: order.notes,
+              installationDate: order.installationDate ? order.installationDate.toISOString() : null,
               customerName: order.customerName,
               email: order.email,
             }} />
@@ -269,15 +270,29 @@ export default async function OrderDetailsPage({ params }: PageProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Order Notes
+                  Internal Details
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {order.notes ? (
-                  <p className="text-sm text-slate-600">{order.notes}</p>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">No notes added</p>
-                )}
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-slate-500 mb-1">Notes</h4>
+                  {order.notes ? (
+                    <p className="text-sm text-slate-600">{order.notes}</p>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">No notes added</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-slate-500 mb-1">Installation Date</h4>
+                  {order.installationDate ? (
+                    <p className="text-sm text-slate-600 flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {formatDate(order.installationDate)}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">Not scheduled</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </FadeIn>

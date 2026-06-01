@@ -17,6 +17,7 @@ interface Order {
   paymentStatus: string
   trackingNumber: string | null
   notes: string | null
+  installationDate: string | null
   customerName: string
   email: string
 }
@@ -31,6 +32,9 @@ export function OrderActions({ order }: OrderActionsProps) {
   const [status, setStatus] = useState(order.status)
   const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber || '')
   const [notes, setNotes] = useState(order.notes || '')
+  const [installationDate, setInstallationDate] = useState(
+    order.installationDate ? order.installationDate.split('T')[0] : ''
+  )
 
   const handleUpdateOrder = async () => {
     setIsLoading(true)
@@ -42,6 +46,7 @@ export function OrderActions({ order }: OrderActionsProps) {
           status,
           trackingNumber: trackingNumber || null,
           notes: notes || null,
+          installationDate: installationDate || null,
         }),
       })
 
@@ -200,6 +205,17 @@ export function OrderActions({ order }: OrderActionsProps) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
+          />
+        </div>
+
+        {/* Installation Date */}
+        <div className="space-y-2">
+          <Label htmlFor="installationDate">Installation Date</Label>
+          <Input
+            id="installationDate"
+            type="date"
+            value={installationDate}
+            onChange={(e) => setInstallationDate(e.target.value)}
           />
         </div>
 

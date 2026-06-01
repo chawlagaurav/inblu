@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Search,
   Eye,
@@ -14,12 +15,14 @@ import {
   ArrowUpDown,
   Mail,
   Loader2,
+  Plus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { AddOrderModal } from './add-order-modal'
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -59,6 +62,8 @@ interface Order {
   createdAt: string
   deliveredAt: string | null
   serviceDueDate: string | null
+  notes: string | null
+  installationDate: string | null
   shippingAddress: Record<string, string> | null
   items: OrderItem[]
   user: { name: string | null; email: string } | null
@@ -95,9 +100,11 @@ function formatDate(date: Date | string): string {
 }
 
 export function OrdersList({ orders, statCounts, currentStatus, currentSearch }: OrdersListProps) {
+  const router = useRouter()
   const [search, setSearch] = useState(currentSearch || '')
   const [statusFilter, setStatusFilter] = useState(currentStatus || 'all')
   const [paymentFilter, setPaymentFilter] = useState('all')
+  const [showAddOrderModal, setShowAddOrderModal] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [guestFilter, setGuestFilter] = useState<'all' | 'guest' | 'registered'>('all')
@@ -301,15 +308,31 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
             Manage customer orders &middot; {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button
-          onClick={handleExport}
-          disabled={exporting || filteredOrders.length === 0}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-        >
-          <Download className="h-4 w-4" />
-          {exporting ? 'Exporting...' : 'Export to Excel'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowAddOrderModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Order
+          </Button>
+          <Button
+            onClick={handleExport}
+            disabled={exporting || filteredOrders.length === 0}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? 'Exporting...' : 'Export to Excel'}
+          </Button>
+        </div>
       </div>
+
+      {/* Add Order Modal */}
+      <AddOrderModal
+        isOpen={showAddOrderModal}
+        onClose={() => setShowAddOrderModal(false)}
+        onSuccess={() => router.refresh()}
+      />
 
       {/* Status Tabs */}
       <div className="flex flex-wrap gap-2">

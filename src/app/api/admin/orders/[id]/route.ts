@@ -72,7 +72,7 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { status, trackingNumber, notes, paymentStatus } = body
+    const { status, trackingNumber, notes, paymentStatus, installationDate } = body
 
     // Set deliveredAt when status changes to DELIVERED
     const deliveredAt = status === 'DELIVERED' ? new Date() : undefined
@@ -84,6 +84,9 @@ export async function PATCH(
         ...(trackingNumber !== undefined && { trackingNumber }),
         ...(notes !== undefined && { notes }),
         ...(paymentStatus && { paymentStatus }),
+        ...(installationDate !== undefined && { 
+          installationDate: installationDate ? new Date(installationDate) : null 
+        }),
         ...(deliveredAt && { deliveredAt }),
       },
     })

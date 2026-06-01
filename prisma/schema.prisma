@@ -92,6 +92,7 @@ model Order {
   shippingAddress     Json          @map("shipping_address")
   trackingNumber      String?       @map("tracking_number")
   notes               String?
+  installationDate    DateTime?     @map("installation_date")
   deliveredAt         DateTime? @map("delivered_at")
   serviceDueDate      DateTime?     @map("service_due_date")
   isGuest             Boolean       @default(false) @map("is_guest")

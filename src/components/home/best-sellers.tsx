@@ -91,23 +91,21 @@ function ProductCard({
         {product.isBestSeller && (
           <Badge className="absolute top-3 left-3">Best Seller</Badge>
         )}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileHover={{ opacity: 1 }}
-          className="absolute inset-0 bg-black/5 flex items-center justify-center"
-        >
+        {/* Quick actions - hidden on mobile, visible on desktop hover */}
+        <div className="absolute inset-0 bg-black/5 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
           <Button
             size="sm"
             onClick={(e) => {
               e.preventDefault()
+              e.stopPropagation()
               onAddToCart(product)
             }}
-            className="gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="gap-2"
           >
             <ShoppingCart className="h-4 w-4" />
             Add to Cart
           </Button>
-        </motion.div>
+        </div>
       </div>
         <CardContent className="p-4">
           <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">

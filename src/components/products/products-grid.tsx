@@ -102,13 +102,14 @@ function ProductCard({
           </Badge>
         )}
 
-        {/* Quick actions */}
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Quick actions - hidden on mobile, visible on desktop hover */}
+        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent hidden md:block opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
           <Button
             size="sm"
             className="w-full"
             onClick={(e) => {
               e.preventDefault()
+              e.stopPropagation()
               onAddToCart(product)
             }}
             disabled={product.stock === 0}

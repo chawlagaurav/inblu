@@ -6,27 +6,58 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, Droplets, Shield, Truck } from 'lucide-react'
 
-// ============================================================
-// CONFIGURATION - Change this path to update hero background
-// ============================================================
-const HERO_BG_IMAGE = '/hero-bg.png'
+// Default content (used as fallback)
+const DEFAULT_CONTENT = {
+  hero_heading: 'DEFINING PURITY.',
+  hero_description: 'Advanced RO purifiers & water ionisers engineered for Australian homes. Crystal-clear water, delivered to your doorstep.',
+  hero_cta_text: 'Shop Now',
+  hero_cta_link: '/products',
+  hero_background_image: '/hero-bg.png',
+}
 
-// ============================================================
-// HERO SECTION - Fullscreen Background Style
-// ============================================================
+interface HeroContent {
+  hero_heading?: string
+  hero_description?: string
+  hero_cta_text?: string
+  hero_cta_link?: string
+  hero_background_image?: string
+}
+
 export function HeroSection() {
   const [mounted, setMounted] = useState(false)
+  const [content, setContent] = useState<HeroContent>(DEFAULT_CONTENT)
 
   useEffect(() => {
     queueMicrotask(() => setMounted(true))
+    
+    // Fetch hero content from API
+    fetch('/api/marketing/hero')
+      .then(res => res.json())
+      .then(data => {
+        if (data && Object.keys(data).length > 0) {
+          setContent(prev => ({ ...prev, ...data }))
+        }
+      })
+      .catch(err => console.error('Error fetching hero content:', err))
   }, [])
+
+  const bgImage = content.hero_background_image || DEFAULT_CONTENT.hero_background_image
+  const heading = content.hero_heading || DEFAULT_CONTENT.hero_heading
+  const description = content.hero_description || DEFAULT_CONTENT.hero_description
+  const ctaText = content.hero_cta_text || DEFAULT_CONTENT.hero_cta_text
+  const ctaLink = content.hero_cta_link || DEFAULT_CONTENT.hero_cta_link
+
+  // Parse heading to highlight the second line in blue
+  const headingLines = heading.split('\n')
+  const firstLine = headingLines[0] || heading
+  const secondLine = headingLines[1] || ''
 
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
       {/* Fullscreen Background Image */}
       <div className="absolute inset-0">
         <Image
-          src={HERO_BG_IMAGE}
+          src={bgImage}
           alt="Hero background"
           fill
           priority
@@ -54,7 +85,7 @@ export function HeroSection() {
           </span>
         </motion.div>
 
-        {/* Big Bold Headline */}
+        {/* Big Bold Headline - Dynamic */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={mounted ? { opacity: 1, y: 0 } : {}}
@@ -62,22 +93,21 @@ export function HeroSection() {
           className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight uppercase text-white leading-[1.1] max-w-4xl mx-auto"
           style={{ fontFamily: 'Inter, Poppins, system-ui, sans-serif' }}
         >
-          DEFINING
-          <span className="block text-blue-400">PURITY.</span>
+          {firstLine}
+          {secondLine && <span className="block text-blue-400">{secondLine}</span>}
         </motion.h1>
 
-        {/* Supporting Text */}
+        {/* Supporting Text - Dynamic */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={mounted ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.25 }}
           className="mt-6 text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed"
         >
-          Advanced RO purifiers & water ionisers engineered for Australian homes.
-          Crystal-clear water, delivered to your doorstep.
+          {description}
         </motion.p>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons - Dynamic */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={mounted ? { opacity: 1, y: 0 } : {}}
@@ -85,13 +115,13 @@ export function HeroSection() {
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           {/* Primary CTA */}
-          <Link href="/products">
+          <Link href={ctaLink}>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold uppercase tracking-wider text-white bg-blue-500 rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
             >
-              Shop Now
+              {ctaText}
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </Link>

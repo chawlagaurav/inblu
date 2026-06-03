@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Save, ImageIcon, Type, Link2, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
+import Image from 'next/image'
+import { Save, ImageIcon, Loader2, Mail, Upload, X, Eye } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/motion'
 import { PopupSettingsForm } from '@/components/admin/popup-settings-form'
@@ -23,16 +23,11 @@ interface MarketingContent {
 }
 
 const defaultContent = {
-  hero_heading: 'Premium Outdoor Gear for Your Next Adventure',
-  hero_subheading: 'Discover our collection of high-quality outdoor equipment designed for explorers.',
-  hero_cta_primary_text: 'Shop Now',
-  hero_cta_primary_link: '/products',
-  hero_cta_secondary_text: 'Learn More',
-  hero_cta_secondary_link: '/about',
-  hero_background_image: '/images/hero-bg.jpg',
-  promo_banner_text: 'Free shipping on orders over $100!',
-  promo_banner_link: '/products',
-  promo_banner_active: 'true',
+  hero_heading: 'DEFINING\nPURITY.',
+  hero_description: 'Advanced RO purifiers & water ionisers engineered for Australian homes. Crystal-clear water, delivered to your doorstep.',
+  hero_cta_text: 'Shop Now',
+  hero_cta_link: '/products',
+  hero_background_image: '/hero-bg.png',
 }
 
 export default function AdminMarketingPage() {
@@ -40,6 +35,8 @@ export default function AdminMarketingPage() {
   const [formData, setFormData] = useState<Record<string, string>>(defaultContent)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchContent()
@@ -55,7 +52,9 @@ export default function AdminMarketingPage() {
         
         data.forEach((item: MarketingContent) => {
           contentMap[item.key] = item
-          formDataMap[item.key] = item.content || ''
+          if (item.content) {
+            formDataMap[item.key] = item.content
+          }
         })
         
         setContent(contentMap)
@@ -101,6 +100,70 @@ export default function AdminMarketingPage() {
     setFormData(prev => ({ ...prev, [key]: value }))
   }
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+      formDataUpload.append('folder', 'hero')
+
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      })
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const data = await response.json()
+      const imageUrl = data.url
+
+      // Update form data and save
+      handleChange('hero_background_image', imageUrl)
+      
+      // Save to database
+      const saveResponse = await fetch('/api/admin/marketing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'hero_background_image',
+          content: imageUrl,
+          isActive: true,
+        }),
+      })
+
+      if (saveResponse.ok) {
+        toast.success('Background image updated successfully')
+      } else {
+        throw new Error('Failed to save image URL')
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast.error('Failed to upload image')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -117,12 +180,20 @@ export default function AdminMarketingPage() {
             <h1 className="text-3xl font-bold text-slate-900">Marketing Content</h1>
             <p className="text-slate-500 mt-1">Manage homepage content and promotions</p>
           </div>
-          <Button asChild>
-            <Link href="/admin05/marketing/newsletter">
-              <Mail className="h-4 w-4 mr-2" />
-              Newsletter
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/" target="_blank">
+                <Eye className="h-4 w-4 mr-2" />
+                Preview Site
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/admin05/marketing/newsletter">
+                <Mail className="h-4 w-4 mr-2" />
+                Newsletter
+              </Link>
+            </Button>
+          </div>
         </div>
       </FadeIn>
 
@@ -143,285 +214,197 @@ export default function AdminMarketingPage() {
               <CardDescription>Customize the main hero section on the homepage</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Hero Background Image Upload */}
+              <div className="space-y-3">
+                <Label>Background Image</Label>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Current Image Preview */}
+                  <div className="relative w-full sm:w-64 h-40 rounded-xl overflow-hidden bg-slate-100 border-2 border-dashed border-slate-200">
+                    {formData.hero_background_image ? (
+                      <>
+                        <Image
+                          src={formData.hero_background_image}
+                          alt="Hero background"
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40" />
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <p className="text-xs text-white truncate">
+                            {formData.hero_background_image}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-slate-400">
+                        <ImageIcon className="h-12 w-12" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Upload Controls */}
+                  <div className="flex-1 space-y-3">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full sm:w-auto"
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload New Image
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-slate-500">
+                      Recommended: 1920x1080px or larger. Max file size: 5MB.
+                    </p>
+                    
+                    {/* Or enter URL manually */}
+                    <div className="pt-2 border-t">
+                      <Label htmlFor="hero_background_image" className="text-xs text-slate-500">Or enter image URL</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          id="hero_background_image"
+                          value={formData.hero_background_image || ''}
+                          onChange={(e) => handleChange('hero_background_image', e.target.value)}
+                          placeholder="/hero-bg.png"
+                          className="text-sm"
+                        />
+                        <Button 
+                          onClick={() => handleSave('hero_background_image')}
+                          disabled={saving === 'hero_background_image'}
+                          size="sm"
+                        >
+                          {saving === 'hero_background_image' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Hero Heading */}
               <div className="space-y-2">
-                <Label htmlFor="hero_heading">Heading</Label>
+                <Label htmlFor="hero_heading">Main Heading</Label>
+                <p className="text-xs text-slate-500">Use a new line (Enter) to split into two lines. The second line will appear in blue.</p>
                 <div className="flex gap-2">
-                  <Input
+                  <Textarea
                     id="hero_heading"
                     value={formData.hero_heading || ''}
                     onChange={(e) => handleChange('hero_heading', e.target.value)}
-                    placeholder="Enter hero heading..."
+                    placeholder="DEFINING&#10;PURITY."
+                    rows={2}
+                    className="font-bold uppercase"
                   />
                   <Button 
                     onClick={() => handleSave('hero_heading')}
                     disabled={saving === 'hero_heading'}
                     size="sm"
+                    className="self-start"
                   >
                     {saving === 'hero_heading' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
 
-              {/* Hero Subheading */}
+              {/* Hero Description */}
               <div className="space-y-2">
-                <Label htmlFor="hero_subheading">Subheading</Label>
+                <Label htmlFor="hero_description">Description Text</Label>
                 <div className="flex gap-2">
                   <Textarea
-                    id="hero_subheading"
-                    value={formData.hero_subheading || ''}
-                    onChange={(e) => handleChange('hero_subheading', e.target.value)}
-                    placeholder="Enter hero subheading..."
-                    rows={2}
+                    id="hero_description"
+                    value={formData.hero_description || ''}
+                    onChange={(e) => handleChange('hero_description', e.target.value)}
+                    placeholder="Enter description text..."
+                    rows={3}
                   />
                   <Button 
-                    onClick={() => handleSave('hero_subheading')}
-                    disabled={saving === 'hero_subheading'}
+                    onClick={() => handleSave('hero_description')}
+                    disabled={saving === 'hero_description'}
                     size="sm"
                     className="self-start"
                   >
-                    {saving === 'hero_subheading' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {saving === 'hero_description' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
 
-              {/* Hero Background Image */}
-              <div className="space-y-2">
-                <Label htmlFor="hero_background_image">Background Image URL</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="hero_background_image"
-                    value={formData.hero_background_image || ''}
-                    onChange={(e) => handleChange('hero_background_image', e.target.value)}
-                    placeholder="/images/hero-bg.jpg"
-                  />
-                  <Button 
-                    onClick={() => handleSave('hero_background_image')}
-                    disabled={saving === 'hero_background_image'}
-                    size="sm"
-                  >
-                    {saving === 'hero_background_image' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  </Button>
-                </div>
-                <p className="text-xs text-slate-500">Upload images to /public/images/ or use external URLs</p>
-              </div>
-
-              {/* CTA Buttons */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4 p-4 bg-slate-50 rounded-lg">
-                  <h4 className="font-medium text-slate-900">Primary CTA</h4>
+              {/* CTA Button */}
+              <div className="space-y-4 p-4 bg-slate-50 rounded-lg">
+                <h4 className="font-medium text-slate-900">Call-to-Action Button</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="hero_cta_primary_text">Button Text</Label>
+                    <Label htmlFor="hero_cta_text">Button Text</Label>
                     <div className="flex gap-2">
                       <Input
-                        id="hero_cta_primary_text"
-                        value={formData.hero_cta_primary_text || ''}
-                        onChange={(e) => handleChange('hero_cta_primary_text', e.target.value)}
+                        id="hero_cta_text"
+                        value={formData.hero_cta_text || ''}
+                        onChange={(e) => handleChange('hero_cta_text', e.target.value)}
                         placeholder="Shop Now"
                       />
                       <Button 
-                        onClick={() => handleSave('hero_cta_primary_text')}
-                        disabled={saving === 'hero_cta_primary_text'}
+                        onClick={() => handleSave('hero_cta_text')}
+                        disabled={saving === 'hero_cta_text'}
                         size="sm"
                       >
-                        {saving === 'hero_cta_primary_text' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        {saving === 'hero_cta_text' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="hero_cta_primary_link">Button Link</Label>
+                    <Label htmlFor="hero_cta_link">Button Link</Label>
                     <div className="flex gap-2">
                       <Input
-                        id="hero_cta_primary_link"
-                        value={formData.hero_cta_primary_link || ''}
-                        onChange={(e) => handleChange('hero_cta_primary_link', e.target.value)}
+                        id="hero_cta_link"
+                        value={formData.hero_cta_link || ''}
+                        onChange={(e) => handleChange('hero_cta_link', e.target.value)}
                         placeholder="/products"
                       />
                       <Button 
-                        onClick={() => handleSave('hero_cta_primary_link')}
-                        disabled={saving === 'hero_cta_primary_link'}
+                        onClick={() => handleSave('hero_cta_link')}
+                        disabled={saving === 'hero_cta_link'}
                         size="sm"
                       >
-                        {saving === 'hero_cta_primary_link' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        {saving === 'hero_cta_link' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
-                </div>
-
-                <div className="space-y-4 p-4 bg-slate-50 rounded-lg">
-                  <h4 className="font-medium text-slate-900">Secondary CTA</h4>
-                  <div className="space-y-2">
-                    <Label htmlFor="hero_cta_secondary_text">Button Text</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="hero_cta_secondary_text"
-                        value={formData.hero_cta_secondary_text || ''}
-                        onChange={(e) => handleChange('hero_cta_secondary_text', e.target.value)}
-                        placeholder="Learn More"
-                      />
-                      <Button 
-                        onClick={() => handleSave('hero_cta_secondary_text')}
-                        disabled={saving === 'hero_cta_secondary_text'}
-                        size="sm"
-                      >
-                        {saving === 'hero_cta_secondary_text' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="hero_cta_secondary_link">Button Link</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="hero_cta_secondary_link"
-                        value={formData.hero_cta_secondary_link || ''}
-                        onChange={(e) => handleChange('hero_cta_secondary_link', e.target.value)}
-                        placeholder="/about"
-                      />
-                      <Button 
-                        onClick={() => handleSave('hero_cta_secondary_link')}
-                        disabled={saving === 'hero_cta_secondary_link'}
-                        size="sm"
-                      >
-                        {saving === 'hero_cta_secondary_link' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </StaggerItem>
-
-        {/* Promotional Banner */}
-        <StaggerItem>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Type className="h-5 w-5 text-blue-600" />
-                Promotional Banner
-              </CardTitle>
-              <CardDescription>Configure the top promotional banner</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Badge variant={formData.promo_banner_active === 'true' ? 'default' : 'secondary'}>
-                  {formData.promo_banner_active === 'true' ? (
-                    <><Eye className="h-3 w-3 mr-1" /> Active</>
-                  ) : (
-                    <><EyeOff className="h-3 w-3 mr-1" /> Hidden</>
-                  )}
-                </Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newValue = formData.promo_banner_active === 'true' ? 'false' : 'true'
-                    handleChange('promo_banner_active', newValue)
-                    handleSave('promo_banner_active')
-                  }}
-                  disabled={saving === 'promo_banner_active'}
-                >
-                  {formData.promo_banner_active === 'true' ? 'Hide Banner' : 'Show Banner'}
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="promo_banner_text">Banner Text</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="promo_banner_text"
-                    value={formData.promo_banner_text || ''}
-                    onChange={(e) => handleChange('promo_banner_text', e.target.value)}
-                    placeholder="Free shipping on orders over $100!"
-                  />
-                  <Button 
-                    onClick={() => handleSave('promo_banner_text')}
-                    disabled={saving === 'promo_banner_text'}
-                    size="sm"
-                  >
-                    {saving === 'promo_banner_text' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="promo_banner_link">Banner Link (optional)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="promo_banner_link"
-                    value={formData.promo_banner_link || ''}
-                    onChange={(e) => handleChange('promo_banner_link', e.target.value)}
-                    placeholder="/products"
-                  />
-                  <Button 
-                    onClick={() => handleSave('promo_banner_link')}
-                    disabled={saving === 'promo_banner_link'}
-                    size="sm"
-                  >
-                    {saving === 'promo_banner_link' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  </Button>
                 </div>
               </div>
 
               {/* Preview */}
-              {formData.promo_banner_active === 'true' && formData.promo_banner_text && (
-                <div className="mt-4">
-                  <Label>Preview</Label>
-                  <div className="mt-2 bg-blue-600 text-white text-center py-2 px-4 rounded-lg text-sm">
-                    {formData.promo_banner_text}
+              <div className="mt-6 p-4 bg-slate-900 rounded-xl">
+                <p className="text-xs text-slate-400 mb-3">Preview</p>
+                <div className="text-center py-8">
+                  <h2 className="text-2xl font-extrabold uppercase text-white leading-tight">
+                    {formData.hero_heading?.split('\n')[0]}
+                    {formData.hero_heading?.split('\n')[1] && (
+                      <span className="block text-blue-400">{formData.hero_heading.split('\n')[1]}</span>
+                    )}
+                  </h2>
+                  <p className="mt-3 text-sm text-white/70 max-w-md mx-auto">
+                    {formData.hero_description}
+                  </p>
+                  <div className="mt-4">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase text-white bg-blue-500 rounded-lg">
+                      {formData.hero_cta_text || 'Shop Now'}
+                    </span>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </StaggerItem>
-
-        {/* Additional Sections */}
-        <StaggerItem>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Link2 className="h-5 w-5 text-blue-600" />
-                Featured Categories
-              </CardTitle>
-              <CardDescription>Customize category section titles and descriptions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="categories_heading">Section Heading</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="categories_heading"
-                    value={formData.categories_heading || 'Shop by Category'}
-                    onChange={(e) => handleChange('categories_heading', e.target.value)}
-                    placeholder="Shop by Category"
-                  />
-                  <Button 
-                    onClick={() => handleSave('categories_heading')}
-                    disabled={saving === 'categories_heading'}
-                    size="sm"
-                  >
-                    {saving === 'categories_heading' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bestsellers_heading">Best Sellers Heading</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="bestsellers_heading"
-                    value={formData.bestsellers_heading || 'Best Sellers'}
-                    onChange={(e) => handleChange('bestsellers_heading', e.target.value)}
-                    placeholder="Best Sellers"
-                  />
-                  <Button 
-                    onClick={() => handleSave('bestsellers_heading')}
-                    disabled={saving === 'bestsellers_heading'}
-                    size="sm"
-                  >
-                    {saving === 'bestsellers_heading' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  </Button>
                 </div>
               </div>
             </CardContent>

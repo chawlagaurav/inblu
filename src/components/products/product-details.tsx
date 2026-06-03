@@ -178,18 +178,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               </p>
             </div>
 
-            {/* Stock */}
-            <div className="flex items-center gap-2">
-              {product.stock > 0 ? (
-                <>
-                  <Check className="h-5 w-5 text-green-500" />
-                  <span className="text-sm text-green-600 font-medium">In Stock</span>
-                </>
-              ) : (
-                <span className="text-sm text-red-600 font-medium">Out of Stock</span>
-              )}
-            </div>
-
             <Separator />
 
             {/* Quantity & Add to Cart */}
@@ -209,9 +197,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   </button>
                   <span className="w-12 text-center font-medium">{quantity}</span>
                   <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    onClick={() => setQuantity(quantity + 1)}
                     className="h-10 w-10 rounded-xl border border-blue-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 transition-colors"
-                    disabled={quantity >= product.stock}
                   >
                     <Plus className="h-4 w-4" />
                   </button>
@@ -224,7 +211,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   size="lg"
                   className="w-full"
                   onClick={handleAddToCart}
-                  disabled={product.stock === 0}
                 >
                   <ShoppingCart className="h-5 w-5 mr-2" />
                   Add to Cart
@@ -234,7 +220,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   variant="secondary"
                   className="w-full bg-amber-500 hover:bg-amber-600 text-white"
                   onClick={handleBuyNow}
-                  disabled={product.stock === 0}
                 >
                   <Zap className="h-5 w-5 mr-2" />
                   Buy Now

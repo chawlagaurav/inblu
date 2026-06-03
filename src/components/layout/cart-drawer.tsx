@@ -59,44 +59,10 @@ export function CartDrawer() {
 
   const handleProceedToCheckout = async () => {
     if (items.length === 0) return
-
-    setIsCheckingStock(true)
-
-    try {
-      const response = await fetch('/api/inventory/check-stock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map(item => ({
-            productId: item.product.id,
-            quantity: item.quantity
-          }))
-        })
-      })
-
-      const data = await response.json()
-
-      if (!data.available) {
-        setStockStatus(data.items || [])
-        const unavailable = data.unavailableItems || []
-        
-        if (unavailable.length === 1) {
-          toast.error(`${unavailable[0].productName} is ${unavailable[0].reason}`)
-        } else {
-          toast.error(`${unavailable.length} items are no longer available in the requested quantity`)
-        }
-        return
-      }
-
-      // All items available, proceed to checkout
-      setIsOpen(false)
-      router.push('/checkout')
-    } catch (error) {
-      console.error('Stock check failed:', error)
-      toast.error('Unable to verify stock. Please try again.')
-    } finally {
-      setIsCheckingStock(false)
-    }
+    
+    // Proceed directly to checkout without stock restrictions
+    setIsOpen(false)
+    router.push('/checkout')
   }
 
   const getItemStockStatus = (productId: string): StockStatus | undefined => {
@@ -221,8 +187,7 @@ export function CartDrawer() {
                                 onClick={() =>
                                   updateQuantity(item.product.id, item.quantity + 1)
                                 }
-                                disabled={item.quantity >= item.product.stock}
-                                className="rounded-lg p-1 text-slate-500 hover:bg-blue-100 transition-colors disabled:opacity-50"
+                                className="rounded-lg p-1 text-slate-500 hover:bg-blue-100 transition-colors"
                               >
                                 <Plus className="h-4 w-4" />
                               </button>

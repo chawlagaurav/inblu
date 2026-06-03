@@ -95,12 +95,6 @@ function ProductCard({
         {product.isBestSeller && (
           <Badge className="absolute top-3 left-3">Best Seller</Badge>
         )}
-        
-        {product.stock === 0 && (
-          <Badge variant="destructive" className="absolute top-3 right-3">
-            Out of Stock
-          </Badge>
-        )}
 
         {/* Quick actions - hidden on mobile, visible on desktop hover */}
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent hidden md:block opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
@@ -112,7 +106,6 @@ function ProductCard({
               e.stopPropagation()
               onAddToCart(product)
             }}
-            disabled={product.stock === 0}
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
             Add to Cart

@@ -111,20 +111,20 @@ export function OrderActions({ order }: OrderActionsProps) {
   const handleGenerateInvoice = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/generate-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate invoice')
+      // Open invoice in new window for printing/saving as PDF
+      const printWindow = window.open(`/api/generate-invoice?orderId=${order.id}&preview=true`, '_blank')
+      
+      if (printWindow) {
+        // Wait for content to load then trigger print dialog
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print()
+          }, 500)
+        }
+        toast.success('Invoice opened - use Print dialog to save as PDF')
+      } else {
+        toast.error('Please allow popups to download invoice')
       }
-
-      const data = await response.json()
-      window.open(data.pdfUrl, '_blank')
-
-      toast.success('Invoice generated successfully')
     } catch {
       toast.error('Failed to generate invoice')
     } finally {

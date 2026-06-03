@@ -67,7 +67,7 @@ export function generateInvoiceHtml(data: InvoiceHtmlData): string {
     }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: white;
+      background: #f1f5f9;
       color: #0f172a;
       line-height: 1.5;
     }
@@ -75,16 +75,74 @@ export function generateInvoiceHtml(data: InvoiceHtmlData): string {
       size: A4;
       margin: 0;
     }
+    .print-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 12px;
+      z-index: 1000;
+    }
+    .print-btn {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .print-btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+    .print-btn-primary:hover {
+      background: #1d4ed8;
+    }
+    .print-btn-secondary {
+      background: white;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+    }
+    .print-btn-secondary:hover {
+      background: #f8fafc;
+    }
     @media print {
       body {
+        background: white;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+      }
+      .print-controls {
+        display: none !important;
+      }
+      .invoice-container {
+        margin: 0 !important;
+        box-shadow: none !important;
       }
     }
   </style>
 </head>
 <body>
-  <div style="width: 210mm; min-height: 297mm; padding: 48px; margin: 0 auto; background: white;">
+  <!-- Print Controls -->
+  <div class="print-controls">
+    <button class="print-btn print-btn-primary" onclick="window.print()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 9V2h12v7"></path>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <path d="M6 14h12v8H6z"></path>
+      </svg>
+      Download PDF
+    </button>
+    <button class="print-btn print-btn-secondary" onclick="window.close()">
+      Close
+    </button>
+  </div>
+
+  <div class="invoice-container" style="width: 210mm; min-height: 297mm; padding: 48px; margin: 40px auto; background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
     
     <!-- Header -->
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px;">

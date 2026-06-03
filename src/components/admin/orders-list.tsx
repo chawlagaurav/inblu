@@ -16,6 +16,8 @@ import {
   Mail,
   Loader2,
   Plus,
+  Trash2,
+  Pencil,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +47,7 @@ type SortDir = 'asc' | 'desc'
 
 interface OrderItem {
   id: string
+  productId: string
   quantity: number
   price: string | number
   product: { name: string; serviceTenureMonths: number }
@@ -56,9 +59,12 @@ interface Order {
   email: string
   phone: string | null
   totalAmount: string | number
+  shippingCost: number
+  discountAmount: number
   status: string
   paymentStatus: string
   isGuest: boolean
+  isBacklog: boolean
   createdAt: string
   deliveredAt: string | null
   serviceDueDate: string | null
@@ -76,6 +82,7 @@ interface StatCounts {
   SHIPPED: number
   DELIVERED: number
   CANCELLED: number
+  BACKLOG: number
 }
 
 interface OrdersListProps {
@@ -105,14 +112,17 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
   const [statusFilter, setStatusFilter] = useState(currentStatus || 'all')
   const [paymentFilter, setPaymentFilter] = useState('all')
   const [showAddOrderModal, setShowAddOrderModal] = useState(false)
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [guestFilter, setGuestFilter] = useState<'all' | 'guest' | 'registered'>('all')
+  const [backlogFilter, setBacklogFilter] = useState<'all' | 'backlog' | 'regular'>('all')
   const [showFilters, setShowFilters] = useState(false)
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [exporting, setExporting] = useState(false)
   const [sendingEmailFor, setSendingEmailFor] = useState<string | null>(null)
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null)
 
   function getServiceDueInfo(order: Order): { daysLeft: number | null; dueDate: Date | null; label: string; color: string } {
     // Use serviceDueDate if set, otherwise calculate from delivery date
@@ -165,6 +175,29 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
       setSendingEmailFor(null)
     }
   }
+
+  const handleDeleteOrder = async (orderId: string, customerName: string) => {
+    if (!confirm(`Are you sure you want to delete order for ${customerName}? This action cannot be undone.`)) {
+      return
+    }
+
+    setDeletingOrderId(orderId)
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'DELETE',
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete order')
+      }
+      toast.success('Order deleted successfully')
+      router.refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete order')
+    } finally {
+      setDeletingOrderId(null)
+    }
+  }
   
 
   // Client-side filtering for instant feedback
@@ -207,6 +240,13 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
       result = result.filter((o) => !o.isGuest)
     }
 
+    // Backlog filter
+    if (backlogFilter === 'backlog') {
+      result = result.filter((o) => o.isBacklog)
+    } else if (backlogFilter === 'regular') {
+      result = result.filter((o) => !o.isBacklog)
+    }
+
     // Sort
     result.sort((a, b) => {
       let cmp = 0
@@ -228,7 +268,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
     })
 
     return result
-  }, [orders, search, statusFilter, paymentFilter, dateFrom, dateTo, guestFilter, sortField, sortDir])
+  }, [orders, search, statusFilter, paymentFilter, dateFrom, dateTo, guestFilter, backlogFilter, sortField, sortDir])
 
   const handleSort = useCallback(
     (field: SortField) => {
@@ -259,6 +299,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
     setDateFrom('')
     setDateTo('')
     setGuestFilter('all')
+    setBacklogFilter('all')
   }
 
   const hasActiveFilters =
@@ -266,7 +307,8 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
     paymentFilter !== 'all' ||
     dateFrom !== '' ||
     dateTo !== '' ||
-    guestFilter !== 'all'
+    guestFilter !== 'all' ||
+    backlogFilter !== 'all'
 
   const handleExport = async () => {
     setExporting(true)
@@ -327,11 +369,34 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
         </div>
       </div>
 
-      {/* Add Order Modal */}
+      {/* Add/Edit Order Modal */}
       <AddOrderModal
-        isOpen={showAddOrderModal}
-        onClose={() => setShowAddOrderModal(false)}
+        isOpen={showAddOrderModal || !!editingOrder}
+        onClose={() => {
+          setShowAddOrderModal(false)
+          setEditingOrder(null)
+        }}
         onSuccess={() => router.refresh()}
+        editOrder={editingOrder ? {
+          id: editingOrder.id,
+          customerName: editingOrder.customerName,
+          email: editingOrder.email,
+          phone: editingOrder.phone,
+          shippingAddress: editingOrder.shippingAddress,
+          notes: editingOrder.notes,
+          installationDate: editingOrder.installationDate,
+          status: editingOrder.status,
+          paymentStatus: editingOrder.paymentStatus,
+          shippingCost: editingOrder.shippingCost,
+          discountAmount: editingOrder.discountAmount,
+          items: editingOrder.items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: Number(item.price),
+            product: { name: item.product.name },
+          })),
+          createdAt: editingOrder.createdAt,
+        } : null}
       />
 
       {/* Status Tabs */}
@@ -356,6 +421,17 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
             </Badge>
           </button>
         ))}
+        {/* Backlog Tab */}
+        <button
+          onClick={() => setBacklogFilter(backlogFilter === 'backlog' ? 'all' : 'backlog')}
+        >
+          <Badge
+            variant={backlogFilter === 'backlog' ? 'default' : 'outline'}
+            className={`cursor-pointer px-3 py-1.5 transition-colors ${backlogFilter === 'backlog' ? 'bg-amber-500' : 'border-amber-300 text-amber-700 hover:bg-amber-50'}`}
+          >
+            Backlog ({statCounts.BACKLOG})
+          </Badge>
+        </button>
       </div>
 
       {/* Search + Filter Toggle */}
@@ -399,6 +475,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         dateFrom !== '',
                         dateTo !== '',
                         guestFilter !== 'all',
+                        backlogFilter !== 'all',
                       ].filter(Boolean).length}
                     </span>
                   )}
@@ -409,7 +486,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
             {/* Advanced Filters Panel */}
             {showFilters && (
               <div className="border-t pt-4 mt-1 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   {/* Payment Status */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -442,6 +519,22 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                       <option value="all">All Customers</option>
                       <option value="registered">Registered</option>
                       <option value="guest">Guest</option>
+                    </select>
+                  </div>
+
+                  {/* Backlog Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Order Type
+                    </label>
+                    <select
+                      value={backlogFilter}
+                      onChange={(e) => setBacklogFilter(e.target.value as 'all' | 'backlog' | 'regular')}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">All Orders</option>
+                      <option value="backlog">Backlog Only</option>
+                      <option value="regular">Regular Only</option>
                     </select>
                   </div>
 
@@ -580,11 +673,18 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         <p className="text-sm font-medium text-slate-900">
                           #{order.id.slice(0, 8).toUpperCase()}
                         </p>
-                        {order.isGuest && (
-                          <Badge variant="outline" className="text-xs mt-1">
-                            Guest
-                          </Badge>
-                        )}
+                        <div className="flex gap-1 mt-1">
+                          {order.isGuest && (
+                            <Badge variant="outline" className="text-xs">
+                              Guest
+                            </Badge>
+                          )}
+                          {order.isBacklog && (
+                            <Badge className="text-xs bg-amber-100 text-amber-700">
+                              Backlog
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <p className="text-sm font-medium text-slate-900">
@@ -660,12 +760,35 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         {formatDate(order.createdAt)}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/admin05/orders/${order.id}`}>
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Link>
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/admin05/orders/${order.id}`}>
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingOrder(order)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteOrder(order.id, order.customerName)}
+                            disabled={deletingOrderId === order.id}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            {deletingOrderId === order.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

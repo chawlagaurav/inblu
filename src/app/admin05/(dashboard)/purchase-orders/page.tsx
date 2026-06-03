@@ -34,6 +34,7 @@ interface PurchaseOrder {
   totalCost: string | null
   tax: number | null
   deliveryStatus: string | null
+  deliveryReceivedDate: string | null
   approvedBy: string | null
   paymentStatus: string | null
   notes: string | null

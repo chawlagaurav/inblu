@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
       reason: string
       requested: number
       available: number
+      isStockIssue: boolean // true if just a stock issue, false if product is missing/inactive
     }> = []
 
     for (const item of items) {
@@ -110,7 +111,8 @@ export async function POST(request: NextRequest) {
           productName: 'Unknown Product',
           reason: 'Product not found',
           requested: item.quantity,
-          available: 0
+          available: 0,
+          isStockIssue: false
         })
         continue
       }
@@ -121,7 +123,8 @@ export async function POST(request: NextRequest) {
           productName: product.name,
           reason: 'Product is no longer available',
           requested: item.quantity,
-          available: 0
+          available: 0,
+          isStockIssue: false
         })
         continue
       }
@@ -137,12 +140,15 @@ export async function POST(request: NextRequest) {
             ? 'Out of stock' 
             : `Only ${availableQuantity} available`,
           requested: item.quantity,
-          available: availableQuantity
+          available: availableQuantity,
+          isStockIssue: true // This is a stock issue, can be backlog
         })
       }
     }
 
-    if (unavailableItems.length > 0) {
+    // Critical issues (product not found or inactive) should still reject the order
+    const criticalIssues = unavailableItems.filter(item => !item.isStockIssue)
+    if (criticalIssues.length > 0) {
       return NextResponse.json({
         error: 'Some items are no longer available',
         unavailableItems
@@ -258,6 +264,10 @@ export async function POST(request: NextRequest) {
 
     const customerName = `${shippingAddress.firstName} ${shippingAddress.lastName}`
 
+    // Determine if this is a backlog order (has stock issues but no critical issues)
+    const stockIssues = unavailableItems.filter(item => item.isStockIssue)
+    const isBacklog = stockIssues.length > 0
+
     // Create order in database with PENDING status
     const order = await prisma.order.create({
       data: {
@@ -272,6 +282,7 @@ export async function POST(request: NextRequest) {
         discountAmount: discountDollars,
         couponCode: validatedCouponCode,
         status: 'PENDING',
+        isBacklog,
         paymentStatus: 'PENDING',
         shippingAddress: JSON.parse(JSON.stringify(shippingAddress)),
         isGuest: isGuest ?? !userId,

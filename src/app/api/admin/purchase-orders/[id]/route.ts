@@ -84,6 +84,7 @@ export async function PUT(
     const notes = formData.get('notes') as string | null
     const taxStr = formData.get('tax') as string | null
     const deliveryStatus = formData.get('deliveryStatus') as string | null
+    const deliveryReceivedDateStr = formData.get('deliveryReceivedDate') as string | null
     const approvedBy = formData.get('approvedBy') as string | null
     const paymentStatus = formData.get('paymentStatus') as string | null
     const itemsJson = formData.get('items') as string
@@ -140,6 +141,7 @@ export async function PUT(
 
     const tax = taxStr ? parseFloat(taxStr) : null
     const poDate = poDateStr ? new Date(poDateStr) : null
+    const deliveryReceivedDate = deliveryReceivedDateStr ? new Date(deliveryReceivedDateStr) : null
 
     // Create a map of old transactions by product ID
     const oldTransactionMap = new Map(
@@ -176,6 +178,7 @@ export async function PUT(
           totalCost: totalCost > 0 ? totalCost : null,
           tax,
           deliveryStatus: deliveryStatus || 'PENDING',
+          deliveryReceivedDate,
           approvedBy: approvedBy || null,
           paymentStatus: paymentStatus || 'UNPAID',
           notes: notes || null,

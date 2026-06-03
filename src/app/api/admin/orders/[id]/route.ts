@@ -100,7 +100,7 @@ export async function PATCH(
 
 // DELETE /api/admin/orders/[id] - Delete order
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await verifyAdmin()
@@ -111,11 +111,22 @@ export async function DELETE(
   const { id } = await params
 
   try {
+    // Check if order exists
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // Delete the order (cascade will delete order items due to schema)
     await prisma.order.delete({
       where: { id },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, message: 'Order deleted successfully' })
   } catch (error) {
     console.error('Error deleting order:', error)
     return NextResponse.json({ error: 'Failed to delete order' }, { status: 500 })

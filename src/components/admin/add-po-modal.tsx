@@ -50,6 +50,7 @@ interface EditPOData {
   notes?: string | null
   tax: number | null
   deliveryStatus: string | null
+  deliveryReceivedDate: string | null
   approvedBy: string | null
   paymentStatus: string | null
   inventoryTransactions: Array<{
@@ -88,6 +89,7 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
   const [notes, setNotes] = useState('')
   const [tax, setTax] = useState('')
   const [deliveryStatus, setDeliveryStatus] = useState('PENDING')
+  const [deliveryReceivedDate, setDeliveryReceivedDate] = useState('')
   const [approvedBy, setApprovedBy] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('UNPAID')
 
@@ -110,6 +112,7 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
         setNotes(editData.notes || '')
         setTax(editData.tax?.toString() || '')
         setDeliveryStatus(editData.deliveryStatus || 'PENDING')
+        setDeliveryReceivedDate(editData.deliveryReceivedDate ? editData.deliveryReceivedDate.split('T')[0] : '')
         setApprovedBy(editData.approvedBy || '')
         setPaymentStatus(editData.paymentStatus || 'UNPAID')
         setItems(
@@ -154,6 +157,7 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
     setNotes('')
     setTax('')
     setDeliveryStatus('PENDING')
+    setDeliveryReceivedDate('')
     setApprovedBy('')
     setPaymentStatus('UNPAID')
     setItems([])
@@ -229,6 +233,7 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
       if (notes) formData.append('notes', notes)
       if (tax) formData.append('tax', tax)
       formData.append('deliveryStatus', deliveryStatus)
+      if (deliveryReceivedDate) formData.append('deliveryReceivedDate', deliveryReceivedDate)
       if (approvedBy) formData.append('approvedBy', approvedBy)
       formData.append('paymentStatus', paymentStatus)
       if (poFile) formData.append('file', poFile)
@@ -329,7 +334,7 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
           </div>
 
           {/* PO Details - Row 2 */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div>
               <Label htmlFor="deliveryStatus">Delivery Status</Label>
               <select
@@ -342,6 +347,16 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
                 <option value="IN_TRANSIT">In Transit</option>
                 <option value="DELIVERED">Delivered</option>
               </select>
+            </div>
+            <div>
+              <Label htmlFor="deliveryReceivedDate">Delivery Received Date</Label>
+              <Input
+                id="deliveryReceivedDate"
+                type="date"
+                value={deliveryReceivedDate}
+                onChange={(e) => setDeliveryReceivedDate(e.target.value)}
+                className="mt-1"
+              />
             </div>
             <div>
               <Label htmlFor="paymentStatus">Payment Status</Label>

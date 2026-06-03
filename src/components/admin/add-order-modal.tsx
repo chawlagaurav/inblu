@@ -22,16 +22,45 @@ interface OrderItem {
   price: number
 }
 
+interface EditOrderData {
+  id: string
+  customerName: string
+  email: string
+  phone: string | null
+  shippingAddress: {
+    address?: string
+    city?: string
+    state?: string
+    postcode?: string
+  } | null
+  notes: string | null
+  installationDate: string | null
+  status: string
+  paymentStatus: string
+  shippingCost: number
+  discountAmount: number
+  items: Array<{
+    productId: string
+    quantity: number
+    price: number
+    product: { name: string }
+  }>
+  createdAt: string
+}
+
 interface AddOrderModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  editOrder?: EditOrderData | null
 }
 
-export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps) {
+export function AddOrderModal({ isOpen, onClose, onSuccess, editOrder }: AddOrderModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
   const [loadingProducts, setLoadingProducts] = useState(true)
+  
+  const isEditMode = !!editOrder
   
   const [formData, setFormData] = useState({
     customerName: '',
@@ -56,8 +85,37 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
   useEffect(() => {
     if (isOpen) {
       fetchProducts()
+      if (editOrder) {
+        // Populate form with existing order data
+        setFormData({
+          customerName: editOrder.customerName || '',
+          email: editOrder.email || '',
+          phone: editOrder.phone || '',
+          address: editOrder.shippingAddress?.address || '',
+          city: editOrder.shippingAddress?.city || '',
+          state: editOrder.shippingAddress?.state || 'NSW',
+          postcode: editOrder.shippingAddress?.postcode || '',
+          notes: editOrder.notes || '',
+          installationDate: editOrder.installationDate ? editOrder.installationDate.split('T')[0] : '',
+          orderDate: editOrder.createdAt ? editOrder.createdAt.split('T')[0] : '',
+          status: editOrder.status || 'DELIVERED',
+          paymentStatus: editOrder.paymentStatus || 'SUCCEEDED',
+          shippingCost: String(editOrder.shippingCost || 0),
+          discountAmount: String(editOrder.discountAmount || 0),
+        })
+        setOrderItems(
+          editOrder.items.map((item) => ({
+            productId: item.productId,
+            productName: item.product.name,
+            quantity: item.quantity,
+            price: Number(item.price),
+          }))
+        )
+      } else {
+        resetForm()
+      }
     }
-  }, [isOpen])
+  }, [isOpen, editOrder])
 
   const fetchProducts = async () => {
     setLoadingProducts(true)
@@ -150,34 +208,40 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/admin/orders/manual', {
-        method: 'POST',
+      const payload = {
+        ...formData,
+        items: orderItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        subtotal: calculateSubtotal(),
+        totalAmount: calculateTotal(),
+        shippingCost: parseFloat(formData.shippingCost) || 0,
+        discountAmount: parseFloat(formData.discountAmount) || 0,
+      }
+
+      const url = isEditMode 
+        ? `/api/admin/orders/${editOrder!.id}/update` 
+        : '/api/admin/orders/manual'
+      
+      const response = await fetch(url, {
+        method: isEditMode ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          items: orderItems.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          subtotal: calculateSubtotal(),
-          totalAmount: calculateTotal(),
-          shippingCost: parseFloat(formData.shippingCost) || 0,
-          discountAmount: parseFloat(formData.discountAmount) || 0,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to create order')
+        throw new Error(data.error || `Failed to ${isEditMode ? 'update' : 'create'} order`)
       }
 
-      toast.success('Order created successfully')
+      toast.success(`Order ${isEditMode ? 'updated' : 'created'} successfully`)
       onSuccess()
       resetForm()
       onClose()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create order')
+      toast.error(error instanceof Error ? error.message : `Failed to ${isEditMode ? 'update' : 'create'} order`)
     } finally {
       setIsLoading(false)
     }
@@ -213,8 +277,8 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Add Manual Order</h2>
-            <p className="text-sm text-slate-500">Create an order for offline sales</p>
+            <h2 className="text-xl font-bold text-slate-900">{isEditMode ? 'Edit Order' : 'Add Manual Order'}</h2>
+            <p className="text-sm text-slate-500">{isEditMode ? 'Update order details' : 'Create an order for offline sales'}</p>
           </div>
           <button
             onClick={onClose}
@@ -513,12 +577,12 @@ export function AddOrderModal({ isOpen, onClose, onSuccess }: AddOrderModalProps
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
+                  {isEditMode ? 'Updating...' : 'Creating...'}
                 </>
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Order
+                  {isEditMode ? 'Update Order' : 'Create Order'}
                 </>
               )}
             </Button>

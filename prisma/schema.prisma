@@ -96,6 +96,7 @@ model Order {
   deliveredAt         DateTime? @map("delivered_at")
   serviceDueDate      DateTime?     @map("service_due_date")
   isGuest             Boolean       @default(false) @map("is_guest")
+  isBacklog           Boolean       @default(false) @map("is_backlog")
   createdAt           DateTime      @default(now()) @map("created_at")
   updatedAt           DateTime      @updatedAt @map("updated_at")
   items               OrderItem[]
@@ -224,18 +225,19 @@ model Enquiry {
 }
 
 model PurchaseOrder {
-  id              String    @id @default(uuid())
-  poNumber        String?   @map("po_number")
-  poDate          DateTime? @map("po_date")
-  vendorName      String?   @map("vendor_name")
-  fileUrl         String?   @map("file_url")
-  totalCost       Decimal?  @db.Decimal(10, 2) @map("total_cost")
-  tax             Decimal?  @db.Decimal(10, 2)
-  deliveryStatus  String?   @default("PENDING") @map("delivery_status") // PENDING, IN_TRANSIT, DELIVERED
-  approvedBy      String?   @map("approved_by")
-  paymentStatus   String?   @default("UNPAID") @map("payment_status") // UNPAID, PARTIAL, PAID
-  notes           String?
-  createdAt       DateTime  @default(now()) @map("created_at")
+  id                    String    @id @default(uuid())
+  poNumber              String?   @map("po_number")
+  poDate                DateTime? @map("po_date")
+  vendorName            String?   @map("vendor_name")
+  fileUrl               String?   @map("file_url")
+  totalCost             Decimal?  @db.Decimal(10, 2) @map("total_cost")
+  tax                   Decimal?  @db.Decimal(10, 2)
+  deliveryStatus        String?   @default("PENDING") @map("delivery_status") // PENDING, IN_TRANSIT, DELIVERED
+  deliveryReceivedDate  DateTime? @map("delivery_received_date")
+  approvedBy            String?   @map("approved_by")
+  paymentStatus         String?   @default("UNPAID") @map("payment_status") // UNPAID, PARTIAL, PAID
+  notes                 String?
+  createdAt             DateTime  @default(now()) @map("created_at")
   inventoryTransactions InventoryTransaction[]
 
   @@map("purchase_orders")

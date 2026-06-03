@@ -51,13 +51,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/inblufavicon.png", sizes: "any" },
-      { url: "/inblufavicon.png", type: "image/png", sizes: "32x32" },
-      { url: "/inblufavicon.png", type: "image/png", sizes: "192x192" },
+      { url: "/logo_favicon.png", sizes: "any" },
+      { url: "/logo_favicon.png", type: "image/png", sizes: "32x32" },
+      { url: "/logo_favicon.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/inblufavicon.png",
+    shortcut: "/logo_favicon.png",
     apple: [
-      { url: "/inblufavicon.png", sizes: "180x180" },
+      { url: "/logo_favicon.png", sizes: "180x180" },
     ],
   },
   manifest: "/manifest.json",

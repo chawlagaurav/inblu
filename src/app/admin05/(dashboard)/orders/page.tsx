@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminOrdersPage() {
-  const [orders, orderStats] = await Promise.all([
+  const [orders, orderStats, backlogCount] = await Promise.all([
     prisma.order.findMany({
       where: {
         paymentStatus: 'SUCCEEDED', // Only show orders with successful payment
@@ -30,6 +30,12 @@ export default async function AdminOrdersPage() {
       by: ['status'],
       _count: true,
     }),
+    prisma.order.count({
+      where: {
+        paymentStatus: 'SUCCEEDED',
+        isBacklog: true,
+      },
+    }),
   ])
 
   const totalCount = orders.length
@@ -40,6 +46,7 @@ export default async function AdminOrdersPage() {
     SHIPPED: orderStats.find((s) => s.status === 'SHIPPED')?._count || 0,
     DELIVERED: orderStats.find((s) => s.status === 'DELIVERED')?._count || 0,
     CANCELLED: orderStats.find((s) => s.status === 'CANCELLED')?._count || 0,
+    BACKLOG: backlogCount,
   }
 
   // Serialize Decimal and Date for client component
@@ -49,6 +56,8 @@ export default async function AdminOrdersPage() {
     email: o.email,
     phone: o.phone,
     totalAmount: Number(o.totalAmount),
+    shippingCost: Number(o.shippingCost),
+    discountAmount: Number(o.discountAmount),
     status: o.status,
     paymentStatus: o.paymentStatus,
     isGuest: o.isGuest,
@@ -57,8 +66,10 @@ export default async function AdminOrdersPage() {
     serviceDueDate: o.serviceDueDate ? o.serviceDueDate.toISOString() : null,
     notes: o.notes,
     installationDate: o.installationDate ? o.installationDate.toISOString() : null,
+    isBacklog: o.isBacklog,
     items: o.items.map((i) => ({
       id: i.id,
+      productId: i.productId,
       quantity: i.quantity,
       price: Number(i.price),
       product: { name: i.product.name, serviceTenureMonths: i.product.serviceTenureMonths },

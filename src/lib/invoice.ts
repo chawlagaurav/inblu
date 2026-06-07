@@ -15,6 +15,9 @@ export interface InvoiceData {
   clientPhone?: string
   items: InvoiceItem[]
   deposit?: number
+  discountAmount?: number
+  couponCode?: string
+  gst?: number
   bankDetails: {
     bankName: string
     accountName: string
@@ -44,17 +47,21 @@ export function generateInvoiceNumberFromOrder(orderId: string, orderDate: Date)
 /**
  * Calculate totals for invoice items
  */
-export function calculateTotals(items: InvoiceItem[], deposit: number = 0): {
+export function calculateTotals(items: InvoiceItem[], deposit: number = 0, discountAmount: number = 0, gst: number = 0): {
   subtotal: number
+  gstAmount: number
+  discountAmount: number
   totalDue: number
   itemTotals: number[]
 } {
   const itemTotals = items.map(item => item.unitPrice * item.quantity)
   const subtotal = itemTotals.reduce((sum, total) => sum + total, 0)
-  const totalDue = subtotal - Math.abs(deposit)
+  const totalDue = subtotal + gst - discountAmount - Math.abs(deposit)
   
   return {
     subtotal,
+    gstAmount: gst,
+    discountAmount,
     totalDue,
     itemTotals,
   }

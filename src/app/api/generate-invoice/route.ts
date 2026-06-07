@@ -90,6 +90,9 @@ export async function POST(request: NextRequest) {
       clientPhone: order.phone || undefined,
       items,
       deposit,
+      discountAmount: Number(order.discountAmount),
+      couponCode: order.couponCode || undefined,
+      gst: Number(order.gst),
       bankDetails,
     })
 
@@ -244,6 +247,9 @@ export async function GET(request: NextRequest) {
         clientPhone: order.phone || undefined,
         items,
         deposit: 0,
+        discountAmount: Number(order.discountAmount),
+        couponCode: order.couponCode || undefined,
+        gst: Number(order.gst),
         bankDetails: DEFAULT_BANK_DETAILS,
       })
       return new NextResponse(html, {

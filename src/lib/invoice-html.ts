@@ -14,6 +14,9 @@ interface InvoiceHtmlData {
   clientPhone?: string
   items: InvoiceItem[]
   deposit?: number
+  discountAmount?: number
+  couponCode?: string
+  gst?: number
   bankDetails: {
     bankName: string
     accountName: string
@@ -26,7 +29,12 @@ interface InvoiceHtmlData {
  * Generate static HTML for invoice (used by Puppeteer for PDF generation)
  */
 export function generateInvoiceHtml(data: InvoiceHtmlData): string {
-  const { subtotal, totalDue, itemTotals } = calculateTotals(data.items, data.deposit || 0)
+  const { subtotal, totalDue, itemTotals } = calculateTotals(
+    data.items,
+    data.deposit || 0,
+    data.discountAmount || 0,
+    data.gst || 0,
+  )
 
   const itemsHtml = data.items
     .map(
@@ -48,6 +56,26 @@ export function generateInvoiceHtml(data: InvoiceHtmlData): string {
     <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #16a34a;">
       <span style="font-size: 14px;">Deposit Paid</span>
       <span style="font-size: 14px; font-weight: 500;">-${formatCurrency(data.deposit)}</span>
+    </div>
+  `
+      : ''
+
+  const gstHtml =
+    data.gst && data.gst > 0
+      ? `
+    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+      <span style="font-size: 14px; color: #475569;">GST (Included)</span>
+      <span style="font-size: 14px; font-weight: 500; color: #0f172a;">${formatCurrency(data.gst)}</span>
+    </div>
+  `
+      : ''
+
+  const discountHtml =
+    data.discountAmount && data.discountAmount > 0
+      ? `
+    <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #dc2626;">
+      <span style="font-size: 14px;">Discount${data.couponCode ? ` (${data.couponCode})` : ''}</span>
+      <span style="font-size: 14px; font-weight: 500;">-${formatCurrency(data.discountAmount)}</span>
     </div>
   `
       : ''
@@ -211,6 +239,8 @@ export function generateInvoiceHtml(data: InvoiceHtmlData): string {
           <span style="font-size: 14px; color: #475569;">Subtotal</span>
           <span style="font-size: 14px; font-weight: 500; color: #0f172a;">${formatCurrency(subtotal)}</span>
         </div>
+        ${gstHtml}
+        ${discountHtml}
         ${depositHtml}
         <div style="display: flex; justify-content: space-between; padding: 12px 0; border-top: 2px solid #0f172a; margin-top: 8px;">
           <span style="font-size: 18px; font-weight: 700; color: #0f172a;">TOTAL DUE</span>

@@ -16,6 +16,9 @@ interface InvoiceTemplateProps {
   clientPhone?: string
   items: InvoiceItem[]
   deposit?: number
+  discountAmount?: number
+  couponCode?: string
+  gst?: number
   bankDetails: {
     bankName: string
     accountName: string
@@ -34,10 +37,13 @@ export function InvoiceTemplate({
   clientPhone,
   items,
   deposit = 0,
+  discountAmount = 0,
+  couponCode,
+  gst = 0,
   bankDetails,
   isPreview = false,
 }: InvoiceTemplateProps) {
-  const { subtotal, totalDue, itemTotals } = calculateTotals(items, deposit)
+  const { subtotal, totalDue, itemTotals } = calculateTotals(items, deposit, discountAmount, gst)
 
   return (
     <div 
@@ -128,6 +134,18 @@ export function InvoiceTemplate({
               <span className="text-sm text-slate-600">Subtotal</span>
               <span className="text-sm font-medium text-slate-900">{formatCurrency(subtotal)}</span>
             </div>
+            {gst > 0 && (
+              <div className="flex justify-between py-2">
+                <span className="text-sm text-slate-600">GST (Included)</span>
+                <span className="text-sm font-medium text-slate-900">{formatCurrency(gst)}</span>
+              </div>
+            )}
+            {discountAmount > 0 && (
+              <div className="flex justify-between py-2 text-red-600">
+                <span className="text-sm">Discount{couponCode ? ` (${couponCode})` : ''}</span>
+                <span className="text-sm font-medium">-{formatCurrency(discountAmount)}</span>
+              </div>
+            )}
             {deposit > 0 && (
               <div className="flex justify-between py-2 text-green-600">
                 <span className="text-sm">Deposit Paid</span>

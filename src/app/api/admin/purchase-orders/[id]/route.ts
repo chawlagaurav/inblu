@@ -124,9 +124,13 @@ export async function PUT(
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
       const { uploadToCloudinary } = await import('@/lib/cloudinary')
+      // Preserve file extension so browsers can determine content type (e.g. .pdf, .png)
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || ''
+      const publicId = fileExt ? `po_${Date.now()}.${fileExt}` : `po_${Date.now()}`
       const result = await uploadToCloudinary(buffer, {
         folder: 'purchase-orders',
-        publicId: `po_${Date.now()}`,
+        publicId,
+        resourceType: fileExt === 'pdf' ? 'raw' : 'auto',
       })
       fileUrl = result.url
     }

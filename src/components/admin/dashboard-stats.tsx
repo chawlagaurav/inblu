@@ -226,7 +226,7 @@ export function DashboardStats({
   orderStatuses,
   recentOrders,
 }: DashboardStatsProps) {
-  const [preset, setPreset] = useState<DatePreset>('this_month')
+  const [preset, setPreset] = useState<DatePreset>('all_time')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
   const [showCustom, setShowCustom] = useState(false)
@@ -327,6 +327,9 @@ export function DashboardStats({
       _count: { status: count },
     }))
 
+    // Recent orders filtered by period (most recent 5 in the selected period)
+    const filteredRecentOrders = periodOrders.slice(0, 5)
+
     return {
       periodRevenue,
       revenueChange,
@@ -341,6 +344,7 @@ export function DashboardStats({
       totalCost,
       dailyRevenue,
       filteredStatuses,
+      filteredRecentOrders,
     }
   }, [orders, customers, purchaseOrders, preset, customFrom, customTo])
 
@@ -588,7 +592,7 @@ export function DashboardStats({
         <Card>
           <CardHeader>
             <CardTitle>Top Selling Products</CardTitle>
-            <CardDescription>Best performers by quantity sold</CardDescription>
+            <CardDescription>Best performers by quantity sold (all time)</CardDescription>
           </CardHeader>
           <CardContent>
             {topProducts.length === 0 ? (
@@ -654,11 +658,11 @@ export function DashboardStats({
           </Button>
         </CardHeader>
         <CardContent>
-          {recentOrders.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-4">No orders yet</p>
+          {stats.filteredRecentOrders.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-4">No orders in the selected period</p>
           ) : (
             <div className="space-y-3">
-              {recentOrders.map((order) => (
+              {stats.filteredRecentOrders.map((order) => (
                 <Link
                   key={order.id}
                   href={`/admin05/orders/${order.id}`}

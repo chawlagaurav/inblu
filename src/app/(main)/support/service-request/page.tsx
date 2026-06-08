@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FadeIn, FadeInOnScroll } from '@/components/motion'
 import { toast } from 'sonner'
 
@@ -189,31 +190,23 @@ export default function ServiceRequestPage() {
                       <Wrench className="h-5 w-5 text-blue-600" />
                       Service Type
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {serviceTypes.map((type) => (
-                        <label
-                          key={type.value}
-                          className={`relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                            formData.serviceType === type.value
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="serviceType"
-                            value={type.value}
-                            checked={formData.serviceType === type.value}
-                            onChange={handleChange}
-                            className="sr-only"
-                          />
-                          <span className="font-medium text-slate-900">{type.label}</span>
-                          <span className="text-xs text-slate-500 mt-1">{type.description}</span>
-                          {formData.serviceType === type.value && (
-                            <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-blue-600" />
-                          )}
-                        </label>
-                      ))}
+                    <div>
+                      <Label htmlFor="serviceType">Select Service Type *</Label>
+                      <Select
+                        value={formData.serviceType}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, serviceType: value }))}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select a service type..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {serviceTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 

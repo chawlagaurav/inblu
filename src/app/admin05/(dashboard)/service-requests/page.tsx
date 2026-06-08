@@ -21,7 +21,8 @@ import {
   Loader2,
   Save,
   X,
-  Trash2
+  Trash2,
+  ExternalLink
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -275,20 +276,28 @@ export default function AdminServiceRequestsPage() {
             <h1 className="text-3xl font-bold text-slate-900">Service Requests</h1>
             <p className="text-slate-500 mt-1">Manage and track customer service requests</p>
           </div>
-          {selectedIds.size > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleBulkDelete}
-              disabled={bulkDeleting}
-            >
-              {bulkDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Trash2 className="h-4 w-4 mr-2" />
-              )}
-              Delete ({selectedIds.size})
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <a href="/support/service-request" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Create Service Request
+              </a>
             </Button>
-          )}
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+              >
+                {bulkDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
+                Delete ({selectedIds.size})
+              </Button>
+            )}
+          </div>
         </div>
       </FadeIn>
 

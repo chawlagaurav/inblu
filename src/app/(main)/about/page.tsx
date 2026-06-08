@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
-import { Heart, Leaf, Users, Award, ArrowRight } from 'lucide-react'
+import { Droplets, Leaf, Users, ShieldCheck, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { FadeIn, FadeInOnScroll, StaggerContainer, StaggerItem } from '@/components/motion'
 import { BreadcrumbSchema } from '@/components/seo'
@@ -25,32 +26,34 @@ export const metadata: Metadata = {
 
 const values = [
   {
-    icon: Heart,
-    title: 'Health First',
-    description: 'Your family\'s health is our priority. We provide only the most effective water purification technology available.',
+    icon: Droplets,
+    title: 'Clean Water First',
+    description: 'We tackle PFAS, fluoride, chlorine, heavy metals, microplastics, and other contaminants so your family can drink with confidence every day.',
   },
   {
     icon: Leaf,
-    title: 'Sustainability',
-    description: 'Reduce plastic bottle waste with our filtration systems. Clean water straight from your tap, better for you and the planet.',
+    title: 'Reduce Bottled Water',
+    description: 'High-quality filtration straight from your tap means less plastic waste and a healthier planet for future generations.',
   },
   {
     icon: Users,
-    title: 'Expert Service',
-    description: 'Professional installation and ongoing support from our trained technicians across Australia.',
+    title: 'Better Hydration',
+    description: 'The human body is roughly 70% water. Cleaner, purer water encourages better hydration and supports your daily wellbeing.',
   },
   {
-    icon: Award,
-    title: 'Certified Quality',
-    description: 'All our water purifiers meet Australian standards and come with comprehensive warranties.',
+    icon: ShieldCheck,
+    title: 'Peace of Mind',
+    description: 'Filtration solutions designed for modern Australian homes, giving you and your family greater confidence in every glass.',
   },
 ]
 
-const stats = [
-  { value: '5K+', label: 'Installations' },
-  { value: '15+', label: 'Premium Products' },
-  { value: '4.9', label: 'Average Rating' },
-  { value: 'Fast', label: 'Installation' },
+const benefits = [
+  'Reduces unwanted contaminants and impurities',
+  'Improves taste and odour',
+  'Encourages better hydration',
+  'Supports healthier cooking and beverage preparation',
+  'Reduces reliance on bottled water',
+  'Provides greater peace of mind for you and your family',
 ]
 
 export default function AboutPage() {
@@ -62,7 +65,7 @@ export default function AboutPage() {
   return (
     <div className="bg-white">
       <BreadcrumbSchema items={breadcrumbs} />
-      
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -72,7 +75,7 @@ export default function AboutPage() {
                 About Inblu Filters
               </h1>
               <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-                Australia&apos;s trusted water filtration specialists. Premium RO purifiers and filtration systems designed for healthier living.
+                Founded in 2025 with a simple mission — to provide clean, great-tasting, and reliable drinking water for every Australian household.
               </p>
             </div>
           </FadeIn>
@@ -84,27 +87,32 @@ export default function AboutPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <FadeInOnScroll>
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-blue-100">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
-                  <span className="text-8xl font-bold text-white/50">I</span>
-                </div>
+              <div className="relative aspect-square rounded-2xl overflow-hidden shadow-lg">
+                <Image
+                  src="https://res.cloudinary.com/dlnt5kqmh/image/upload/v1780910927/about/founder-with-inventory.webp"
+                  alt="Inblu Filters founder with inventory of water filtration products"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority
+                />
               </div>
             </FadeInOnScroll>
 
             <FadeInOnScroll delay={0.1}>
               <div className="space-y-6">
                 <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
-                  Built for Australians, by Australians
+                  Our Story
                 </h2>
                 <div className="space-y-4 text-slate-600 leading-relaxed">
                   <p>
-                    Inblu was born from a simple idea: every Australian family deserves access to pure, clean drinking water without compromise.
+                    With increasing public discussion around substances such as PFAS (&ldquo;forever chemicals&rdquo;), fluoride, chlorine, heavy metals, microplastics, and other contaminants reported in water supplies worldwide, many families are seeking greater confidence in the water they drink every day.
                   </p>
                   <p>
-                    We started in 2023 with a mission to bring world-class water purification technology to Australian homes. Today, we offer premium RO purifiers, water ionisers, and undersink filtration systems from trusted brands like KENT and Kangen.
+                    Considering that the human body is made up of approximately 70% water, the quality of the water we consume plays an important role in our daily wellbeing. At Inblu, we are committed to helping Australian families enjoy cleaner, purer water through high-quality filtration solutions designed for modern homes.
                   </p>
                   <p>
-                    Every product we sell undergoes rigorous quality testing, and we provide professional installation and after-sales support to ensure your family enjoys safe, healthy water.
+                    At Inblu, we believe everyone deserves access to cleaner, fresher water — because better water starts at home.
                   </p>
                 </div>
               </div>
@@ -113,8 +121,37 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Values Section */}
+      {/* Benefits Section */}
       <section className="py-16 sm:py-24 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <FadeInOnScroll>
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                Benefits of Filtered Water
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                Why thousands of Australian families choose Inblu.
+              </p>
+            </div>
+          </FadeInOnScroll>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {benefits.map((benefit) => (
+              <FadeInOnScroll key={benefit}>
+                <div className="flex items-start gap-3 bg-white rounded-xl p-5 shadow-sm border border-blue-50">
+                  <div className="mt-0.5 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-2 h-2 rounded-full bg-blue-600" />
+                  </div>
+                  <p className="text-slate-700">{benefit}</p>
+                </div>
+              </FadeInOnScroll>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Values Section */}
+      <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeInOnScroll>
             <div className="text-center max-w-2xl mx-auto mb-12">
@@ -147,22 +184,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 sm:py-24">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <FadeInOnScroll>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {stats.map((stat) => (
-                <div key={stat.label} className="space-y-2">
-                  <p className="text-4xl font-bold text-blue-600">{stat.value}</p>
-                  <p className="text-sm text-slate-600">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </FadeInOnScroll>
-        </div>
-      </section>
-
       {/* Mission Section */}
       <section className="py-16 sm:py-24 bg-gradient-to-br from-blue-500 to-blue-600">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -172,7 +193,7 @@ export default function AboutPage() {
                 Our Mission
               </h2>
               <p className="text-lg text-blue-100 leading-relaxed mb-8">
-                To make pure, healthy drinking water accessible to every Australian home. We champion quality, innovation, and exceptional service. We&apos;re not just selling water filters – we&apos;re helping families live healthier lives.
+                To provide clean, great-tasting, and reliable drinking water for every household. We are committed to helping Australian families enjoy cleaner, purer water through high-quality filtration solutions designed for modern homes — because better water starts at home.
               </p>
               <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
                 <Link href="/products">

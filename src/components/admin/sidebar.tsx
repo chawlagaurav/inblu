@@ -27,12 +27,12 @@ const navigation = [
   { name: 'Orders', href: '/admin05/orders', icon: ShoppingCart },
   { name: 'Purchase Orders', href: '/admin05/purchase-orders', icon: FileText },
   { name: 'Service Requests', href: '/admin05/service-requests', icon: Wrench },
+  { name: 'Enquiries', href: '/admin05/enquiries', icon: MessageSquareText },
+  { name: 'Products', href: '/admin05/products', icon: Package },
+  { name: 'Categories', href: '/admin05/categories', icon: FolderOpen },
   { name: 'Customers', href: '/admin05/customers', icon: Users },
   { name: 'Marketing', href: '/admin05/marketing', icon: Megaphone },
   { name: 'Coupons', href: '/admin05/coupons', icon: Tag },
-  { name: 'Categories', href: '/admin05/categories', icon: FolderOpen },
-  { name: 'Products', href: '/admin05/products', icon: Package },
-  { name: 'Enquiries', href: '/admin05/enquiries', icon: MessageSquareText },
   { name: 'Testimonials', href: '/admin05/testimonials', icon: MessageSquare },
 ]
 

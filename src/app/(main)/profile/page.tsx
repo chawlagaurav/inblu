@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Package, LogOut, Calendar, X, CreditCard, MapPin, Loader2, FileText, Download, Eye } from 'lucide-react'
+import { User, Package, LogOut, Calendar, X, CreditCard, MapPin, Loader2, FileText, Download, Eye, AlertCircle, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +25,7 @@ interface Order {
   id: string
   createdAt: string
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+  paymentStatus: 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED'
   totalAmount: number
   subtotal: number
   gst: number
@@ -57,6 +58,7 @@ export default function ProfilePage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [invoiceLoading, setInvoiceLoading] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
+  const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -83,6 +85,33 @@ export default function ProfilePage() {
     } finally {
       setOrdersLoading(false)
     }
+  }
+
+  const handleRetryPayment = async (orderId: string) => {
+    setRetryingOrderId(orderId)
+    try {
+      const res = await fetch('/api/checkout/retry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      // Redirect to checkout payment page with the new client secret
+      window.location.href = `/checkout/payment?orderId=${orderId}&payment_intent_client_secret=${data.clientSecret}&payment_intent=${data.paymentIntentId}`
+    } catch (err) {
+      console.error('Retry error:', err)
+      alert('Failed to initiate payment retry. Please try again.')
+    } finally {
+      setRetryingOrderId(null)
+    }
+  }
+
+  const getHoursUntilExpiry = (createdAt: string) => {
+    const created = new Date(createdAt).getTime()
+    const expiry = created + 24 * 60 * 60 * 1000
+    const hoursLeft = Math.max(0, Math.ceil((expiry - Date.now()) / (1000 * 60 * 60)))
+    return hoursLeft
   }
 
   const handleLogout = async () => {
@@ -222,13 +251,30 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {orders.map((order) => (
+                      {orders.map((order) => {
+                        const isFailed = order.paymentStatus === 'FAILED'
+                        const hoursLeft = isFailed ? getHoursUntilExpiry(order.createdAt) : null
+
+                        return (
                         <motion.div
                           key={order.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="border border-blue-100 rounded-xl p-4 hover:shadow-md transition-shadow"
+                          className={`border rounded-xl p-4 hover:shadow-md transition-shadow ${isFailed ? 'border-red-200 bg-red-50/40' : 'border-blue-100'}`}
                         >
+                          {isFailed && (
+                            <div className="flex items-center gap-2 mb-3 p-3 bg-red-100 rounded-lg">
+                              <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-red-800">Payment Failed</p>
+                                <p className="text-xs text-red-600">
+                                  {hoursLeft && hoursLeft > 0
+                                    ? `This order will be automatically removed in ${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''}.`
+                                    : 'This order will be removed shortly.'}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                           <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
                             <div>
                               <p className="text-sm text-slate-500">Order ID</p>
@@ -244,9 +290,15 @@ export default function ProfilePage() {
                             </div>
                             <div>
                               <p className="text-sm text-slate-500">Status</p>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                                {order.status}
-                              </span>
+                              {isFailed ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  Payment Failed
+                                </span>
+                              ) : (
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                                  {order.status}
+                                </span>
+                              )}
                             </div>
                             <div>
                               <p className="text-sm text-slate-500">Total</p>
@@ -259,16 +311,35 @@ export default function ProfilePage() {
                             <p className="text-sm text-slate-500">
                               {order.items.length} item{order.items.length > 1 ? 's' : ''}
                             </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedOrder(order)}
-                            >
-                              View Details
-                            </Button>
+                            <div className="flex gap-2">
+                              {isFailed ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleRetryPayment(order.id)}
+                                  disabled={retryingOrderId === order.id}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                  {retryingOrderId === order.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <RefreshCw className="h-3 w-3 mr-1" />
+                                  )}
+                                  Retry Payment
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedOrder(order)}
+                                >
+                                  View Details
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </motion.div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </CardContent>

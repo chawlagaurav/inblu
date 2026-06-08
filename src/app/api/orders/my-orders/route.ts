@@ -45,6 +45,7 @@ export async function GET() {
       id: order.id,
       createdAt: order.createdAt.toISOString(),
       status: order.status,
+      paymentStatus: order.paymentStatus,
       totalAmount: Number(order.totalAmount),
       subtotal: Number(order.subtotal),
       gst: Number(order.gst),

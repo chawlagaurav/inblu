@@ -377,7 +377,7 @@ export async function sendServiceRequestConfirmation(data: ServiceRequestEmailDa
 
     if (resend) {
       const { error } = await resend.emails.send({
-        from: 'inBlu Support <support@inblu.com.au>',
+        from: 'Inblu Filters Support <support@inblu.com.au>',
         to: data.email,
         subject,
         html,

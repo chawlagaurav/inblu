@@ -67,12 +67,17 @@ const getCachedDashboardData = unstable_cache(
         by: ['status'],
         _count: { status: true },
       }),
-      // Top products
-      prisma.orderItem.groupBy({
-        by: ['productId'],
-        _sum: { quantity: true },
-        orderBy: { _sum: { quantity: 'desc' } },
-        take: 5,
+      // Top products - only from paid orders, with actual sale data
+      prisma.orderItem.findMany({
+        where: {
+          order: { paymentStatus: 'SUCCEEDED' },
+        },
+        select: {
+          productId: true,
+          quantity: true,
+          price: true,
+          product: { select: { id: true, name: true } },
+        },
       }),
       // Purchase orders
       prisma.purchaseOrder.findMany({
@@ -84,24 +89,26 @@ const getCachedDashboardData = unstable_cache(
       }),
     ])
 
-    // Fetch all top product details in one query instead of N+1
-    const productIds = topProductItems.map(item => item.productId)
-    const products = productIds.length > 0 
-      ? await prisma.product.findMany({
-          where: { id: { in: productIds } },
-          select: { id: true, name: true, price: true },
+    // Aggregate top products in JS: sum quantity and revenue (price × qty) per product
+    const productAggMap = new Map<string, { name: string; quantity: number; revenue: number }>()
+    for (const item of topProductItems) {
+      const existing = productAggMap.get(item.productId)
+      const qty = item.quantity
+      const rev = Number(item.price) * qty
+      if (existing) {
+        existing.quantity += qty
+        existing.revenue += rev
+      } else {
+        productAggMap.set(item.productId, {
+          name: item.product.name,
+          quantity: qty,
+          revenue: rev,
         })
-      : []
-    
-    const productMap = new Map(products.map(p => [p.id, p]))
-    const topProducts = topProductItems.map(item => {
-      const product = productMap.get(item.productId)
-      return {
-        name: product?.name || 'Unknown Product',
-        quantity: item._sum.quantity || 0,
-        revenue: (item._sum.quantity || 0) * Number(product?.price || 0),
       }
-    })
+    }
+    const topProducts = Array.from(productAggMap.values())
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5)
 
     return {
       orders: orders.map(o => ({

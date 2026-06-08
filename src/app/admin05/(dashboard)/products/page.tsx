@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { FadeIn } from '@/components/motion'
 import prisma from '@/lib/prisma'
 import { ProductsReorderList } from '@/components/admin/products-reorder-list'
+import { ProductsExportButton } from '@/components/admin/products-export-button'
 
 export const metadata: Metadata = {
   title: 'Products - Admin',
@@ -51,12 +52,15 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
             <h1 className="text-3xl font-bold text-slate-900">Products</h1>
             <p className="text-slate-500 mt-1">Manage your product catalog</p>
           </div>
-          <Button asChild>
-            <Link href="/admin05/products/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <ProductsExportButton />
+            <Button asChild>
+              <Link href="/admin05/products/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Link>
+            </Button>
+          </div>
         </div>
       </FadeIn>
 

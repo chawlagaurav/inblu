@@ -8,11 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
 export default function AdminForgotPasswordPage() {
-  const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
@@ -35,13 +33,13 @@ export default function AdminForgotPasswordPage() {
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      const res = await fetch('/api/auth/reset-password-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
       })
 
-      if (error) {
-        throw error
-      }
+      if (!res.ok) throw new Error('Failed to send reset email')
 
       setSent(true)
       toast.success('Password reset email sent!')

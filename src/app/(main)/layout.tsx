@@ -1,5 +1,5 @@
-import { Header, Footer, CartDrawer, AnnouncementBar, SplashScreen, CookieConsent } from "@/components/layout";
-import { DiscountPopup } from "@/components/discount-popup";
+import { CartDrawer, SplashScreen, CookieConsent } from "@/components/layout";
+import { StoreChrome } from "@/components/layout/store-chrome";
 
 export default function MainLayout({
   children,
@@ -9,12 +9,8 @@ export default function MainLayout({
   return (
     <>
       <SplashScreen />
-      <AnnouncementBar />
-      <Header />
-      <main className="min-h-screen">{children}</main>
-      <Footer />
+      <StoreChrome>{children}</StoreChrome>
       <CartDrawer />
-      <DiscountPopup />
       <CookieConsent />
     </>
   );

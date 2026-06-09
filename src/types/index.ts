@@ -93,7 +93,8 @@ export interface CheckoutSession {
 
 export interface CheckoutResponse {
   clientSecret: string
-  orderId: string
+  // No order exists until a payment is attempted (deferred creation), so the
+  // payment intent id — not an order id — identifies the in-progress checkout.
   paymentIntentId: string
   reservationSessionId?: string
   reservationExpiresAt?: string

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, User, MapPin, CreditCard, AlertCircle } from 'lucide-react'
+import { Loader2, User, MapPin, CreditCard, AlertCircle, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -47,9 +47,62 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
   const [emailExists, setEmailExists] = useState(false)
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
   const [validationErrors, setValidationErrors] = useState<{ email?: string; phone?: string }>({})
-  
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+
   // Refs for form fields to enable scrolling
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Release the server-side checkout session (reservation + unpaid PaymentIntent).
+  // The cart items are intentionally kept so the customer can check out again.
+  const cancelCheckoutSession = useCallback(() => {
+    if (!checkoutData) return
+    fetch('/api/checkout/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reservationSessionId: checkoutData.reservationSessionId,
+        paymentIntentId: checkoutData.paymentIntentId,
+      }),
+      keepalive: true,
+    }).catch(() => {})
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('reservationSessionId')
+    }
+  }, [checkoutData])
+
+  // Best-effort cleanup if the customer closes the tab on the payment step.
+  useEffect(() => {
+    if (!checkoutData) return
+    const handleBeforeUnload = () => {
+      // Only release the stock reservation here — do NOT cancel the PaymentIntent,
+      // because a 3DS/redirect payment also navigates away and must not be killed.
+      const payload = JSON.stringify({
+        reservationSessionId: checkoutData.reservationSessionId,
+      })
+      navigator.sendBeacon?.(
+        '/api/checkout/cancel',
+        new Blob([payload], { type: 'application/json' })
+      )
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [checkoutData])
+
+  const handleBackClick = () => {
+    if (step === 'payment' && checkoutData) {
+      setShowCancelConfirm(true)
+    } else {
+      router.push('/products')
+    }
+  }
+
+  const confirmCancelCheckout = () => {
+    cancelCheckoutSession()
+    setShowCancelConfirm(false)
+    setCheckoutData(null)
+    setStep('shipping')
+    router.push('/products')
+  }
   
   // Helper function to scroll to a field and focus it
   const scrollToField = (fieldId: string) => {
@@ -289,8 +342,14 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
         throw new Error(data.error)
       }
 
-      if (data.clientSecret && data.orderId) {
+      if (data.clientSecret && data.paymentIntentId) {
         setCheckoutData(data)
+        // Remember this checkout's reservation session so the cart drawer can
+        // exclude it from stock checks (otherwise the items being paid for show
+        // as "Sold out" against the customer's own reservation).
+        if (data.reservationSessionId && typeof window !== 'undefined') {
+          sessionStorage.setItem('reservationSessionId', data.reservationSessionId)
+        }
         setStep('payment')
         toast.success('Shipping details saved!')
       } else {
@@ -323,6 +382,15 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
     return (
       <FadeIn>
         <div className="space-y-6">
+          <button
+            type="button"
+            onClick={handleBackClick}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
+
           {/* Order Summary Card */}
           <Card>
             <CardHeader className="pb-3">
@@ -356,19 +424,51 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
 
           {/* Payment Form */}
           <StripeProvider clientSecret={checkoutData.clientSecret}>
-            <PaymentForm 
-              orderId={checkoutData.orderId}
+            <PaymentForm
+              paymentIntentId={checkoutData.paymentIntentId}
               totalAmount={total}
               reservationExpiresAt={checkoutData.reservationExpiresAt}
-              reservationSessionId={checkoutData.reservationSessionId}
               onReservationExpired={() => {
                 toast.error('Your reservation has expired. Please start checkout again.')
+                cancelCheckoutSession()
                 setStep('shipping')
                 setCheckoutData(null)
               }}
             />
           </StripeProvider>
         </div>
+
+        {/* Cancel checkout confirmation */}
+        {showCancelConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowCancelConfirm(false)}
+            />
+            <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Cancel checkout?</h3>
+              <p className="text-sm text-slate-600 mb-6">
+                Your payment hasn&apos;t been completed. Your items will stay in your cart so
+                you can check out again later.
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowCancelConfirm(false)}
+                >
+                  Keep paying
+                </Button>
+                <Button
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  onClick={confirmCancelCheckout}
+                >
+                  Cancel checkout
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </FadeIn>
     )
   }
@@ -377,6 +477,15 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
   return (
     <FadeIn>
       <form onSubmit={handleSubmitShipping} className="space-y-6">
+        <button
+          type="button"
+          onClick={handleBackClick}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+
         {/* Guest Checkout Notice */}
         {isGuest && (
           <Card className="border-blue-200 bg-blue-50">

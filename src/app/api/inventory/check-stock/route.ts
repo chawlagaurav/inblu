@@ -8,21 +8,26 @@ interface CartItem {
 
 export async function POST(request: NextRequest) {
   try {
-    const { items } = await request.json() as { items: CartItem[] }
+    const { items, excludeSessionId } = await request.json() as {
+      items: CartItem[]
+      excludeSessionId?: string
+    }
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 })
     }
 
     const productIds = items.map(item => item.productId)
-    
+
     // Get current stock for all products
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
       select: { id: true, name: true, stock: true, isActive: true }
     })
 
-    // Get active reservations (not expired) for these products
+    // Get active reservations (not expired) for these products.
+    // Exclude the caller's own checkout reservation so the items they are
+    // currently paying for don't show as "Sold out" in their own cart.
     const now = new Date()
     const reservations = await prisma.stockReservation.groupBy({
       by: ['productId'],
@@ -30,6 +35,7 @@ export async function POST(request: NextRequest) {
         productId: { in: productIds },
         expiresAt: { gt: now },
         orderId: null, // Only count pending reservations (not yet converted to orders)
+        ...(excludeSessionId ? { sessionId: { not: excludeSessionId } } : {}),
       },
       _sum: {
         quantity: true

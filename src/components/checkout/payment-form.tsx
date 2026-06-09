@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, useRef, FormEvent } from 'react'
 import { useStripe, useElements, PaymentElement, ExpressCheckoutElement } from '@stripe/react-stripe-js'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { useRouter } from 'next/navigation'
@@ -13,21 +13,19 @@ import { cn } from '@/lib/utils'
 import type { StripeExpressCheckoutElementReadyEvent } from '@stripe/stripe-js'
 
 interface PaymentFormProps {
-  orderId: string
+  paymentIntentId: string
   totalAmount: number
   reservationExpiresAt?: string
-  reservationSessionId?: string
   onReservationExpired?: () => void
 }
 
 type PaymentTab = 'stripe' | 'paypal'
 
-export function PaymentForm({ 
-  orderId, 
-  totalAmount, 
+export function PaymentForm({
+  paymentIntentId,
+  totalAmount,
   reservationExpiresAt,
-  reservationSessionId,
-  onReservationExpired 
+  onReservationExpired
 }: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
@@ -38,6 +36,8 @@ export function PaymentForm({
   const [expressCheckoutAvailable, setExpressCheckoutAvailable] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const [isExpired, setIsExpired] = useState(false)
+  // Order id returned by PayPal create-order (the order is created at that point).
+  const paypalOrderIdRef = useRef<string | null>(null)
   const clearCart = useCartStore((state) => state.clearCart)
 
   // Timer effect
@@ -88,7 +88,7 @@ export function PaymentForm({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/order/success?order_id=${orderId}`,
+          return_url: `${window.location.origin}/order/success?payment_intent=${paymentIntentId}`,
         },
         redirect: 'if_required',
       })
@@ -103,11 +103,11 @@ export function PaymentForm({
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         clearCart()
         toast.success('Payment successful!')
-        router.push(`/order/success?order_id=${orderId}`)
+        router.push(`/order/success?payment_intent=${paymentIntentId}`)
       } else if (paymentIntent && paymentIntent.status === 'processing') {
         clearCart()
         toast.info('Payment is processing...')
-        router.push(`/order/success?order_id=${orderId}`)
+        router.push(`/order/success?payment_intent=${paymentIntentId}`)
       } else {
         clearCart()
       }
@@ -125,11 +125,13 @@ export function PaymentForm({
       const response = await fetch('/api/paypal/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
+        body: JSON.stringify({ paymentIntentId }),
       })
 
       const data = await response.json()
       if (data.error) throw new Error(data.error)
+      // The DB order is created at this point — remember its id for capture/redirect.
+      paypalOrderIdRef.current = data.orderId
       return data.paypalOrderId
     } catch (error) {
       console.error('PayPal create order error:', error)
@@ -141,6 +143,7 @@ export function PaymentForm({
   const handlePayPalApprove = async (data: { orderID: string }) => {
     try {
       setIsProcessing(true)
+      const orderId = paypalOrderIdRef.current
       const response = await fetch('/api/paypal/capture-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -331,7 +334,7 @@ export function PaymentForm({
                     const { error, paymentIntent } = await stripe.confirmPayment({
                       elements,
                       confirmParams: {
-                        return_url: `${window.location.origin}/order/success?order_id=${orderId}`,
+                        return_url: `${window.location.origin}/order/success?payment_intent=${paymentIntentId}`,
                       },
                       redirect: 'if_required',
                     })
@@ -342,10 +345,10 @@ export function PaymentForm({
                     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
                       clearCart()
                       toast.success('Payment successful!')
-                      router.push(`/order/success?order_id=${orderId}`)
+                      router.push(`/order/success?payment_intent=${paymentIntentId}`)
                     } else {
                       clearCart()
-                      router.push(`/order/success?order_id=${orderId}`)
+                      router.push(`/order/success?payment_intent=${paymentIntentId}`)
                     }
                   } catch (err) {
                     console.error('Express checkout error:', err)

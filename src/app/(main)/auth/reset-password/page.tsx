@@ -23,17 +23,48 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sessionReady, setSessionReady] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
 
   useEffect(() => {
-    // Supabase will automatically pick up the recovery token from the URL hash
-    // and establish a session. We listen for the PASSWORD_RECOVERY event.
+    // If session isn't ready within 8 seconds, show a timeout message
+    const timeout = setTimeout(() => setTimedOut(true), 8000)
+    return () => clearTimeout(timeout)
+  }, [sessionReady])
+
+  useEffect(() => {
+    if (!supabase) return
+
+    // @supabase/ssr browser client doesn't auto-process the URL hash.
+    // Parse the hash fragment manually and set the session from the tokens.
+    const hash = window.location.hash
+    if (hash) {
+      const params = new URLSearchParams(hash.substring(1))
+      const accessToken = params.get('access_token')
+      const refreshToken = params.get('refresh_token')
+      const type = params.get('type')
+
+      if (type === 'recovery' && accessToken && refreshToken) {
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .then(({ error: sessionError }: { error: { message: string } | null }) => {
+            if (sessionError) {
+              setError('Reset link is invalid or has expired. Please request a new one.')
+            } else {
+              setSessionReady(true)
+              // Clean up the hash so tokens aren't visible in the URL
+              window.history.replaceState(null, '', window.location.pathname)
+            }
+          })
+        return
+      }
+    }
+
+    // Fallback: listen for PASSWORD_RECOVERY event (standard Supabase flow)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
       if (event === 'PASSWORD_RECOVERY') {
         setSessionReady(true)
       }
     })
 
-    // Also check if there's already a session (user clicked link and session was set)
     supabase.auth.getSession().then(({ data: { session } }: { data: { session: unknown } }) => {
       if (session) {
         setSessionReady(true)
@@ -41,7 +72,7 @@ export default function ResetPasswordPage() {
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,14 +139,20 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-8 pb-8 text-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
-              <p className="text-sm text-slate-600">Verifying your reset link...</p>
-              <p className="text-xs text-slate-500">
-                If this takes too long, the link may have expired.{' '}
-                <Link href="/auth/forgot-password" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Request a new one
-                </Link>
-              </p>
+              {timedOut || error ? (
+                <>
+                  <AlertCircle className="h-8 w-8 text-red-500 mx-auto" />
+                  <p className="text-sm font-medium text-slate-900">{error || 'Reset link expired or invalid'}</p>
+                  <Link href="/auth/forgot-password">
+                    <Button className="mt-2">Request a new reset link</Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
+                  <p className="text-sm text-slate-600">Verifying your reset link...</p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

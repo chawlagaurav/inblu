@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import stripe from '@/lib/stripe'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
-import { Prisma } from '@prisma/client'
-import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email'
+import {
+  buildCheckoutMetadata,
+  parseCheckoutMetadata,
+  recordSucceededOrder,
+  type CheckoutPayload,
+} from '@/lib/checkout-intent'
 
 const SHIPPING_THRESHOLD = 100
 const SHIPPING_COST = 995 // in cents
@@ -243,12 +248,8 @@ export async function POST(request: NextRequest) {
             discountCents = Math.min(Math.round(Number(coupon.discountValue) * 100), subtotalCents)
           }
           validatedCouponCode = coupon.code
-
-          // Increment usage count
-          await prisma.coupon.update({
-            where: { id: coupon.id },
-            data: { usedCount: { increment: 1 } },
-          })
+          // NOTE: coupon usage is incremented only when payment actually succeeds
+          // (see finalizePaidOrder), so abandoned checkouts don't consume coupons.
         }
       }
     }
@@ -268,40 +269,33 @@ export async function POST(request: NextRequest) {
     const stockIssues = unavailableItems.filter(item => item.isStockIssue)
     const isBacklog = stockIssues.length > 0
 
-    // Create order in database with PENDING status
-    const order = await prisma.order.create({
-      data: {
-        userId: userId,
-        customerName: customerName,
-        email: email,
-        phone: shippingAddress.phone || null,
-        totalAmount: totalDollars,
-        subtotal: netSubtotal,
-        gst: gstDollars,
-        shippingCost: shippingCostDollars,
-        discountAmount: discountDollars,
-        couponCode: validatedCouponCode,
-        status: 'PENDING',
-        isBacklog,
-        paymentStatus: 'PENDING',
-        shippingAddress: JSON.parse(JSON.stringify(shippingAddress)),
-        isGuest: isGuest ?? !userId,
-        items: {
-          create: validatedItems.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-        },
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    })
+    // We do NOT create an Order here. The order is only created once a payment is
+    // actually attempted (Stripe webhook / PayPal capture), so abandoning the
+    // payment page never leaves a stranded PENDING order. The full order payload is
+    // carried in the PaymentIntent metadata instead.
+    const sessionId = reservationSessionId || randomUUID()
+
+    const checkoutPayload: CheckoutPayload = {
+      userId,
+      email,
+      customerName,
+      phone: shippingAddress.phone || null,
+      isGuest: isGuest ?? !userId,
+      isBacklog,
+      couponCode: validatedCouponCode,
+      subtotal: netSubtotal,
+      gst: gstDollars,
+      shippingCost: shippingCostDollars,
+      discountAmount: discountDollars,
+      totalAmount: totalDollars,
+      shippingAddress: JSON.parse(JSON.stringify(shippingAddress)),
+      items: validatedItems.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      reservationSessionId: sessionId,
+    }
 
     // Create Stripe Payment Intent with automatic payment methods (includes Apple Pay, Google Pay, etc.)
     const paymentIntent = await stripe.paymentIntents.create({
@@ -310,18 +304,7 @@ export async function POST(request: NextRequest) {
       automatic_payment_methods: {
         enabled: true,
       },
-      metadata: {
-        orderId: order.id,
-        userId: userId || 'guest',
-        customerEmail: email,
-        isGuest: String(isGuest ?? !userId),
-        items: JSON.stringify(validatedItems.map(item => ({
-          productId: item.productId,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-        }))),
-      },
+      metadata: buildCheckoutMetadata(checkoutPayload),
       receipt_email: email,
       shipping: {
         name: customerName,
@@ -337,39 +320,27 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update order with payment intent ID
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        stripePaymentIntent: paymentIntent.id,
-        paymentStatus: 'PROCESSING',
-      },
-    })
-
-    // Create or update stock reservations for payment page
+    // Create stock reservations for the payment page (keyed by the checkout session,
+    // not an order — the order doesn't exist yet).
     const RESERVATION_DURATION_MINUTES = 10
     const expiresAt = new Date(Date.now() + RESERVATION_DURATION_MINUTES * 60 * 1000)
-    const sessionId = reservationSessionId || order.id // Use order ID as session if no existing session
 
-    // Delete any existing reservations for this session
     await prisma.stockReservation.deleteMany({
       where: { sessionId, orderId: null }
     })
 
-    // Create new reservations linked to this session
     await prisma.stockReservation.createMany({
       data: validatedItems.map(item => ({
         sessionId,
         productId: item.productId,
         quantity: item.quantity,
         expiresAt,
-        orderId: null // Will be linked when payment succeeds
+        orderId: null // Will be cleaned up when payment succeeds
       }))
     })
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
-      orderId: order.id,
       paymentIntentId: paymentIntent.id,
       reservationSessionId: sessionId,
       reservationExpiresAt: expiresAt.toISOString(),
@@ -394,7 +365,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Order ID or Payment Intent ID required' }, { status: 400 })
     }
 
-    const order = await prisma.order.findFirst({
+    let order = await prisma.order.findFirst({
       where: orderId
         ? { id: orderId }
         : { stripePaymentIntent: paymentIntentId! },
@@ -407,90 +378,53 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Deferred-creation fallback: when looked up by payment intent and no order
+    // exists yet (webhook not delivered, or success page raced it), inspect the
+    // intent. If it succeeded, create the order now from its metadata; otherwise
+    // report the in-flight payment status so the success page can react.
+    if (!order && paymentIntentId && stripe) {
+      try {
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+        const payload = parseCheckoutMetadata(paymentIntent.metadata as Record<string, string>)
+
+        if (payload && paymentIntent.status === 'succeeded') {
+          const createdOrderId = await recordSucceededOrder(payload, paymentIntent.id)
+          order = await prisma.order.findUnique({
+            where: { id: createdOrderId },
+            include: { items: { include: { product: true } } },
+          })
+        } else {
+          // No order, payment not completed → tell the client it's pending/failed.
+          return NextResponse.json({
+            order: null,
+            paymentStatus: paymentIntent.status,
+          })
+        }
+      } catch (stripeError) {
+        console.error('Failed to verify payment intent:', stripeError)
+        return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      }
+    }
+
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
-    // Fallback: Check if payment succeeded but webhook didn't process it
-    if (stripe && order.stripePaymentIntent && 
-        (order.paymentStatus === 'PENDING' || order.paymentStatus === 'PROCESSING')) {
+    // Fallback for an existing order whose webhook hasn't marked it paid yet.
+    if (stripe && order.stripePaymentIntent &&
+        (order.paymentStatus === 'PENDING' || order.paymentStatus === 'PROCESSING') &&
+        !order.stripePaymentIntent.startsWith('paypal_')) {
       try {
         const paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentIntent)
-        
-        if (paymentIntent.status === 'succeeded') {
-          console.log('Webhook fallback: Processing successful payment for order', order.id)
-          
-          // Update order status
-          await prisma.order.update({
+        const payload = parseCheckoutMetadata(paymentIntent.metadata as Record<string, string>)
+
+        if (payload && paymentIntent.status === 'succeeded') {
+          console.log('Webhook fallback: finalizing successful payment for order', order.id)
+          await recordSucceededOrder(payload, paymentIntent.id)
+          order = await prisma.order.findUnique({
             where: { id: order.id },
-            data: {
-              status: 'PROCESSING',
-              paymentStatus: 'SUCCEEDED',
-            },
+            include: { items: { include: { product: true } } },
           })
-
-          // Update product stock
-          for (const item of order.items) {
-            await prisma.product.update({
-              where: { id: item.productId },
-              data: {
-                stock: {
-                  decrement: item.quantity,
-                },
-              },
-            })
-          }
-
-          // Parse shipping address and send emails
-          const shippingAddress = order.shippingAddress as {
-            firstName: string
-            lastName: string
-            address: string
-            apartment?: string
-            city: string
-            state: string
-            postcode: string
-            country: string
-          }
-
-          const emailData = {
-            orderId: order.id,
-            customerName: order.customerName,
-            customerEmail: order.email,
-            items: order.items.map(item => ({
-              name: item.product.name,
-              quantity: item.quantity,
-              price: Number(item.price),
-            })),
-            subtotal: Number(order.subtotal),
-            shipping: Number(order.shippingCost),
-            gst: Number(order.gst),
-            total: Number(order.totalAmount),
-            shippingAddress,
-            orderDate: order.createdAt,
-            isGuest: order.isGuest,
-          }
-
-          // Send emails (don't await to avoid blocking response)
-          sendOrderConfirmationEmail(emailData).catch(err => 
-            console.error('Failed to send order confirmation:', err)
-          )
-          sendAdminOrderNotification(emailData).catch(err => 
-            console.error('Failed to send admin notification:', err)
-          )
-
-          // Return updated order
-          const updatedOrder = await prisma.order.findUnique({
-            where: { id: order.id },
-            include: {
-              items: {
-                include: {
-                  product: true,
-                },
-              },
-            },
-          })
-          return NextResponse.json({ order: updatedOrder })
         }
       } catch (stripeError) {
         console.error('Failed to verify payment intent:', stripeError)

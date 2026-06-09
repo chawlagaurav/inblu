@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import stripe from '@/lib/stripe'
+import { parseCheckoutMetadata, recordPendingOrder } from '@/lib/checkout-intent'
 
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET
@@ -36,13 +38,28 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { orderId } = await request.json()
+    const { paymentIntentId } = await request.json()
 
-    if (!orderId) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 })
+    if (!paymentIntentId) {
+      return NextResponse.json({ error: 'Payment intent ID is required' }, { status: 400 })
     }
 
-    // Fetch the existing order from the database
+    if (!stripe) {
+      return NextResponse.json({ error: 'Payment processing not configured' }, { status: 503 })
+    }
+
+    // Read the checkout payload from the PaymentIntent metadata and create the
+    // order now (clicking PayPal is a real payment attempt). Idempotent on the
+    // payment intent id, so retries reuse the same order.
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    const payload = parseCheckoutMetadata(paymentIntent.metadata as Record<string, string>)
+
+    if (!payload) {
+      return NextResponse.json({ error: 'Checkout session expired. Please try again.' }, { status: 400 })
+    }
+
+    const orderId = await recordPendingOrder(payload, paymentIntentId)
+
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: { items: { include: { product: true } } },
@@ -158,6 +175,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       paypalOrderId: paypalData.id,
+      orderId,
     })
   } catch (error) {
     console.error('PayPal create order error:', error)

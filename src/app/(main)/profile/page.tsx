@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Package, LogOut, Calendar, X, CreditCard, MapPin, Loader2, FileText, Download, Eye, AlertCircle, RefreshCw } from 'lucide-react'
+import { User, Package, LogOut, Calendar, X, CreditCard, MapPin, Loader2, FileText, Download, Eye, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -252,25 +252,34 @@ export default function ProfilePage() {
                   ) : (
                     <div className="space-y-4">
                       {orders.map((order) => {
+                        // An order is unpaid if the customer never completed payment:
+                        // an explicit FAILED, or one abandoned on the payment page
+                        // (left in PENDING/PROCESSING). All can be paid within 24h.
+                        const isUnpaid =
+                          order.status === 'PENDING' &&
+                          ['FAILED', 'PENDING', 'PROCESSING'].includes(order.paymentStatus)
                         const isFailed = order.paymentStatus === 'FAILED'
-                        const hoursLeft = isFailed ? getHoursUntilExpiry(order.createdAt) : null
+                        const hoursLeft = isUnpaid ? getHoursUntilExpiry(order.createdAt) : null
 
                         return (
                         <motion.div
                           key={order.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`border rounded-xl p-4 hover:shadow-md transition-shadow ${isFailed ? 'border-red-200 bg-red-50/40' : 'border-blue-100'}`}
+                          className={`border rounded-xl p-4 hover:shadow-md transition-shadow ${isUnpaid ? 'border-amber-200 bg-amber-50/40' : 'border-blue-100'}`}
                         >
-                          {isFailed && (
-                            <div className="flex items-center gap-2 mb-3 p-3 bg-red-100 rounded-lg">
-                              <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                          {isUnpaid && (
+                            <div className="flex items-center gap-2 mb-3 p-3 bg-amber-100 rounded-lg">
+                              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-red-800">Payment Failed</p>
-                                <p className="text-xs text-red-600">
+                                <p className="text-sm font-medium text-amber-800">
+                                  {isFailed ? 'Payment Failed' : 'Payment Incomplete'}
+                                </p>
+                                <p className="text-xs text-amber-700">
+                                  Complete your payment to confirm this order.{' '}
                                   {hoursLeft && hoursLeft > 0
-                                    ? `This order will be automatically removed in ${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''}.`
-                                    : 'This order will be removed shortly.'}
+                                    ? `It will be automatically cancelled in ${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''}.`
+                                    : 'It will be cancelled shortly.'}
                                 </p>
                               </div>
                             </div>
@@ -290,9 +299,9 @@ export default function ProfilePage() {
                             </div>
                             <div>
                               <p className="text-sm text-slate-500">Status</p>
-                              {isFailed ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                  Payment Failed
+                              {isUnpaid ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                  {isFailed ? 'Payment Failed' : 'Awaiting Payment'}
                                 </span>
                               ) : (
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
@@ -312,19 +321,19 @@ export default function ProfilePage() {
                               {order.items.length} item{order.items.length > 1 ? 's' : ''}
                             </p>
                             <div className="flex gap-2">
-                              {isFailed ? (
+                              {isUnpaid ? (
                                 <Button
                                   size="sm"
                                   onClick={() => handleRetryPayment(order.id)}
                                   disabled={retryingOrderId === order.id}
-                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                  className="bg-amber-600 hover:bg-amber-700 text-white"
                                 >
                                   {retryingOrderId === order.id ? (
                                     <Loader2 className="h-3 w-3 animate-spin mr-1" />
                                   ) : (
-                                    <RefreshCw className="h-3 w-3 mr-1" />
+                                    <CreditCard className="h-3 w-3 mr-1" />
                                   )}
-                                  Retry Payment
+                                  Complete Payment
                                 </Button>
                               ) : (
                                 <Button

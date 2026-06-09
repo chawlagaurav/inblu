@@ -39,6 +39,13 @@ export function CartDrawer() {
     if (items.length === 0) return
 
     try {
+      // Exclude this customer's own in-progress checkout reservation so the
+      // items they are currently paying for aren't reported as "Sold out".
+      const excludeSessionId =
+        typeof window !== 'undefined'
+          ? sessionStorage.getItem('reservationSessionId')
+          : null
+
       const response = await fetch('/api/inventory/check-stock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,7 +53,8 @@ export function CartDrawer() {
           items: items.map(item => ({
             productId: item.product.id,
             quantity: item.quantity
-          }))
+          })),
+          ...(excludeSessionId ? { excludeSessionId } : {})
         })
       })
 

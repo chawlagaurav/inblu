@@ -112,6 +112,15 @@ export async function POST(request: NextRequest) {
           })
         }
 
+        // Consume the coupon now that payment succeeded (it is no longer
+        // incremented at checkout time for the deferred-creation flow).
+        if (order.couponCode) {
+          await prisma.coupon.updateMany({
+            where: { code: order.couponCode },
+            data: { usedCount: { increment: 1 } },
+          })
+        }
+
         // Parse shipping address and send confirmation email
         const shippingAddress = order.shippingAddress as {
           firstName: string

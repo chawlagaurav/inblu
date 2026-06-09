@@ -92,6 +92,14 @@ function OrderSuccessContent() {
 
         if (data.error) {
           setError(data.error)
+        } else if (!data.order) {
+          // Deferred creation: no order yet because the payment isn't completed.
+          const ps = (data.paymentStatus as string | undefined)?.toLowerCase()
+          if (ps && ps !== 'succeeded' && ps !== 'processing') {
+            setPaymentFailed(true)
+          } else {
+            setError('Your payment is being processed. You will receive a confirmation email shortly.')
+          }
         } else {
           setOrder(data.order)
           // Also check order payment status from database

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import stripe from '@/lib/stripe'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { buildCheckoutMetadata, type CheckoutPayload } from '@/lib/checkout-intent'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,11 +23,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Order ID required' }, { status: 400 })
     }
 
-    // Fetch the existing failed order
+    // Fetch the existing incomplete order. An order is eligible for payment retry
+    // whenever it has not yet been paid: this covers explicitly FAILED payments as
+    // well as orders the customer abandoned on the Stripe page (which stay PENDING
+    // or PROCESSING because Stripe never fires payment_failed for an abandoned page).
     const order = await prisma.order.findFirst({
       where: {
         id: orderId,
-        paymentStatus: 'FAILED',
+        status: 'PENDING',
+        paymentStatus: { in: ['FAILED', 'PENDING', 'PROCESSING'] },
         OR: [{ userId: user.id }, { email: user.email ?? '' }],
       },
       include: {
@@ -41,16 +46,36 @@ export async function POST(request: NextRequest) {
     // Create a new Stripe payment intent for the same amount
     const amountCents = Math.round(Number(order.totalAmount) * 100)
 
+    // Carry the full order payload in metadata so the webhook can finalize the
+    // retried order the same way as a fresh checkout. Idempotent on the new intent
+    // id, which we also store on the order below, so it converges on this order.
+    const retryPayload: CheckoutPayload = {
+      userId: order.userId,
+      email: order.email,
+      customerName: order.customerName,
+      phone: order.phone,
+      isGuest: order.isGuest,
+      isBacklog: order.isBacklog,
+      couponCode: order.couponCode,
+      subtotal: Number(order.subtotal),
+      gst: Number(order.gst),
+      shippingCost: Number(order.shippingCost),
+      discountAmount: Number(order.discountAmount),
+      totalAmount: Number(order.totalAmount),
+      shippingAddress: order.shippingAddress as Record<string, unknown>,
+      items: order.items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: Number(item.price),
+      })),
+      reservationSessionId: order.id,
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCents,
       currency: 'aud',
       automatic_payment_methods: { enabled: true },
-      metadata: {
-        orderId: order.id,
-        userId: user.id,
-        customerEmail: order.email,
-        isRetry: 'true',
-      },
+      metadata: buildCheckoutMetadata(retryPayload),
       receipt_email: order.email,
     })
 

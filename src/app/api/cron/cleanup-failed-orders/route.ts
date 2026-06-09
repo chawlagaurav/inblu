@@ -11,14 +11,18 @@ export async function GET(request: NextRequest) {
   try {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000) // 24 hours ago
 
+    // Remove unpaid orders older than 24h. This covers explicitly FAILED payments
+    // as well as orders abandoned on the Stripe page (left in PENDING/PROCESSING).
+    // Orders that succeeded or were refunded are never touched.
     const result = await prisma.order.deleteMany({
       where: {
-        paymentStatus: 'FAILED',
+        status: 'PENDING',
+        paymentStatus: { in: ['FAILED', 'PENDING', 'PROCESSING'] },
         createdAt: { lt: cutoff },
       },
     })
 
-    console.log(`Cron: deleted ${result.count} failed orders older than 24h`)
+    console.log(`Cron: deleted ${result.count} unpaid orders older than 24h`)
 
     return NextResponse.json({ deleted: result.count })
   } catch (error) {

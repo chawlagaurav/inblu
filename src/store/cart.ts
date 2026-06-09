@@ -70,7 +70,12 @@ export const useCartStore = create<CartStore>()(
         })
       },
 
-      clearCart: () => set({ items: [], appliedCoupon: null }),
+      clearCart: () => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('reservationSessionId')
+        }
+        set({ items: [], appliedCoupon: null })
+      },
 
       getTotal: () => {
         return get().items.reduce(

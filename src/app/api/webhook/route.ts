@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import stripe from '@/lib/stripe'
-import prisma from '@/lib/prisma'
-import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email'
+import {
+  parseCheckoutMetadata,
+  recordSucceededOrder,
+  recordFailedOrder,
+} from '@/lib/checkout-intent'
 
 export async function POST(request: NextRequest) {
   if (!stripe) {
@@ -41,101 +44,16 @@ export async function POST(request: NextRequest) {
       console.log('Payment succeeded:', paymentIntent.id)
 
       try {
-        // Find the order by payment intent ID
-        const order = await prisma.order.findUnique({
-          where: { stripePaymentIntent: paymentIntent.id },
-          include: {
-            items: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        })
-
-        if (!order) {
-          console.error('Order not found for payment intent:', paymentIntent.id)
+        // The order is created here (deferred creation): build it from the intent
+        // metadata, mark it paid, decrement stock and send confirmation emails.
+        const payload = parseCheckoutMetadata(paymentIntent.metadata as Record<string, string>)
+        if (!payload) {
+          console.error('Missing checkout metadata for payment intent:', paymentIntent.id)
           break
         }
 
-        // Update order status
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            status: 'PROCESSING',
-            paymentStatus: 'SUCCEEDED',
-          },
-        })
-
-        // Update product stock
-        for (const item of order.items) {
-          await prisma.product.update({
-            where: { id: item.productId },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          })
-        }
-
-        // Mark stock reservations as completed (link to order)
-        await prisma.stockReservation.updateMany({
-          where: {
-            sessionId: order.id, // Session ID is set to order ID during checkout
-            orderId: null
-          },
-          data: {
-            orderId: order.id
-          }
-        })
-
-        // Clean up any reservations for this order's products that might have been orphaned
-        await prisma.stockReservation.deleteMany({
-          where: {
-            orderId: order.id
-          }
-        })
-
-        // Parse shipping address
-        const shippingAddress = order.shippingAddress as {
-          firstName: string
-          lastName: string
-          address: string
-          apartment?: string
-          city: string
-          state: string
-          postcode: string
-          country: string
-          phone?: string
-        }
-
-        // Prepare email data
-        const emailData = {
-          orderId: order.id,
-          customerName: order.customerName,
-          customerEmail: order.email,
-          items: order.items.map(item => ({
-            name: item.product.name,
-            quantity: item.quantity,
-            price: Number(item.price),
-          })),
-          subtotal: Number(order.subtotal),
-          shipping: Number(order.shippingCost),
-          gst: Number(order.gst),
-          total: Number(order.totalAmount),
-          shippingAddress: shippingAddress,
-          orderDate: order.createdAt,
-          isGuest: order.isGuest,
-        }
-
-        // Send confirmation email to customer
-        await sendOrderConfirmationEmail(emailData)
-
-        // Send admin notification
-        await sendAdminOrderNotification(emailData)
-
-        console.log('Order processed successfully:', order.id)
+        const orderId = await recordSucceededOrder(payload, paymentIntent.id)
+        console.log('Order processed successfully:', orderId)
       } catch (error) {
         console.error('Error processing payment_intent.succeeded:', error)
       }
@@ -148,13 +66,13 @@ export async function POST(request: NextRequest) {
       console.log('Payment failed:', paymentIntent.id)
 
       try {
-        // Update order payment status to failed
-        await prisma.order.updateMany({
-          where: { stripePaymentIntent: paymentIntent.id },
-          data: {
-            paymentStatus: 'FAILED',
-          },
-        })
+        // A real payment attempt failed → create the order as PENDING/FAILED so the
+        // customer can retry it from their profile. (Pure abandonment never fires
+        // this event, so it leaves no order.)
+        const payload = parseCheckoutMetadata(paymentIntent.metadata as Record<string, string>)
+        if (payload) {
+          await recordFailedOrder(payload, paymentIntent.id)
+        }
       } catch (error) {
         console.error('Error updating failed payment:', error)
       }

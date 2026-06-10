@@ -56,7 +56,8 @@ export function calculateTotals(items: InvoiceItem[], deposit: number = 0, disco
 } {
   const itemTotals = items.map(item => item.unitPrice * item.quantity)
   const subtotal = itemTotals.reduce((sum, total) => sum + total, 0)
-  const totalDue = subtotal + gst - discountAmount - Math.abs(deposit)
+  // GST is already included in item prices — do NOT add it again
+  const totalDue = subtotal - discountAmount - Math.abs(deposit)
   
   return {
     subtotal,

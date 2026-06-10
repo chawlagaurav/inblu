@@ -426,6 +426,7 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
           <StripeProvider clientSecret={checkoutData.clientSecret}>
             <PaymentForm
               paymentIntentId={checkoutData.paymentIntentId}
+              clientSecret={checkoutData.clientSecret}
               totalAmount={total}
               reservationExpiresAt={checkoutData.reservationExpiresAt}
               onReservationExpired={() => {

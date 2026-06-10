@@ -354,12 +354,66 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Authorize access to an order's details (which include customer PII). A bare
+// order id is NOT enough — the caller must prove they are the buyer via one of:
+//   1. the PayPal capture/order token stored on the order (unguessable), or
+//   2. the Stripe PaymentIntent client_secret (a buyer-only secret), or
+//   3. an authenticated session that owns the order.
+async function authorizeOrderAccess(
+  order: { userId: string | null; email: string; stripePaymentIntent: string | null; stripeSessionId: string | null },
+  proof: { clientSecret: string | null; paypalToken: string | null }
+): Promise<boolean> {
+  const { clientSecret, paypalToken } = proof
+
+  // 1. PayPal token proof
+  if (
+    paypalToken &&
+    (order.stripePaymentIntent === `paypal_capture_${paypalToken}` ||
+      order.stripeSessionId === `paypal_${paypalToken}`)
+  ) {
+    return true
+  }
+
+  // 2. Stripe client_secret proof — prefix check first (cheap), then confirm the
+  // secret is genuinely this intent's secret via Stripe (prevents forgery from a
+  // known intent id).
+  if (
+    clientSecret &&
+    stripe &&
+    order.stripePaymentIntent &&
+    !order.stripePaymentIntent.startsWith('paypal_') &&
+    clientSecret.startsWith(`${order.stripePaymentIntent}_secret_`)
+  ) {
+    try {
+      const pi = await stripe.paymentIntents.retrieve(order.stripePaymentIntent)
+      if (pi.client_secret && pi.client_secret === clientSecret) return true
+    } catch (err) {
+      console.error('authz: failed to verify client secret', err)
+    }
+  }
+
+  // 3. Authenticated owner
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user && (order.userId === user.id || (!!order.email && order.email === user.email))) {
+      return true
+    }
+  } catch {
+    // not authenticated
+  }
+
+  return false
+}
+
 // GET endpoint to retrieve order details
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const orderId = searchParams.get('orderId')
     const paymentIntentId = searchParams.get('payment_intent')
+    const clientSecret = searchParams.get('payment_intent_client_secret')
+    const paypalToken = searchParams.get('paypal_token')
 
     if (!orderId && !paymentIntentId) {
       return NextResponse.json({ error: 'Order ID or Payment Intent ID required' }, { status: 400 })
@@ -381,10 +435,16 @@ export async function GET(request: NextRequest) {
     // Deferred-creation fallback: when looked up by payment intent and no order
     // exists yet (webhook not delivered, or success page raced it), inspect the
     // intent. If it succeeded, create the order now from its metadata; otherwise
-    // report the in-flight payment status so the success page can react.
+    // report the in-flight payment status so the success page can react. Access is
+    // gated on holding the intent's client_secret (a buyer-only secret).
     if (!order && paymentIntentId && stripe) {
       try {
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+
+        if (!clientSecret || paymentIntent.client_secret !== clientSecret) {
+          return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+        }
+
         const payload = parseCheckoutMetadata(paymentIntent.metadata as Record<string, string>)
 
         if (payload && paymentIntent.status === 'succeeded') {
@@ -407,6 +467,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // Don't leak customer PII to anyone who merely knows an order id.
+    const authorized = await authorizeOrderAccess(order, { clientSecret, paypalToken })
+    if (!authorized) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 

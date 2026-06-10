@@ -31,6 +31,7 @@ function PaymentResume() {
   const orderId = searchParams.get('orderId')
   const clientSecret = searchParams.get('payment_intent_client_secret')
   const paymentIntentId = searchParams.get('payment_intent')
+  const reservationExpiresAt = searchParams.get('reservation_expires_at') ?? undefined
 
   const invalidLink = !orderId || !clientSecret || !paymentIntentId
 
@@ -41,7 +42,7 @@ function PaymentResume() {
   useEffect(() => {
     if (invalidLink) return
 
-    fetch(`/api/checkout?orderId=${orderId}`)
+    fetch(`/api/checkout?orderId=${orderId}&payment_intent_client_secret=${encodeURIComponent(clientSecret ?? '')}`)
       .then(async (res) => {
         const data = await res.json()
         if (!res.ok || !data.order) {
@@ -66,7 +67,7 @@ function PaymentResume() {
         setError('We could not load this order. Please try again from your profile.')
       })
       .finally(() => setLoading(false))
-  }, [invalidLink, orderId, router])
+  }, [invalidLink, orderId, clientSecret, router])
 
   if (invalidLink) {
     return (
@@ -140,7 +141,15 @@ function PaymentResume() {
         </Card>
 
         <StripeProvider clientSecret={clientSecret}>
-          <PaymentForm paymentIntentId={paymentIntentId} totalAmount={order.totalAmount} />
+          <PaymentForm
+            paymentIntentId={paymentIntentId}
+            clientSecret={clientSecret}
+            totalAmount={order.totalAmount}
+            reservationExpiresAt={reservationExpiresAt}
+            onReservationExpired={() => {
+              router.push('/profile#orders')
+            }}
+          />
         </StripeProvider>
       </div>
     </FadeIn>

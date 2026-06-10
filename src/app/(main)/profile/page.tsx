@@ -50,6 +50,16 @@ const statusColors: Record<string, string> = {
   CANCELLED: 'bg-red-100 text-red-800',
 }
 
+// Customer-facing label: a paid order in PROCESSING is shown as "Order Placed".
+const statusLabels: Record<string, string> = {
+  PENDING: 'Pending',
+  PROCESSING: 'Order Placed',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
+}
+const formatStatus = (status: string) => statusLabels[status] ?? status
+
 export default function ProfilePage() {
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
@@ -97,8 +107,17 @@ export default function ProfilePage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      // Redirect to checkout payment page with the new client secret
-      window.location.href = `/checkout/payment?orderId=${orderId}&payment_intent_client_secret=${data.clientSecret}&payment_intent=${data.paymentIntentId}`
+      // Redirect to the complete-payment page with the new client secret + the
+      // reservation expiry so it shows the same countdown timer as checkout.
+      const params = new URLSearchParams({
+        orderId,
+        payment_intent_client_secret: data.clientSecret,
+        payment_intent: data.paymentIntentId,
+      })
+      if (data.reservationExpiresAt) {
+        params.set('reservation_expires_at', data.reservationExpiresAt)
+      }
+      window.location.href = `/checkout/payment?${params.toString()}`
     } catch (err) {
       console.error('Retry error:', err)
       alert('Failed to initiate payment retry. Please try again.')
@@ -305,7 +324,7 @@ export default function ProfilePage() {
                                 </span>
                               ) : (
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                                  {order.status}
+                                  {formatStatus(order.status)}
                                 </span>
                               )}
                             </div>
@@ -396,7 +415,7 @@ export default function ProfilePage() {
                     <p className="text-sm text-slate-600">ID: {selectedOrder.id.slice(0, 8).toUpperCase()}</p>
                     <p className="text-sm text-slate-600">Date: {formatDate(selectedOrder.createdAt)}</p>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${statusColors[selectedOrder.status]}`}>
-                      {selectedOrder.status}
+                      {formatStatus(selectedOrder.status)}
                     </span>
                   </div>
 

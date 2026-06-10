@@ -14,6 +14,7 @@ import type { StripeExpressCheckoutElementReadyEvent } from '@stripe/stripe-js'
 
 interface PaymentFormProps {
   paymentIntentId: string
+  clientSecret: string
   totalAmount: number
   reservationExpiresAt?: string
   onReservationExpired?: () => void
@@ -23,6 +24,7 @@ type PaymentTab = 'stripe' | 'paypal'
 
 export function PaymentForm({
   paymentIntentId,
+  clientSecret,
   totalAmount,
   reservationExpiresAt,
   onReservationExpired
@@ -36,6 +38,7 @@ export function PaymentForm({
   const [expressCheckoutAvailable, setExpressCheckoutAvailable] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const [isExpired, setIsExpired] = useState(false)
+  const [showFailedPopup, setShowFailedPopup] = useState(false)
   // Order id returned by PayPal create-order (the order is created at that point).
   const paypalOrderIdRef = useRef<string | null>(null)
   const clearCart = useCartStore((state) => state.clearCart)
@@ -85,10 +88,11 @@ export function PaymentForm({
     setErrorMessage(null)
 
     try {
+      const successUrl = `/order/success?payment_intent=${paymentIntentId}&payment_intent_client_secret=${encodeURIComponent(clientSecret)}`
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/order/success?payment_intent=${paymentIntentId}`,
+          return_url: `${window.location.origin}${successUrl}`,
         },
         redirect: 'if_required',
       })
@@ -100,14 +104,15 @@ export function PaymentForm({
           setErrorMessage('An unexpected error occurred')
         }
         toast.error(error.message || 'Payment failed')
+        setShowFailedPopup(true)
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         clearCart()
         toast.success('Payment successful!')
-        router.push(`/order/success?payment_intent=${paymentIntentId}`)
+        router.push(successUrl)
       } else if (paymentIntent && paymentIntent.status === 'processing') {
         clearCart()
         toast.info('Payment is processing...')
-        router.push(`/order/success?payment_intent=${paymentIntentId}`)
+        router.push(successUrl)
       } else {
         clearCart()
       }
@@ -160,15 +165,19 @@ export function PaymentForm({
       if (result.status === 'COMPLETED') {
         clearCart()
         toast.success('Payment successful!')
-        router.push(`/order/success?order_id=${orderId}`)
+        // A completed capture re-keys the order to paypal_capture_<captureId>; the
+        // captureId is the token that authorizes reading the order on the success page.
+        router.push(`/order/success?order_id=${orderId}&paypal_token=${encodeURIComponent(result.captureId ?? '')}`)
       } else {
         toast.info('Payment is being processed...')
-        router.push(`/order/success?order_id=${orderId}`)
+        // Still keyed to the Stripe intent → authorize with its client_secret.
+        router.push(`/order/success?order_id=${orderId}&payment_intent_client_secret=${encodeURIComponent(clientSecret)}`)
       }
     } catch (error) {
       console.error('PayPal capture error:', error)
       setErrorMessage('Failed to process PayPal payment')
       toast.error('PayPal payment failed. Please try again.')
+      setShowFailedPopup(true)
     } finally {
       setIsProcessing(false)
     }
@@ -331,10 +340,11 @@ export function PaymentForm({
                   setErrorMessage(null)
                   
                   try {
+                    const successUrl = `/order/success?payment_intent=${paymentIntentId}&payment_intent_client_secret=${encodeURIComponent(clientSecret)}`
                     const { error, paymentIntent } = await stripe.confirmPayment({
                       elements,
                       confirmParams: {
-                        return_url: `${window.location.origin}/order/success?payment_intent=${paymentIntentId}`,
+                        return_url: `${window.location.origin}${successUrl}`,
                       },
                       redirect: 'if_required',
                     })
@@ -342,13 +352,14 @@ export function PaymentForm({
                     if (error) {
                       setErrorMessage(error.message || 'Payment failed')
                       toast.error(error.message || 'Payment failed')
+                      setShowFailedPopup(true)
                     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
                       clearCart()
                       toast.success('Payment successful!')
-                      router.push(`/order/success?payment_intent=${paymentIntentId}`)
+                      router.push(successUrl)
                     } else {
                       clearCart()
-                      router.push(`/order/success?payment_intent=${paymentIntentId}`)
+                      router.push(successUrl)
                     }
                   } catch (err) {
                     console.error('Express checkout error:', err)
@@ -410,6 +421,7 @@ export function PaymentForm({
                     console.error('PayPal error:', err)
                     setErrorMessage('PayPal encountered an error. Please try again.')
                     toast.error('PayPal error. Please try again.')
+                    setShowFailedPopup(true)
                   }}
                   onCancel={() => {
                     toast.info('PayPal payment cancelled')
@@ -476,6 +488,32 @@ export function PaymentForm({
           <span className="text-xs text-slate-600 font-medium">Afterpay</span>
         </div>
       </div>
+
+      {/* Payment failed popup */}
+      {showFailedPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowFailedPopup(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="h-7 w-7 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Payment Failed</h3>
+            <p className="text-sm text-slate-600 mb-6">
+              Your payment could not be processed and you have not been charged. You can
+              retry now, or complete it later from your profile&apos;s orders section.
+            </p>
+            <Button
+              className="w-full"
+              onClick={() => setShowFailedPopup(false)}
+            >
+              Retry Payment
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

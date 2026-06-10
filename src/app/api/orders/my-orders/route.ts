@@ -15,6 +15,23 @@ export async function GET() {
       )
     }
 
+    // Enforce the 24h "complete payment" window: an unpaid order (a payment was
+    // attempted but never succeeded) can be completed for 24h, after which it is
+    // cleared. Lazily delete this user's expired unpaid orders on read so they
+    // stop showing a "Complete Payment" option even if the cron hasn't run.
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    await prisma.order.deleteMany({
+      where: {
+        OR: [
+          { userId: user.id },
+          { email: user.email ?? '' },
+        ],
+        status: 'PENDING',
+        paymentStatus: { in: ['PENDING', 'PROCESSING', 'FAILED'] },
+        createdAt: { lt: cutoff },
+      },
+    })
+
     // First, try to find orders by user_id
     // If user doesn't exist in our users table yet, also check by email
     const orders = await prisma.order.findMany({

@@ -55,6 +55,9 @@ function OrderSuccessContent() {
   const orderId = searchParams.get('order_id')
   const paymentIntent = searchParams.get('payment_intent')
   const redirectStatus = searchParams.get('redirect_status')
+  // Proofs of ownership so the API will return the order's details (anti-IDOR).
+  const clientSecret = searchParams.get('payment_intent_client_secret')
+  const paypalToken = searchParams.get('paypal_token')
   const clearCart = useCartStore((state) => state.clearCart)
   const [order, setOrder] = useState<Order | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -86,6 +89,8 @@ function OrderSuccessContent() {
         const params = new URLSearchParams()
         if (orderId) params.set('orderId', orderId)
         if (paymentIntent) params.set('payment_intent', paymentIntent)
+        if (clientSecret) params.set('payment_intent_client_secret', clientSecret)
+        if (paypalToken) params.set('paypal_token', paypalToken)
 
         const response = await fetch(`/api/checkout?${params.toString()}`)
         const data = await response.json()
@@ -116,7 +121,7 @@ function OrderSuccessContent() {
     }
 
     fetchOrder()
-  }, [orderId, paymentIntent])
+  }, [orderId, paymentIntent, clientSecret, paypalToken])
 
   if (isLoading) {
     return (
@@ -387,7 +392,7 @@ function OrderSuccessContent() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-slate-600">Order Status</span>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {order.status}
+                        {order.status === 'PROCESSING' ? 'Order Placed' : order.status}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">

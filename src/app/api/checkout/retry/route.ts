@@ -88,10 +88,31 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Create a fresh stock reservation so the complete-payment page behaves like a
+    // normal checkout (10-minute hold + countdown timer).
+    const RESERVATION_DURATION_MINUTES = 10
+    const expiresAt = new Date(Date.now() + RESERVATION_DURATION_MINUTES * 60 * 1000)
+    const sessionId = order.id
+
+    await prisma.stockReservation.deleteMany({
+      where: { sessionId, orderId: null },
+    })
+    await prisma.stockReservation.createMany({
+      data: order.items.map(item => ({
+        sessionId,
+        productId: item.productId,
+        quantity: item.quantity,
+        expiresAt,
+        orderId: null,
+      })),
+    })
+
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       orderId: order.id,
       paymentIntentId: paymentIntent.id,
+      reservationSessionId: sessionId,
+      reservationExpiresAt: expiresAt.toISOString(),
     })
   } catch (error) {
     console.error('Retry payment error:', error)

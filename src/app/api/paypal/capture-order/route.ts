@@ -80,15 +80,16 @@ export async function POST(request: NextRequest) {
     const captureStatus = captureData.status
 
     if (captureStatus === 'COMPLETED') {
-      // Payment succeeded — update order
-      const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id
+      // Payment succeeded — update order. `captureId` is the stable, unguessable
+      // token the success page presents to authorize reading the order details.
+      const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id || paypalOrderId
 
       await prisma.order.update({
         where: { id: orderId },
         data: {
           paymentStatus: 'SUCCEEDED',
           status: 'PROCESSING',
-          stripePaymentIntent: `paypal_capture_${captureId || paypalOrderId}`,
+          stripePaymentIntent: `paypal_capture_${captureId}`,
         },
       })
 

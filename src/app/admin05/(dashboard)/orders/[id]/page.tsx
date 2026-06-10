@@ -149,6 +149,14 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                       {Number(order.shippingCost) === 0 ? 'Free' : formatCurrency(Number(order.shippingCost))}
                     </span>
                   </div>
+                  {Number(order.discountAmount) > 0 && (
+                    <div className="flex justify-between text-sm text-red-600">
+                      <span>
+                        Discount{order.couponCode ? ` (${order.couponCode})` : ''}
+                      </span>
+                      <span>-{formatCurrency(Number(order.discountAmount))}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">GST (included)</span>
                     <span>{formatCurrency(Number(order.gst))}</span>

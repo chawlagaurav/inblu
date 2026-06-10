@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
-import { Menu, ShoppingCart, X, User, LogOut, Package, ChevronDown, Truck, RotateCcw, FileText, Phone, Search, MessageSquare, Wrench } from 'lucide-react'
+import { Menu, ShoppingCart, X, User, LogOut, Package, ChevronDown, Truck, RotateCcw, FileText, Phone, Search, MessageSquare, Wrench, ArrowRight } from 'lucide-react'
+import type { Product } from '@/types'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/cart'
@@ -13,9 +14,15 @@ import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'Products', href: '/products' },
   { name: 'About', href: '/about' },
 ]
+
+interface Category {
+  id: string
+  value: string
+  label: string
+  imageUrl?: string
+}
 
 const supportItems = [
   { name: 'Service Request', href: '/support/service-request', icon: Wrench },
@@ -30,12 +37,19 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false)
+  const [productsDropdownOpen, setProductsDropdownOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
+  const [categoryProducts, setCategoryProducts] = useState<Record<string, Product[]>>({})
   const dropdownRef = useRef<HTMLDivElement>(null)
   const supportDropdownRef = useRef<HTMLDivElement>(null)
+  const productsDropdownRef = useRef<HTMLDivElement>(null)
+  const supportCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const productsCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { setIsOpen, getItemCount } = useCartStore()
   const itemCount = mounted ? getItemCount() : 0
 
@@ -43,6 +57,54 @@ export function Header() {
   useEffect(() => {
     queueMicrotask(() => setMounted(true))
   }, [])
+
+  // Fetch categories for Products mega-menu
+  useEffect(() => {
+    fetch('/api/admin/categories')
+      .then(r => r.json())
+      .then((data: Category[]) => {
+        if (Array.isArray(data)) setCategories(data.filter(c => (c as { isActive?: boolean }).isActive !== false))
+      })
+      .catch(() => {})
+  }, [])
+
+  function loadCategoryProducts(categoryValue: string) {
+    if (categoryProducts[categoryValue]) return
+    fetch(`/api/products?category=${encodeURIComponent(categoryValue)}&limit=4`)
+      .then(r => r.json())
+      .then((data: Product[]) => {
+        if (Array.isArray(data)) {
+          setCategoryProducts(prev => ({ ...prev, [categoryValue]: data }))
+        }
+      })
+      .catch(() => {})
+  }
+
+  // Products dropdown hover handlers
+  const handleProductsEnter = () => {
+    if (productsCloseTimer.current) clearTimeout(productsCloseTimer.current)
+    setProductsDropdownOpen(true)
+    if (categories.length > 0 && !hoveredCategory) {
+      const first = categories[0].value
+      setHoveredCategory(first)
+      loadCategoryProducts(first)
+    }
+  }
+  const handleProductsLeave = () => {
+    productsCloseTimer.current = setTimeout(() => {
+      setProductsDropdownOpen(false)
+      setHoveredCategory(null)
+    }, 150)
+  }
+
+  // Support dropdown hover handlers
+  const handleSupportEnter = () => {
+    if (supportCloseTimer.current) clearTimeout(supportCloseTimer.current)
+    setSupportDropdownOpen(true)
+  }
+  const handleSupportLeave = () => {
+    supportCloseTimer.current = setTimeout(() => setSupportDropdownOpen(false), 150)
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -174,11 +236,131 @@ export function Header() {
               {item.name}
             </Link>
           ))}
-          
+
+          {/* Products Mega Dropdown */}
+          <div
+            className="relative"
+            ref={productsDropdownRef}
+            onMouseEnter={handleProductsEnter}
+            onMouseLeave={handleProductsLeave}
+          >
+            <button className="flex items-center gap-1 text-sm font-semibold leading-6 text-slate-700 hover:text-blue-600 transition-colors">
+              Products
+              <ChevronDown className={`h-4 w-4 transition-transform ${productsDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <AnimatePresence>
+              {productsDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="absolute left-0 mt-3 w-[640px] rounded-2xl bg-white shadow-xl ring-1 ring-blue-100 z-50 flex overflow-hidden"
+                >
+                  {/* Categories column */}
+                  <div className="w-52 bg-slate-50 border-r border-blue-100 py-3 flex-shrink-0">
+                    <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">Categories</p>
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        className={`w-full text-left flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
+                          hoveredCategory === cat.value
+                            ? 'bg-blue-50 text-blue-700 font-semibold'
+                            : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                        onMouseEnter={() => {
+                          setHoveredCategory(cat.value)
+                          loadCategoryProducts(cat.value)
+                        }}
+                      >
+                        <span>{cat.label}</span>
+                        <ChevronDown className="h-3.5 w-3.5 -rotate-90 opacity-40" />
+                      </button>
+                    ))}
+                    <div className="px-4 pt-3 mt-2 border-t border-blue-100">
+                      <Link
+                        href="/products"
+                        onClick={() => setProductsDropdownOpen(false)}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                      >
+                        All Products <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Products preview column */}
+                  <div className="flex-1 p-4">
+                    {hoveredCategory ? (
+                      <>
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
+                          {categories.find(c => c.value === hoveredCategory)?.label}
+                        </p>
+                        {categoryProducts[hoveredCategory] ? (
+                          categoryProducts[hoveredCategory].length > 0 ? (
+                            <div className="grid grid-cols-2 gap-3">
+                              {categoryProducts[hoveredCategory].slice(0, 4).map((product) => (
+                                <Link
+                                  key={product.id}
+                                  href={`/products/${product.slug || product.id}`}
+                                  onClick={() => setProductsDropdownOpen(false)}
+                                  className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-blue-50 transition-colors group"
+                                >
+                                  {product.imageUrl ? (
+                                    <img
+                                      src={product.imageUrl}
+                                      alt={product.name}
+                                      className="h-12 w-12 rounded-lg object-cover flex-shrink-0 border border-slate-200"
+                                    />
+                                  ) : (
+                                    <div className="h-12 w-12 rounded-lg bg-blue-100 flex-shrink-0" />
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-medium text-slate-800 leading-tight line-clamp-2 group-hover:text-blue-700">{product.name}</p>
+                                    <p className="text-xs text-blue-600 font-semibold mt-0.5">${Number(product.price).toFixed(2)}</p>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-slate-400 mt-4 text-center">No products in this category</p>
+                          )
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3">
+                            {[...Array(4)].map((_, i) => (
+                              <div key={i} className="flex items-center gap-2.5 p-2">
+                                <div className="h-12 w-12 rounded-lg bg-slate-100 animate-pulse flex-shrink-0" />
+                                <div className="flex-1 space-y-1.5">
+                                  <div className="h-3 bg-slate-100 rounded animate-pulse" />
+                                  <div className="h-3 w-2/3 bg-slate-100 rounded animate-pulse" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <Link
+                          href={`/products?category=${hoveredCategory}`}
+                          onClick={() => setProductsDropdownOpen(false)}
+                          className="mt-3 flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                        >
+                          View all in {categories.find(c => c.value === hoveredCategory)?.label} <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </>
+                    ) : (
+                      <p className="text-sm text-slate-400 mt-6 text-center">Hover a category to preview</p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {/* Support Dropdown */}
-          <div className="relative" ref={supportDropdownRef}>
+          <div
+            className="relative"
+            ref={supportDropdownRef}
+            onMouseEnter={handleSupportEnter}
+            onMouseLeave={handleSupportLeave}
+          >
             <button
-              onClick={() => setSupportDropdownOpen(!supportDropdownOpen)}
               className="flex items-center gap-1 text-sm font-semibold leading-6 text-slate-700 hover:text-blue-600 transition-colors"
             >
               Support
@@ -354,7 +536,33 @@ export function Header() {
                     {item.name}
                   </Link>
                 ))}
+                <Link
+                  href="/products"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-xl px-3 py-3 text-base font-semibold text-slate-700 hover:bg-blue-50 transition-colors"
+                >
+                  Products
+                </Link>
               </div>
+
+              {/* Categories Section */}
+              {categories.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-blue-100">
+                  <p className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Shop by Category</p>
+                  <div className="space-y-1">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        href={`/products?category=${cat.value}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                      >
+                        {cat.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* Support Section */}
               <div className="mt-4 pt-4 border-t border-blue-100">

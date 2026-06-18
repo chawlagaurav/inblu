@@ -80,7 +80,7 @@ export default function NewProductPage() {
 
     try {
       // Validate required fields
-      if (!formData.name || !formData.description || !formData.price || !formData.stock || formData.categories.length === 0) {
+      if (!formData.name || !formData.description || !formData.price || formData.categories.length === 0) {
         toast.error('Please fill in all required fields (including at least one category)')
         setIsLoading(false)
         return

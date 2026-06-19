@@ -127,14 +127,14 @@ export default function AdminTestimonialsPage() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Testimonials</h1>
             <p className="text-slate-500 mt-1">
               Manage customer reviews and testimonials ({approvedCount} approved, {pendingCount} pending)
             </p>
           </div>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/admin05/testimonials/new">
               <Plus className="h-4 w-4 mr-2" />
               Add Testimonial
@@ -163,8 +163,8 @@ export default function AdminTestimonialsPage() {
           {testimonials.map((testimonial) => (
             <StaggerItem key={testimonial.id}>
               <Card className={!testimonial.isApproved ? 'opacity-70' : ''}>
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4 flex-wrap sm:flex-nowrap">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
                       {testimonial.authorAvatar ? (

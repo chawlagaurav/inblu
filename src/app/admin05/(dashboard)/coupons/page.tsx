@@ -187,12 +187,12 @@ export default function AdminCouponsPage() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Coupons</h1>
             <p className="text-slate-500 mt-1">Manage discount coupons for your store</p>
           </div>
-          <Button onClick={openCreate}>
+          <Button onClick={openCreate} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Create Coupon
           </Button>
@@ -216,8 +216,8 @@ export default function AdminCouponsPage() {
           coupons.map((coupon) => (
             <StaggerItem key={coupon.id}>
               <Card className={!coupon.isActive ? 'opacity-60' : ''}>
-                <CardContent className="py-4">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                <CardContent className="p-4 sm:py-4 sm:px-6">
+                  <div className="flex items-start sm:items-center justify-between gap-3 sm:gap-4 flex-wrap">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         coupon.discountType === 'percentage' ? 'bg-blue-100' : 'bg-emerald-100'
@@ -285,7 +285,7 @@ export default function AdminCouponsPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-full sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingId ? 'Edit Coupon' : 'Create Coupon'}</DialogTitle>
           </DialogHeader>
@@ -374,7 +374,7 @@ export default function AdminCouponsPage() {
             </div>
 
             {/* Min Order & Max Discount */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="coupon_min">Min Order Amount ($)</Label>
                 <Input
@@ -417,7 +417,7 @@ export default function AdminCouponsPage() {
             </div>
 
             {/* Date Range */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="coupon_start">Start Date</Label>
                 <Input

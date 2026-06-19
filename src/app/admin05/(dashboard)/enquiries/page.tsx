@@ -165,7 +165,7 @@ export default function AdminEnquiriesPage() {
               Manage customer enquiries from the contact form &middot; {filtered.length} enquir{filtered.length !== 1 ? 'ies' : 'y'}
             </p>
           </div>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <a href="/support/enquiry" target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-4 w-4 mr-2" />
               Create Enquiry

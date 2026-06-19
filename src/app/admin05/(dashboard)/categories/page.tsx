@@ -171,14 +171,14 @@ export default function AdminCategoriesPage() {
 
   return (
     <FadeIn className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Categories</h1>
           <p className="text-sm text-slate-600 mt-1">
             Manage product categories for your store
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-2">
+        <Button onClick={openCreate} className="gap-2 w-full sm:w-auto">
           <Plus className="h-4 w-4" />
           Add Category
         </Button>
@@ -271,7 +271,7 @@ export default function AdminCategoriesPage() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-full sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Edit Category' : 'New Category'}

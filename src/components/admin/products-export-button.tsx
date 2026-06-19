@@ -35,7 +35,7 @@ export function ProductsExportButton() {
   }
 
   return (
-    <Button variant="outline" onClick={handleExport} disabled={exporting}>
+    <Button variant="outline" onClick={handleExport} disabled={exporting} className="w-full sm:w-auto">
       {exporting ? (
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
       ) : (

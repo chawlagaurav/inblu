@@ -167,8 +167,8 @@ export default function PurchaseOrdersPage() {
             <h1 className="text-3xl font-bold text-slate-900">Purchase Orders</h1>
             <p className="text-slate-500 mt-1">Track all stock-in purchase orders and documents</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport} disabled={exporting || purchaseOrders.length === 0}>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={handleExport} disabled={exporting || purchaseOrders.length === 0} className="w-full sm:w-auto">
               {exporting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -176,7 +176,7 @@ export default function PurchaseOrdersPage() {
               )}
               Export
             </Button>
-            <Button onClick={() => setAddPOOpen(true)}>
+            <Button onClick={() => setAddPOOpen(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Purchase Order
             </Button>
@@ -186,7 +186,7 @@ export default function PurchaseOrdersPage() {
 
       {/* Summary Cards */}
       <FadeIn delay={0.05}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
             <CardContent className="p-4">
               <p className="text-sm text-slate-500">Total POs</p>

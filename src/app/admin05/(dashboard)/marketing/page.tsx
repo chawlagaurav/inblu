@@ -347,7 +347,7 @@ export default function AdminMarketingPage() {
               {/* CTA Button */}
               <div className="space-y-4 p-4 bg-slate-50 rounded-lg">
                 <h4 className="font-medium text-slate-900">Call-to-Action Button</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="hero_cta_text">Button Text</Label>
                     <div className="flex gap-2">

@@ -388,14 +388,14 @@ export function DashboardStats({
             ))}
           </div>
           {showCustom && (
-            <div className="flex items-center gap-4 mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500">From:</span>
                 <Input
                   type="date"
                   value={customFrom}
                   onChange={(e) => setCustomFrom(e.target.value)}
-                  className="w-40"
+                  className="w-full sm:w-40"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -404,7 +404,7 @@ export function DashboardStats({
                   type="date"
                   value={customTo}
                   onChange={(e) => setCustomTo(e.target.value)}
-                  className="w-40"
+                  className="w-full sm:w-40"
                 />
               </div>
             </div>

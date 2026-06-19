@@ -350,10 +350,10 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
             Manage customer orders &middot; {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={() => setShowAddOrderModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Add Order
@@ -361,7 +361,7 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
           <Button
             onClick={handleExport}
             disabled={exporting || filteredOrders.length === 0}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 w-full sm:w-auto"
           >
             <Download className="h-4 w-4" />
             {exporting ? 'Exporting...' : 'Export to Excel'}

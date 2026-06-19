@@ -52,9 +52,9 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
             <h1 className="text-3xl font-bold text-slate-900">Products</h1>
             <p className="text-slate-500 mt-1">Manage your product catalog</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <ProductsExportButton />
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link href="/admin05/products/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Product

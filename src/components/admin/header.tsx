@@ -6,6 +6,7 @@ import { Menu, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
+import { useAdminUi } from '@/store/admin-ui'
 
 interface AdminHeaderProps {
   user: User
@@ -14,6 +15,7 @@ interface AdminHeaderProps {
 export function AdminHeader({ user }: AdminHeaderProps) {
   const router = useRouter()
   const supabase = createClient()
+  const openMobileNav = useAdminUi((s) => s.openMobileNav)
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -22,9 +24,14 @@ export function AdminHeader({ user }: AdminHeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-blue-100">
-      <div className="flex items-center justify-between h-16 px-6">
+      <div className="flex items-center justify-between h-16 px-4 sm:px-6">
         {/* Mobile menu button */}
-        <button className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-blue-50">
+        <button
+          type="button"
+          aria-label="Open navigation menu"
+          onClick={openMobileNav}
+          className="lg:hidden p-2 -ml-2 rounded-xl text-slate-600 hover:bg-blue-50"
+        >
           <Menu className="h-6 w-6" />
         </button>
 
@@ -32,9 +39,9 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         <div className="flex-1 lg:ml-0"></div>
 
         {/* Right side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {/* User menu */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-blue-100 text-blue-700 text-sm">
                 {user.email?.charAt(0).toUpperCase()}

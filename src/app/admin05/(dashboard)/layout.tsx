@@ -37,7 +37,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <AdminSidebar />
       <div className="lg:pl-64">
         <AdminHeader user={user} />
-        <main className="p-6">{children}</main>
+        <main className="p-4 sm:p-6 min-w-0 max-w-full overflow-x-hidden">{children}</main>
       </div>
     </div>
   )

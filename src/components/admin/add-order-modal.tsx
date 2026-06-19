@@ -271,11 +271,11 @@ export function AddOrderModal({ isOpen, onClose, onSuccess, editOrder }: AddOrde
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-start justify-between gap-3 p-4 sm:p-6 border-b">
           <div>
             <h2 className="text-xl font-bold text-slate-900">{isEditMode ? 'Edit Order' : 'Add Manual Order'}</h2>
             <p className="text-sm text-slate-500">{isEditMode ? 'Update order details' : 'Create an order for offline sales'}</p>

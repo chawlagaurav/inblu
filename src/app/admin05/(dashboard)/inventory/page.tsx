@@ -36,7 +36,7 @@ export default async function AdminInventoryPage() {
       </FadeIn>
 
       {/* Stats */}
-      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StaggerItem>
           <Card>
             <CardContent className="p-4 flex items-center gap-4">

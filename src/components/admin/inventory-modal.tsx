@@ -143,7 +143,7 @@ export function InventoryModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-full sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Update Stock</DialogTitle>
           <DialogDescription>

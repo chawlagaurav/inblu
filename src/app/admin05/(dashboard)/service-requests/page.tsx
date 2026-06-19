@@ -276,8 +276,8 @@ export default function AdminServiceRequestsPage() {
             <h1 className="text-3xl font-bold text-slate-900">Service Requests</h1>
             <p className="text-slate-500 mt-1">Manage and track customer service requests</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button asChild variant="outline" className="w-full sm:w-auto">
               <a href="/support/service-request" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Create Service Request
@@ -288,6 +288,7 @@ export default function AdminServiceRequestsPage() {
                 variant="destructive"
                 onClick={handleBulkDelete}
                 disabled={bulkDeleting}
+                className="w-full sm:w-auto"
               >
                 {bulkDeleting ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -303,7 +304,7 @@ export default function AdminServiceRequestsPage() {
 
       {/* Stats */}
       <FadeIn delay={0.05}>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-slate-900">{stats.total}</p>

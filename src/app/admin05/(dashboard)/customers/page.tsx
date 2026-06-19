@@ -166,12 +166,13 @@ export default function AdminCustomersPage() {
             <h1 className="text-3xl font-bold text-slate-900">Customers</h1>
             <p className="text-slate-500 mt-1">Manage your customers</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             {someSelected && (
               <Button
                 variant="destructive"
                 onClick={handleDeleteSelected}
                 disabled={deleting}
+                className="w-full sm:w-auto"
               >
                 {deleting ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -186,7 +187,7 @@ export default function AdminCustomersPage() {
                 ...(searchQuery ? { search: searchQuery } : {}),
                 ...(typeFilter !== 'all' ? { type: typeFilter } : {}),
               }).toString()}`}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors w-full sm:w-auto"
             >
               <Download className="h-4 w-4" />
               Export to Excel

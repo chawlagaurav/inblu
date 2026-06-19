@@ -26,9 +26,11 @@ export function ProductsGrid({ products, category, search }: ProductsGridProps) 
   let filteredProducts = products
   
   if (category && category !== 'all') {
-    filteredProducts = filteredProducts.filter(
-      (p) => p.category.toLowerCase() === category.toLowerCase()
-    )
+    const target = category.toLowerCase()
+    filteredProducts = filteredProducts.filter((p) => {
+      if (p.category?.toLowerCase() === target) return true
+      return (p.categories ?? []).some((c) => c.toLowerCase() === target)
+    })
   }
   
   if (search) {

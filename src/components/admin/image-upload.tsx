@@ -163,6 +163,9 @@ export function ImageUpload({ value, onChange, folder = 'products', className }:
                   Drag and drop an image, or click to browse
                 </p>
                 <p className="text-xs text-slate-400">PNG, JPG, WebP up to 5MB</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Recommended: 1000×1000 px square (1:1), subject centered
+                </p>
               </>
             )}
           </label>
@@ -348,6 +351,9 @@ export function MultiImageUpload({
       {values.length > 0 && (
         <p className="text-xs text-slate-500 mb-2">Drag images to reorder. First image will be the main image.</p>
       )}
+      <p className="text-xs text-slate-400 mb-2">
+        Recommended: 1000×1000 px square (1:1), subject centered, PNG/JPG/WebP up to 5MB. Non-square images will be cropped.
+      </p>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

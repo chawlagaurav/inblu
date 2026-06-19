@@ -11,16 +11,30 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
 
     const where: Record<string, unknown> = {}
+    const andClauses: Array<Record<string, unknown>> = []
 
     if (category) {
-      where.category = category
+      // Match legacy single `category` field OR `categories[]` array,
+      // so products tagged with multiple categories show under each one.
+      andClauses.push({
+        OR: [
+          { category },
+          { categories: { has: category } },
+        ],
+      })
     }
 
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ]
+      andClauses.push({
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      })
+    }
+
+    if (andClauses.length > 0) {
+      where.AND = andClauses
     }
 
     const products = await prisma.product.findMany({

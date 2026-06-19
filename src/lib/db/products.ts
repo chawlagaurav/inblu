@@ -56,16 +56,30 @@ export async function getProducts(options?: {
   const where: Record<string, unknown> = {
     isActive: true,
   }
+  const andClauses: Array<Record<string, unknown>> = []
 
   if (category && category !== 'all') {
-    where.category = category
+    // Match against legacy single `category` field OR the `categories[]` array,
+    // so products with multiple categories show under each one.
+    andClauses.push({
+      OR: [
+        { category },
+        { categories: { has: category } },
+      ],
+    })
   }
 
   if (search) {
-    where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-    ]
+    andClauses.push({
+      OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ],
+    })
+  }
+
+  if (andClauses.length > 0) {
+    where.AND = andClauses
   }
 
   if (bestSellersOnly) {
@@ -190,7 +204,7 @@ export async function getRelatedProducts(
   // First, get the current product to check for manually set related products
   const currentProduct = await prisma.product.findUnique({
     where: { id: productId },
-    select: { relatedProductIds: true },
+    select: { relatedProductIds: true, categories: true },
   })
 
   // If there are manually set related products, fetch those
@@ -205,12 +219,24 @@ export async function getRelatedProducts(
     return products.map(transformProduct)
   }
 
-  // Fall back to category-based related products
+  // Fall back to category-based related products. Match the legacy single
+  // `category` field OR any overlap with the current product's `categories[]`,
+  // so multi-category products surface relevant siblings.
+  const productCategories = currentProduct?.categories ?? []
+  const categoryClauses: Array<Record<string, unknown>> = [{ category }]
+  if (productCategories.length > 0) {
+    categoryClauses.push({ categories: { hasSome: productCategories } })
+  } else if (category) {
+    categoryClauses.push({ categories: { has: category } })
+  }
+
   const products = await prisma.product.findMany({
     where: {
-      category,
-      id: { not: productId },
-      isActive: true,
+      AND: [
+        { OR: categoryClauses },
+        { id: { not: productId } },
+        { isActive: true },
+      ],
     },
     take: limit,
     orderBy: { displayOrder: 'asc' },

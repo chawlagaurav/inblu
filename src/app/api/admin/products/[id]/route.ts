@@ -13,6 +13,28 @@ function generateSlug(name: string): string {
     .replace(/^-|-$/g, '')         // Remove leading/trailing hyphens
 }
 
+/** See `src/app/api/admin/products/route.ts` for documentation. */
+function validateDiscount(input: {
+  price: number
+  isOnSale: boolean
+  discountPercent: number | null
+  salePrice: number | null
+}): string | null {
+  if (!input.isOnSale) return null
+  const hasPercent = input.discountPercent != null
+  const hasFixed = input.salePrice != null
+  if (hasPercent === hasFixed) {
+    return 'Provide exactly one of discountPercent or salePrice when on sale'
+  }
+  if (hasPercent && (input.discountPercent! < 1 || input.discountPercent! > 99)) {
+    return 'discountPercent must be between 1 and 99'
+  }
+  if (hasFixed && (input.salePrice! <= 0 || input.salePrice! >= input.price)) {
+    return 'salePrice must be greater than 0 and less than the regular price'
+  }
+  return null
+}
+
 // Verify admin access
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -74,12 +96,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { id } = await params
     const body = await request.json()
 
-    const { 
-      name, 
-      description, 
-      price, 
-      stock, 
-      category, 
+    const {
+      name,
+      description,
+      price,
+      stock,
+      category,
       categories,
       imageUrl,
       images,
@@ -89,12 +111,41 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       serviceTenureMonths,
       relatedProductIds,
       isBestSeller,
-      isActive
+      isActive,
+      isOnSale,
+      discountPercent,
+      salePrice,
     } = body
 
     // Get current product to check if name changed
     const currentProduct = await prisma.product.findUnique({ where: { id } })
-    
+    if (!currentProduct) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
+
+    // Resolve the price the discount should validate against — incoming `price`
+    // wins, otherwise fall back to the existing one. This lets the admin lower
+    // the regular price below an existing salePrice (validation will catch it
+    // and force them to fix it in the same save).
+    const resolvedPrice = price != null ? Number(price) : Number(currentProduct.price)
+    const normalisedDiscountPercent = discountPercent === undefined
+      ? (currentProduct.discountPercent ?? null)
+      : (discountPercent == null || discountPercent === '' ? null : Number(discountPercent))
+    const normalisedSalePrice = salePrice === undefined
+      ? (currentProduct.salePrice == null ? null : Number(currentProduct.salePrice))
+      : (salePrice == null || salePrice === '' ? null : Number(salePrice))
+    const normalisedIsOnSale = isOnSale === undefined ? currentProduct.isOnSale : !!isOnSale
+
+    const discountError = validateDiscount({
+      price: resolvedPrice,
+      isOnSale: normalisedIsOnSale,
+      discountPercent: normalisedDiscountPercent,
+      salePrice: normalisedSalePrice,
+    })
+    if (discountError) {
+      return NextResponse.json({ error: discountError }, { status: 400 })
+    }
+
     // Generate new slug if name changed
     let newSlug = currentProduct?.slug
     if (name && currentProduct && name !== currentProduct.name) {
@@ -125,6 +176,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         relatedProductIds: relatedProductIds ?? undefined,
         isBestSeller,
         isActive,
+        // Persist discount fields when explicitly present in the body. Use the
+        // already-validated normalised values so an empty string from the form
+        // becomes `null`.
+        ...(isOnSale !== undefined ? { isOnSale: normalisedIsOnSale } : {}),
+        ...(discountPercent !== undefined ? { discountPercent: normalisedDiscountPercent } : {}),
+        ...(salePrice !== undefined ? { salePrice: normalisedSalePrice } : {}),
       },
     })
 

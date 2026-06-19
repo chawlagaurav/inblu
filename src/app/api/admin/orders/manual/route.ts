@@ -55,8 +55,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Manual orders trust the admin's input price for each line item. Admins
+    // legitimately override prices for offline negotiations, comp'd items, etc.
+    // — so unlike `/api/checkout`, we do NOT recompute via getEffectivePrice
+    // here. The admin UI is responsible for pre-filling sensible defaults.
     // Calculate GST (10% of subtotal)
-    const calculatedSubtotal = subtotal || items.reduce((sum: number, item: { price: number; quantity: number }) => 
+    const calculatedSubtotal = subtotal || items.reduce((sum: number, item: { price: number; quantity: number }) =>
       sum + (item.price * item.quantity), 0)
     const gst = calculatedSubtotal * 0.1
     const calculatedTotal = totalAmount || (calculatedSubtotal + (shippingCost || 0) - (discountAmount || 0))

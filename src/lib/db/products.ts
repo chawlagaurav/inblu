@@ -18,6 +18,9 @@ function transformProduct(product: {
   category: string
   categories: string[]
   isBestSeller: boolean
+  isOnSale: boolean
+  discountPercent: number | null
+  salePrice: unknown
   manualUrl: string | null
   relatedProductIds?: string[]
   createdAt: Date
@@ -35,6 +38,9 @@ function transformProduct(product: {
     category: product.category,
     categories: product.categories || [],
     isBestSeller: product.isBestSeller,
+    isOnSale: product.isOnSale ?? false,
+    discountPercent: product.discountPercent ?? null,
+    salePrice: product.salePrice == null ? null : Number(product.salePrice),
     manualUrl: product.manualUrl ?? undefined,
     relatedProductIds: product.relatedProductIds || [],
     createdAt: product.createdAt,

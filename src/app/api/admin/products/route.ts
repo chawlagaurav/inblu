@@ -53,6 +53,36 @@ function generateSlug(name: string): string {
     .replace(/^-|-$/g, '')         // Remove leading/trailing hyphens
 }
 
+/**
+ * Validate per-product discount fields. Returns null if valid, otherwise an
+ * error message suitable for a 400 response.
+ *
+ * Rules: when `isOnSale` is true, exactly one of `discountPercent` or
+ * `salePrice` must be set. Percent must be 1..99. SalePrice must be > 0 and
+ * < price. When `isOnSale` is false we accept any draft values; the pricing
+ * helper ignores them.
+ */
+function validateDiscount(input: {
+  price: number
+  isOnSale: boolean
+  discountPercent: number | null
+  salePrice: number | null
+}): string | null {
+  if (!input.isOnSale) return null
+  const hasPercent = input.discountPercent != null
+  const hasFixed = input.salePrice != null
+  if (hasPercent === hasFixed) {
+    return 'Provide exactly one of discountPercent or salePrice when on sale'
+  }
+  if (hasPercent && (input.discountPercent! < 1 || input.discountPercent! > 99)) {
+    return 'discountPercent must be between 1 and 99'
+  }
+  if (hasFixed && (input.salePrice! <= 0 || input.salePrice! >= input.price)) {
+    return 'salePrice must be greater than 0 and less than the regular price'
+  }
+  return null
+}
+
 // POST create new product
 export async function POST(request: NextRequest) {
   try {
@@ -62,12 +92,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { 
-      name, 
-      description, 
-      price, 
-      stock, 
-      category, 
+    const {
+      name,
+      description,
+      price,
+      stock,
+      category,
       categories,
       imageUrl,
       images,
@@ -76,12 +106,27 @@ export async function POST(request: NextRequest) {
       manualUrl,
       serviceTenureMonths,
       isBestSeller,
-      isActive
+      isActive,
+      isOnSale,
+      discountPercent,
+      salePrice,
     } = body
+
+    // Validate discount fields against the resolved price.
+    const numericPrice = Number(price)
+    const discountError = validateDiscount({
+      price: numericPrice,
+      isOnSale: !!isOnSale,
+      discountPercent: discountPercent == null || discountPercent === '' ? null : Number(discountPercent),
+      salePrice: salePrice == null || salePrice === '' ? null : Number(salePrice),
+    })
+    if (discountError) {
+      return NextResponse.json({ error: discountError }, { status: 400 })
+    }
 
     // Generate slug from name
     let slug = generateSlug(name)
-    
+
     // Check if slug exists and make it unique if necessary
     const existingProduct = await prisma.product.findUnique({ where: { slug } })
     if (existingProduct) {
@@ -105,6 +150,9 @@ export async function POST(request: NextRequest) {
         serviceTenureMonths: serviceTenureMonths ?? 6,
         isBestSeller: isBestSeller || false,
         isActive: isActive ?? true,
+        isOnSale: !!isOnSale,
+        discountPercent: discountPercent == null || discountPercent === '' ? null : Number(discountPercent),
+        salePrice: salePrice == null || salePrice === '' ? null : Number(salePrice),
       },
     })
 

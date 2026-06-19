@@ -9,9 +9,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StaggerContainer, StaggerItem } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
-import { formatCurrency } from '@/lib/utils'
 import { Product } from '@/types'
 import { buildCategoryLabelMap, resolveProductCategoryLabel } from '@/lib/category-display'
+import { PriceDisplay, SaleBadge } from '@/components/products/price-display'
+import { getPriceBreakdown } from '@/lib/pricing'
 import { toast } from 'sonner'
 
 interface ProductsGridProps {
@@ -112,8 +113,15 @@ function ProductCard({
           </div>
         )}
         
+        {/* Sale + best-seller badges. Sale takes the priority `top-left` slot;
+            best-seller moves to top-right when both apply so they don't overlap. */}
+        <SaleBadge product={product} className="absolute top-3 left-3 z-10" />
         {product.isBestSeller && (
-          <Badge className="absolute top-3 left-3">Best Seller</Badge>
+          <Badge
+            className={getPriceBreakdown(product).isOnSale ? 'absolute top-3 right-3' : 'absolute top-3 left-3'}
+          >
+            Best Seller
+          </Badge>
         )}
 
         {/* Quick actions - hidden on mobile, visible on desktop hover */}
@@ -146,9 +154,7 @@ function ProductCard({
           </div>
           
           <div className="flex items-center justify-between">
-            <span className="text-xl font-bold text-slate-900">
-              {formatCurrency(product.price)}
-            </span>
+            <PriceDisplay product={product} size="md" />
           </div>
         </CardContent>
       </Card>

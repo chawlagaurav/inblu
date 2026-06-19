@@ -9,8 +9,9 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { FadeInOnScroll, StaggerContainer, StaggerItem } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
-import { formatCurrency } from '@/lib/utils'
 import { Product } from '@/types'
+import { PriceDisplay, SaleBadge } from '@/components/products/price-display'
+import { getPriceBreakdown } from '@/lib/pricing'
 import { toast } from 'sonner'
 
 interface BestSellersProps {
@@ -88,8 +89,13 @@ function ProductCard({
             </span>
           </div>
         )}
+        <SaleBadge product={product} className="absolute top-3 left-3 z-10" />
         {product.isBestSeller && (
-          <Badge className="absolute top-3 left-3">Best Seller</Badge>
+          <Badge
+            className={getPriceBreakdown(product).isOnSale ? 'absolute top-3 right-3' : 'absolute top-3 left-3'}
+          >
+            Best Seller
+          </Badge>
         )}
         {/* Quick actions - hidden on mobile, visible on desktop hover */}
         <div className="absolute inset-0 bg-black/5 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
@@ -112,9 +118,7 @@ function ProductCard({
             {product.name}
           </h3>
           <div className="mt-3 flex items-center justify-between">
-            <span className="text-lg font-bold text-slate-900">
-              {formatCurrency(product.price)}
-            </span>
+            <PriceDisplay product={product} size="md" />
           </div>
         </CardContent>
       </Card>

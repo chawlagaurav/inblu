@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
+import { getEffectivePrice } from '@/lib/pricing'
 import { formatCurrency, calculateGST } from '@/lib/utils'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
@@ -122,7 +123,7 @@ export function OrderSummary() {
                     <p className="text-sm text-slate-500">Qty: {item.quantity}</p>
                   </div>
                   <p className="text-sm font-medium text-slate-900">
-                    {formatCurrency(item.product.price * item.quantity)}
+                    {formatCurrency(getEffectivePrice(item.product) * item.quantity)}
                   </p>
                 </li>
               ))}

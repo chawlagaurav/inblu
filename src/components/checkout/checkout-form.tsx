@@ -17,6 +17,7 @@ import { useCartStore } from '@/store/cart'
 import { ShippingAddress, CheckoutResponse } from '@/types'
 import { toast } from 'sonner'
 import { formatCurrency, calculateGST } from '@/lib/utils'
+import { getEffectivePrice } from '@/lib/pricing'
 
 const australianStates = [
   { value: 'NSW', label: 'New South Wales' },
@@ -314,7 +315,10 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
           items: items.map((item) => ({
             productId: item.product.id,
             name: item.product.name,
-            price: item.product.price,
+            // Send the helper output so client-side total agrees with what the
+            // server will actually charge. The server still re-fetches and
+            // recomputes from DB — this value is for UX only.
+            price: getEffectivePrice(item.product),
             quantity: item.quantity,
             imageUrl: item.product.imageUrl,
           })),

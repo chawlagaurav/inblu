@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { CartItem, Product } from '@/types'
+import { getEffectivePrice } from '@/lib/pricing'
 
 interface AppliedCoupon {
   code: string
@@ -79,7 +80,10 @@ export const useCartStore = create<CartStore>()(
 
       getTotal: () => {
         return get().items.reduce(
-          (total, item) => total + item.product.price * item.quantity,
+          // Use the helper so per-product sale prices flow into the total. The
+          // server still recomputes from the DB at checkout — this is purely
+          // for the UI total to agree with what we'll bill.
+          (total, item) => total + getEffectivePrice(item.product) * item.quantity,
           0
         )
       },

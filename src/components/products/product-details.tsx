@@ -14,6 +14,8 @@ import { useCartStore } from '@/store/cart'
 import { formatCurrency, calculateSubtotal } from '@/lib/utils'
 import { Product } from '@/types'
 import { buildCategoryLabelMap, resolveProductCategoryLabel } from '@/lib/category-display'
+import { PriceDisplay, SaleBadge } from '@/components/products/price-display'
+import { getEffectivePrice } from '@/lib/pricing'
 import { toast } from 'sonner'
 
 interface ProductDetailsProps {
@@ -81,6 +83,7 @@ export function ProductDetails({ product, categoryOptions }: ProductDetailsProps
         <FadeIn className="space-y-4">
           {/* Main Image */}
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-blue-50 group">
+            <SaleBadge product={product} className="absolute top-3 left-3 z-20" />
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedImage}
@@ -179,11 +182,9 @@ export function ProductDetails({ product, categoryOptions }: ProductDetailsProps
 
             {/* Price */}
             <div className="space-y-1">
-              <p className="text-3xl font-bold text-slate-900">
-                {formatCurrency(product.price)}
-              </p>
+              <PriceDisplay product={product} size="lg" />
               <p className="text-sm text-slate-500">
-                Includes GST ({formatCurrency(product.price - calculateSubtotal(product.price))})
+                Includes GST ({formatCurrency(getEffectivePrice(product) - calculateSubtotal(getEffectivePrice(product)))})
               </p>
             </div>
 

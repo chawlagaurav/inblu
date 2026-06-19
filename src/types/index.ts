@@ -11,6 +11,9 @@ export interface Product {
   category: string
   categories: string[]
   isBestSeller: boolean
+  isOnSale: boolean
+  discountPercent: number | null
+  salePrice: number | null
   manualUrl?: string
   relatedProductIds?: string[]
   createdAt: Date

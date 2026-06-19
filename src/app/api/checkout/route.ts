@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import stripe from '@/lib/stripe'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { getEffectivePrice } from '@/lib/pricing'
 import {
   buildCheckoutMetadata,
   parseCheckoutMetadata,
@@ -73,10 +74,21 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Get current stock for all products
+    // Get current stock + pricing for all products. Including the discount
+    // fields lets us compute the effective (charged) price server-side, so
+    // a client can never bill themselves at a stale or tampered price.
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
-      select: { id: true, name: true, stock: true, isActive: true, price: true }
+      select: {
+        id: true,
+        name: true,
+        stock: true,
+        isActive: true,
+        price: true,
+        isOnSale: true,
+        discountPercent: true,
+        salePrice: true,
+      }
     })
 
     // Get active reservations (excluding our session if we have one)
@@ -190,28 +202,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create a map of product prices
-    const productPriceMap = new Map(
-      products.map(p => [p.id, Number(p.price)])
+    // Build a pricing map keyed by product id. Each entry holds enough to
+    // compute the effective (sale-aware) price via the same helper the
+    // storefront uses, so cart-displayed totals and what we charge agree.
+    const productPricingMap = new Map(
+      products.map(p => [p.id, {
+        price: Number(p.price),
+        isOnSale: p.isOnSale,
+        discountPercent: p.discountPercent,
+        salePrice: p.salePrice == null ? null : Number(p.salePrice),
+      }])
     )
 
-    // Validate items and get prices (fallback to frontend price if not in DB - for development)
-    const validatedItems = items.map(item => {
-      const serverPrice = productPriceMap.get(item.productId)
-      if (serverPrice === undefined) {
-        // In production, you should throw an error here
-        // For development with hardcoded products, use frontend price with warning
-        console.warn(`Product ${item.productId} not found in database, using frontend price`)
-        return {
-          ...item,
-          price: item.price,
-        }
+    // Resolve every cart line to its server-side effective price. A missing
+    // product id means the cart references something we don't sell anymore —
+    // reject rather than trust whatever the client posted.
+    const validatedItems: CartItem[] = []
+    for (const item of items) {
+      const pricing = productPricingMap.get(item.productId)
+      if (!pricing) {
+        return NextResponse.json(
+          { error: `Product ${item.productId} not found` },
+          { status: 400 }
+        )
       }
-      return {
+      validatedItems.push({
         ...item,
-        price: serverPrice, // Use server-side price
-      }
-    })
+        price: getEffectivePrice(pricing),
+      })
+    }
 
     // Calculate totals on server (never trust frontend prices)
     const subtotalCents = validatedItems.reduce(

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { getEffectivePrice } from '@/lib/pricing'
 import { toast } from 'sonner'
 
 interface Product {
@@ -160,7 +161,9 @@ export function AddOrderModal({ isOpen, onClose, onSuccess, editOrder }: AddOrde
       productId: product.id,
       productName: product.name,
       quantity: 1,
-      price: Number(product.price),
+      // Default the line price to the effective (sale-aware) price so manual
+      // orders match what customers would pay online. Admin can still override.
+      price: getEffectivePrice(product),
     }])
     setSelectedProduct('')
   }

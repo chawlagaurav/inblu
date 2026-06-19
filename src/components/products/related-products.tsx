@@ -6,8 +6,8 @@ import { ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeInOnScroll, StaggerContainer, StaggerItem } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
-import { formatCurrency } from '@/lib/utils'
 import { Product } from '@/types'
+import { PriceDisplay, SaleBadge } from '@/components/products/price-display'
 import { toast } from 'sonner'
 
 interface RelatedProductsProps {
@@ -37,6 +37,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
               <Link href={`/products/${product.slug}`} className="group block h-full">
                 <div className="h-full overflow-hidden rounded-lg bg-white border border-slate-100 transition-all duration-200 hover:shadow-md hover:border-blue-200">
                   <div className="relative aspect-[4/3] overflow-hidden bg-blue-50">
+                    <SaleBadge product={product} className="absolute top-2 left-2 z-10" />
                     {product.imageUrl ? (
                       <Image
                         src={product.imageUrl}
@@ -59,9 +60,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                       {product.name}
                     </h3>
                     <div className="mt-1.5 flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-900">
-                        {formatCurrency(product.price)}
-                      </span>
+                      <PriceDisplay product={product} size="sm" />
                       <Button
                         size="icon"
                         variant="ghost"

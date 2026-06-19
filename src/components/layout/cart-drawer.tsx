@@ -9,6 +9,8 @@ import { X, Minus, Plus, ShoppingBag, AlertTriangle, Loader2 } from 'lucide-reac
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/cart'
 import { formatCurrency } from '@/lib/utils'
+import { PriceDisplay } from '@/components/products/price-display'
+import { getEffectivePrice } from '@/lib/pricing'
 import { toast } from 'sonner'
 
 interface StockStatus {
@@ -160,9 +162,9 @@ export function CartDrawer() {
                               <h3 className="text-sm font-medium text-slate-900">
                                 {item.product.name}
                               </h3>
-                              <p className="text-sm text-slate-500">
-                                {formatCurrency(item.product.price)}
-                              </p>
+                              <div className="text-sm text-slate-500">
+                                <PriceDisplay product={item.product} size="sm" />
+                              </div>
                               {isUnavailable && (
                                 <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
                                   <AlertTriangle className="h-3 w-3" />
@@ -201,7 +203,7 @@ export function CartDrawer() {
                               </button>
                             </div>
                             <p className="text-sm font-semibold text-slate-900">
-                              {formatCurrency(item.product.price * item.quantity)}
+                              {formatCurrency(getEffectivePrice(item.product) * item.quantity)}
                             </p>
                           </div>
                         </div>

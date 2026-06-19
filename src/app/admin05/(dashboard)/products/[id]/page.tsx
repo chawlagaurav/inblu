@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FadeIn } from '@/components/motion'
 import { AdminLoader } from '@/components/admin/admin-loader'
 import { ImageUpload, MultiImageUpload, DocumentUpload } from '@/components/admin/image-upload'
+import { SaleDiscountCard } from '@/components/admin/sale-discount-card'
 import { toast } from 'sonner'
 
 interface Category {
@@ -71,6 +72,10 @@ export default function EditProductPage() {
     isBestSeller: false,
     isActive: true,
     specifications: '',
+    isOnSale: false,
+    discountMode: 'percent' as 'percent' | 'fixed',
+    discountPercent: '',
+    salePrice: '',
   })
 
   const toggleCategory = (value: string) => {
@@ -129,6 +134,10 @@ export default function EditProductPage() {
       }
       const data = await response.json()
       setProduct(data)
+      // Reverse-engineer the discount mode from whichever discount field is set,
+      // defaulting to 'percent' so the UI starts in a sensible state for new sales.
+      const discountMode: 'percent' | 'fixed' =
+        data.salePrice != null ? 'fixed' : 'percent'
       setFormData({
         name: data.name,
         description: data.description,
@@ -144,6 +153,10 @@ export default function EditProductPage() {
         isBestSeller: data.isBestSeller,
         isActive: data.isActive,
         specifications: data.specifications ? JSON.stringify(data.specifications, null, 2) : '',
+        isOnSale: !!data.isOnSale,
+        discountMode,
+        discountPercent: data.discountPercent != null ? String(data.discountPercent) : '',
+        salePrice: data.salePrice != null ? String(data.salePrice) : '',
       })
     } catch {
       toast.error('Failed to load product')
@@ -167,6 +180,40 @@ export default function EditProductPage() {
     setIsSaving(true)
 
     try {
+      // Validate discount fields if a sale is enabled.
+      const priceNum = parseFloat(formData.price)
+      let discountPercentToSend: number | null = null
+      let salePriceToSend: number | null = null
+      if (formData.isOnSale) {
+        if (formData.discountMode === 'percent') {
+          if (!formData.discountPercent) {
+            toast.error('Enter a discount percentage or turn off the sale')
+            setIsSaving(false)
+            return
+          }
+          const pct = parseInt(formData.discountPercent)
+          if (Number.isNaN(pct) || pct < 1 || pct > 99) {
+            toast.error('Discount must be between 1 and 99')
+            setIsSaving(false)
+            return
+          }
+          discountPercentToSend = pct
+        } else {
+          if (!formData.salePrice) {
+            toast.error('Enter a sale price or turn off the sale')
+            setIsSaving(false)
+            return
+          }
+          const sp = parseFloat(formData.salePrice)
+          if (Number.isNaN(sp) || sp <= 0 || sp >= priceNum) {
+            toast.error('Sale price must be greater than 0 and less than the regular price')
+            setIsSaving(false)
+            return
+          }
+          salePriceToSend = sp
+        }
+      }
+
       let specs = {}
       if (formData.specifications) {
         try {
@@ -184,7 +231,7 @@ export default function EditProductPage() {
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
-          price: parseFloat(formData.price),
+          price: priceNum,
           stock: parseInt(formData.stock),
           category: formData.categories[0] || '',
           categories: formData.categories,
@@ -197,11 +244,15 @@ export default function EditProductPage() {
           relatedProductIds: formData.relatedProductIds,
           isBestSeller: formData.isBestSeller,
           isActive: formData.isActive,
+          isOnSale: formData.isOnSale,
+          discountPercent: discountPercentToSend,
+          salePrice: salePriceToSend,
         }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update product')
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to update product')
       }
 
       toast.success('Product updated successfully')
@@ -368,6 +419,8 @@ export default function EditProductPage() {
               </div>
             </CardContent>
           </Card>
+
+          <SaleDiscountCard formData={formData} setFormData={setFormData} />
 
           <Card>
             <CardHeader>

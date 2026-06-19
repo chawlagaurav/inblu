@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ProductDetails } from '@/components/products/product-details'
 import { RelatedProducts } from '@/components/products/related-products'
-import { getCachedProductBySlug, getCachedRelatedProducts, getCachedProducts } from '@/lib/db/products'
+import { getCachedProductBySlug, getCachedRelatedProducts, getCachedProducts, getCachedAllCategories } from '@/lib/db/products'
 import { ProductSchema, BreadcrumbSchema } from '@/components/seo'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'
@@ -71,7 +71,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound()
   }
 
-  const relatedProducts = await getCachedRelatedProducts(product.id, product.category, 4)
+  const [relatedProducts, allCategories] = await Promise.all([
+    getCachedRelatedProducts(product.id, product.category, 4),
+    getCachedAllCategories(),
+  ])
 
   const breadcrumbs = [
     { name: 'Home', url: BASE_URL },
@@ -92,7 +95,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         availability={product.stock > 0 ? 'InStock' : 'OutOfStock'}
         url={`${BASE_URL}/products/${product.slug}`}
       />
-      <ProductDetails product={product} />
+      <ProductDetails product={product} categoryOptions={allCategories} />
       
       {relatedProducts.length > 0 && (
         <RelatedProducts products={relatedProducts} />

@@ -11,16 +11,24 @@ import { StaggerContainer, StaggerItem } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
 import { formatCurrency } from '@/lib/utils'
 import { Product } from '@/types'
+import { buildCategoryLabelMap, resolveProductCategoryLabel } from '@/lib/category-display'
 import { toast } from 'sonner'
 
 interface ProductsGridProps {
   products: Product[]
   category?: string
   search?: string
+  /**
+   * Canonical category list used to render labels and skip stale/unknown slugs
+   * (e.g. legacy data tagged "ro-purifier" when the active slug is
+   * "ro-purifiers"). When omitted the badge falls back to the raw slug.
+   */
+  categoryOptions?: { value: string; label: string }[]
 }
 
-export function ProductsGrid({ products, category, search }: ProductsGridProps) {
+export function ProductsGrid({ products, category, search, categoryOptions }: ProductsGridProps) {
   const addItem = useCartStore((state) => state.addItem)
+  const labelMap = buildCategoryLabelMap(categoryOptions ?? [])
 
   // Filter products based on category and search (client-side filtering for already-fetched products)
   let filteredProducts = products
@@ -60,7 +68,7 @@ export function ProductsGrid({ products, category, search }: ProductsGridProps) 
     <StaggerContainer key={`${category || 'all'}-${search || ''}`} className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
       {filteredProducts.map((product) => (
         <StaggerItem key={product.id}>
-          <ProductCard product={product} onAddToCart={handleAddToCart} />
+          <ProductCard product={product} onAddToCart={handleAddToCart} labelMap={labelMap} hasLabelMap={!!categoryOptions} />
         </StaggerItem>
       ))}
     </StaggerContainer>
@@ -70,10 +78,20 @@ export function ProductsGrid({ products, category, search }: ProductsGridProps) 
 function ProductCard({
   product,
   onAddToCart,
+  labelMap,
+  hasLabelMap,
 }: {
   product: Product
   onAddToCart: (product: Product) => void
+  labelMap: Record<string, string>
+  hasLabelMap: boolean
 }) {
+  // If we have a canonical category list, render its label and hide the badge
+  // for stale/unknown slugs. Without a list, fall back to the raw slug so old
+  // call sites keep working.
+  const categoryLabel = hasLabelMap
+    ? resolveProductCategoryLabel(product, labelMap)
+    : product.category
   return (
     <Link href={`/products/${product.slug}`} className="block h-full">
       <Card className="group h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
@@ -117,9 +135,11 @@ function ProductCard({
       
         <CardContent className="p-4">
           <div className="mb-2">
-            <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">
-              {product.category}
-            </p>
+            {categoryLabel && (
+              <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">
+                {categoryLabel}
+              </p>
+            )}
             <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors mt-1">
               {product.name}
             </h3>

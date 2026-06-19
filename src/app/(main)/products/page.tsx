@@ -25,8 +25,11 @@ export const metadata: Metadata = {
 }
 
 async function ProductsGridWrapper({ category, search }: { category?: string; search?: string }) {
-  const products = await getCachedProducts()
-  return <ProductsGrid products={products} category={category} search={search} />
+  const [products, categories] = await Promise.all([
+    getCachedProducts(),
+    getCachedAllCategories(),
+  ])
+  return <ProductsGrid products={products} category={category} search={search} categoryOptions={categories} />
 }
 
 async function ProductsFilterWrapper() {

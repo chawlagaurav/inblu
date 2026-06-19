@@ -13,19 +13,26 @@ import { FadeIn } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
 import { formatCurrency, calculateSubtotal } from '@/lib/utils'
 import { Product } from '@/types'
+import { buildCategoryLabelMap, resolveProductCategoryLabel } from '@/lib/category-display'
 import { toast } from 'sonner'
 
 interface ProductDetailsProps {
   product: Product
+  /** Canonical category list for label resolution; if omitted falls back to the raw slug. */
+  categoryOptions?: { value: string; label: string }[]
 }
 
-export function ProductDetails({ product }: ProductDetailsProps) {
+export function ProductDetails({ product, categoryOptions }: ProductDetailsProps) {
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
   const addItem = useCartStore((state) => state.addItem)
   const clearCart = useCartStore((state) => state.clearCart)
   const { setIsOpen } = useCartStore()
+  const labelMap = buildCategoryLabelMap(categoryOptions ?? [])
+  const categoryLabel = categoryOptions
+    ? resolveProductCategoryLabel(product, labelMap)
+    : product.category
 
   const handleAddToCart = () => {
     addItem(product, quantity)
@@ -159,9 +166,11 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         <FadeIn delay={0.1}>
           <div className="space-y-6">
             {/* Category */}
-            <p className="text-sm font-medium text-blue-600 uppercase tracking-wide">
-              {product.category}
-            </p>
+            {categoryLabel && (
+              <p className="text-sm font-medium text-blue-600 uppercase tracking-wide">
+                {categoryLabel}
+              </p>
+            )}
 
             {/* Name */}
             <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">

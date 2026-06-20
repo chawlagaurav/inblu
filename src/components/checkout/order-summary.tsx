@@ -65,6 +65,63 @@ export function OrderSummary() {
   const gstAmount = calculateGST(afterDiscount + shipping)
   const total = afterDiscount + shipping
 
+  // Re-validate the applied coupon whenever cart contents change. Without this,
+  // removing the only eligible item leaves a stale discount line until checkout
+  // (where the server would silently drop the coupon). Debounced + abortable so
+  // rapid quantity-stepper clicks don't spam the API.
+  const appliedCode = appliedCoupon?.code
+  // Stable cart "shape" key so the effect only fires when productIds/quantities
+  // change, not on unrelated re-renders that produce a new `items` array ref.
+  const cartShape = items.map((i) => `${i.product.id}:${i.quantity}`).join('|')
+  useEffect(() => {
+    if (!appliedCode) return
+    if (items.length === 0) {
+      removeCoupon()
+      return
+    }
+
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch('/api/checkout/coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: appliedCode,
+            items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+          }),
+          signal: controller.signal,
+        })
+        const data = await response.json()
+        if (!response.ok || data.error) {
+          removeCoupon()
+          toast.info(data.error || 'Your coupon was removed because it no longer applies to your cart.')
+          return
+        }
+        applyCoupon({
+          code: data.code,
+          discountType: data.discountType,
+          discountValue: data.discountValue,
+          discountAmount: data.discountAmount,
+          description: data.description,
+          excludedItemNames: data.excludedItemNames,
+          eligibleSubtotal: data.eligibleSubtotal,
+        })
+      } catch (err) {
+        // Ignore aborts (cart changed again before we got a response) and
+        // network errors (don't punish transient failures by removing the coupon).
+        if ((err as { name?: string })?.name === 'AbortError') return
+      }
+    }, 300)
+
+    return () => {
+      controller.abort()
+      clearTimeout(timer)
+    }
+    // `cartShape` captures item-id+quantity so we re-validate only on real changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedCode, cartShape])
+
   if (!mounted) {
     return (
       <Card className="sticky top-24">
@@ -138,7 +195,7 @@ export function OrderSummary() {
 
           {/* Coupon Code */}
           <CouponInput
-            subtotal={subtotal}
+            items={items}
             couponCode={couponCode}
             setCouponCode={setCouponCode}
             couponError={couponError}
@@ -207,7 +264,7 @@ export function OrderSummary() {
 }
 
 function CouponInput({
-  subtotal,
+  items,
   couponCode,
   setCouponCode,
   couponError,
@@ -218,15 +275,31 @@ function CouponInput({
   applyCoupon,
   removeCoupon,
 }: {
-  subtotal: number
+  items: { product: { id: string }; quantity: number }[]
   couponCode: string
   setCouponCode: (v: string) => void
   couponError: string | null
   setCouponError: (v: string | null) => void
   isValidating: boolean
   setIsValidating: (v: boolean) => void
-  appliedCoupon: { code: string; discountType: string; discountValue: number; discountAmount: number; description?: string } | null
-  applyCoupon: (coupon: { code: string; discountType: string; discountValue: number; discountAmount: number; description?: string }) => void
+  appliedCoupon: {
+    code: string
+    discountType: string
+    discountValue: number
+    discountAmount: number
+    description?: string
+    excludedItemNames?: string[]
+    eligibleSubtotal?: number
+  } | null
+  applyCoupon: (coupon: {
+    code: string
+    discountType: string
+    discountValue: number
+    discountAmount: number
+    description?: string
+    excludedItemNames?: string[]
+    eligibleSubtotal?: number
+  }) => void
   removeCoupon: () => void
 }) {
   const handleApplyCoupon = async () => {
@@ -241,7 +314,7 @@ function CouponInput({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: couponCode.trim(),
-          orderSubtotal: subtotal,
+          items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
         }),
       })
 
@@ -258,12 +331,14 @@ function CouponInput({
         discountValue: data.discountValue,
         discountAmount: data.discountAmount,
         description: data.description,
+        excludedItemNames: data.excludedItemNames,
+        eligibleSubtotal: data.eligibleSubtotal,
       })
       setCouponCode('')
-      
+
       // Trigger celebration animation
       celebrateCoupon()
-      
+
       toast.success(`Coupon "${data.code}" applied! You save ${formatCurrency(data.discountAmount)}`)
     } catch {
       setCouponError('Failed to validate coupon')
@@ -279,12 +354,19 @@ function CouponInput({
   }
 
   if (appliedCoupon) {
+    const excluded = appliedCoupon.excludedItemNames ?? []
+    const excludedLabel =
+      excluded.length === 0 ? null
+        : excluded.length === 1 ? `Excludes ${excluded[0]}`
+        : excluded.length === 2 ? `Excludes ${excluded[0]} and ${excluded[1]}`
+        : `Excludes ${excluded[0]} and ${excluded.length - 1} other items`
+
     return (
       <div className="bg-green-50 border border-green-200 rounded-xl p-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <div>
+          <div className="flex items-center gap-2 min-w-0">
+            <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+            <div className="min-w-0">
               <p className="text-sm font-medium text-green-800">{appliedCoupon.code}</p>
               <p className="text-xs text-green-600">
                 {appliedCoupon.discountType === 'percentage'
@@ -292,11 +374,19 @@ function CouponInput({
                   : `$${appliedCoupon.discountValue.toFixed(2)} off`}
                 {appliedCoupon.description && ` — ${appliedCoupon.description}`}
               </p>
+              {excludedLabel && (
+                <p
+                  className="text-xs text-amber-700 mt-0.5 truncate"
+                  title={excluded.join(', ')}
+                >
+                  {excludedLabel}
+                </p>
+              )}
             </div>
           </div>
           <button
             onClick={handleRemoveCoupon}
-            className="p-1 text-green-600 hover:text-red-500 transition-colors"
+            className="p-1 text-green-600 hover:text-red-500 transition-colors flex-shrink-0"
           >
             <X className="h-4 w-4" />
           </button>

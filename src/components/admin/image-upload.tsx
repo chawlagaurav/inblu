@@ -420,26 +420,53 @@ interface DocumentUploadProps {
   accept?: string
   label?: string
   className?: string
+  /**
+   * What kinds of files this uploader accepts.
+   *   - `'pdf'` (default) — strictly PDF, matches existing call sites.
+   *   - `'pdf-or-image'` — PDFs OR images (PNG/JPG/WebP/GIF). Used by receipt
+   *     uploads where admins frequently snap a phone photo of a paper receipt.
+   */
+  acceptedFiles?: 'pdf' | 'pdf-or-image'
 }
 
-export function DocumentUpload({ 
-  value, 
-  onChange, 
+const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif']
+
+export function DocumentUpload({
+  value,
+  onChange,
   folder = 'manuals',
-  accept = '.pdf',
+  accept,
   label = 'PDF Document',
-  className 
+  className,
+  acceptedFiles = 'pdf',
 }: DocumentUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
 
+  const allowImages = acceptedFiles === 'pdf-or-image'
+  const acceptAttr = accept ?? (allowImages
+    ? '.pdf,image/png,image/jpeg,image/webp,image/gif'
+    : '.pdf')
+
   const handleUpload = async (file: File) => {
     if (!file) return
 
+    const lowerName = file.name.toLowerCase()
+    const ext = lowerName.split('.').pop() ?? ''
+    const isPdf = lowerName.endsWith('.pdf')
+    const isImage = IMAGE_EXTENSIONS.includes(ext)
+
     // Validate file type
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Only PDF files are allowed')
-      return
+    if (allowImages) {
+      if (!isPdf && !isImage) {
+        toast.error('Only PDF or image files are allowed')
+        return
+      }
+    } else {
+      if (!isPdf) {
+        toast.error('Only PDF files are allowed')
+        return
+      }
     }
 
     // Validate file size (max 10MB)
@@ -454,7 +481,12 @@ export function DocumentUpload({
       const formData = new FormData()
       formData.append('file', file)
       formData.append('folder', folder)
-      formData.append('type', 'document')
+      // Only PDFs go to Cloudinary as `raw` resource type. Images use the
+      // default image resource so they're served via CDN with the right
+      // content-type and can be inlined in <img>.
+      if (isPdf) {
+        formData.append('type', 'document')
+      }
 
       const response = await fetch('/api/admin/upload', {
         method: 'POST',
@@ -564,7 +596,7 @@ export function DocumentUpload({
         >
           <input
             type="file"
-            accept={accept}
+            accept={acceptAttr}
             onChange={handleFileChange}
             className="hidden"
             id="document-upload"
@@ -582,7 +614,9 @@ export function DocumentUpload({
                 <p className="text-sm text-slate-600 mb-1">
                   Drag and drop a {label}, or click to browse
                 </p>
-                <p className="text-xs text-slate-400">PDF up to 10MB</p>
+                <p className="text-xs text-slate-400">
+                  {allowImages ? 'PDF or image up to 10MB' : 'PDF up to 10MB'}
+                </p>
               </>
             )}
           </label>

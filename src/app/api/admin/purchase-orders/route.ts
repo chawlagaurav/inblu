@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { syncPurchaseOrderExpense } from '@/lib/po-expense-sync'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -167,6 +168,9 @@ export async function POST(request: NextRequest) {
           data: { stock: newStock },
         })
       }
+
+      // Mirror this PO into the Expense ledger so dashboard P&L includes it.
+      await syncPurchaseOrderExpense(tx, purchaseOrder)
 
       return purchaseOrder
     })

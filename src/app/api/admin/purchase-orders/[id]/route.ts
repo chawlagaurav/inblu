@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { syncPurchaseOrderExpense, deletePurchaseOrderExpense } from '@/lib/po-expense-sync'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -222,6 +223,9 @@ export async function PUT(
         })
       }
 
+      // Mirror this PO into the Expense ledger so dashboard P&L stays in sync.
+      await syncPurchaseOrderExpense(tx, purchaseOrder)
+
       return purchaseOrder
     })
 
@@ -245,14 +249,17 @@ export async function DELETE(
 
     const { id } = await params
 
-    // First delete associated inventory transactions
-    await prisma.inventoryTransaction.deleteMany({
-      where: { referenceId: id },
-    })
-
-    // Then delete the purchase order
-    await prisma.purchaseOrder.delete({
-      where: { id },
+    // Atomically clear all dependents and the PO itself. Previously the inventory-tx
+    // delete and PO delete weren't wrapped in a transaction, so a failure between
+    // them could orphan rows. Now we also clean up the linked Expense ledger row.
+    await prisma.$transaction(async (tx) => {
+      await deletePurchaseOrderExpense(tx, id)
+      await tx.inventoryTransaction.deleteMany({
+        where: { referenceId: id },
+      })
+      await tx.purchaseOrder.delete({
+        where: { id },
+      })
     })
 
     return NextResponse.json({ success: true })

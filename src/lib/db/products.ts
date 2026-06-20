@@ -21,6 +21,7 @@ function transformProduct(product: {
   isOnSale: boolean
   discountPercent: number | null
   salePrice: unknown
+  excludeFromCoupons: boolean
   manualUrl: string | null
   relatedProductIds?: string[]
   createdAt: Date
@@ -41,6 +42,7 @@ function transformProduct(product: {
     isOnSale: product.isOnSale ?? false,
     discountPercent: product.discountPercent ?? null,
     salePrice: product.salePrice == null ? null : Number(product.salePrice),
+    excludeFromCoupons: product.excludeFromCoupons ?? false,
     manualUrl: product.manualUrl ?? undefined,
     relatedProductIds: product.relatedProductIds || [],
     createdAt: product.createdAt,

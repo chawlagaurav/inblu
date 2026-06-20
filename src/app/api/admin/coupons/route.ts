@@ -17,6 +17,36 @@ async function verifyAdmin() {
   return user
 }
 
+/**
+ * Validate the coupon's product-eligibility arrays:
+ * - Mutually exclusive (only one of allow/deny may be non-empty).
+ * - Each id must reference a real Product (prevents dangling ids).
+ * Returns null on success or an error message string for a 400 response.
+ */
+async function validateCouponProductEligibility(
+  applicable: unknown,
+  excluded: unknown,
+): Promise<string | null> {
+  const allow = Array.isArray(applicable) ? applicable.filter((x): x is string => typeof x === 'string') : []
+  const deny = Array.isArray(excluded) ? excluded.filter((x): x is string => typeof x === 'string') : []
+
+  if (allow.length > 0 && deny.length > 0) {
+    return 'applicableProductIds and excludedProductIds are mutually exclusive'
+  }
+
+  const allIds = Array.from(new Set([...allow, ...deny]))
+  if (allIds.length === 0) return null
+
+  const found = await prisma.product.findMany({
+    where: { id: { in: allIds } },
+    select: { id: true },
+  })
+  if (found.length !== allIds.length) {
+    return 'One or more selected products no longer exist'
+  }
+  return null
+}
+
 // GET all coupons
 export async function GET() {
   try {
@@ -56,6 +86,8 @@ export async function POST(request: NextRequest) {
       isActive,
       startDate,
       endDate,
+      applicableProductIds,
+      excludedProductIds,
     } = body
 
     if (!code || !discountType || discountValue == null) {
@@ -72,6 +104,11 @@ export async function POST(request: NextRequest) {
 
     if (discountValue < 0) {
       return NextResponse.json({ error: 'Discount value must be positive' }, { status: 400 })
+    }
+
+    const eligibilityError = await validateCouponProductEligibility(applicableProductIds, excludedProductIds)
+    if (eligibilityError) {
+      return NextResponse.json({ error: eligibilityError }, { status: 400 })
     }
 
     const existing = await prisma.coupon.findUnique({
@@ -94,6 +131,8 @@ export async function POST(request: NextRequest) {
         isActive: isActive ?? true,
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
+        applicableProductIds: Array.isArray(applicableProductIds) ? applicableProductIds : [],
+        excludedProductIds: Array.isArray(excludedProductIds) ? excludedProductIds : [],
       },
     })
 

@@ -21,6 +21,7 @@ export interface SaleDiscountFormShape {
   discountMode: 'percent' | 'fixed'
   discountPercent: string
   salePrice: string
+  excludeFromCoupons: boolean
 }
 
 interface SaleDiscountCardProps<T extends SaleDiscountFormShape> {
@@ -145,6 +146,30 @@ export function SaleDiscountCard<T extends SaleDiscountFormShape>({
             Enter a valid discount value to enable the sale.
           </div>
         ) : null}
+
+        {/* Coupon eligibility — independent of the on-sale toggle. Use this to
+            mark items that should never be discounted by a coupon code (e.g.
+            already-clearance items, fixed-margin SKUs). */}
+        <div className="border-t border-slate-100 pt-4">
+          <p className="text-xs font-medium text-slate-700 uppercase tracking-wide mb-2">
+            Coupon eligibility
+          </p>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.excludeFromCoupons}
+              onChange={(e) => setFormData((prev) => ({ ...prev, excludeFromCoupons: e.target.checked }))}
+              className="mt-0.5 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm text-slate-700">
+              Exclude this product from all coupon codes
+              <span className="block text-xs text-slate-500 mt-0.5">
+                Coupons applied to a cart that contains this product will skip
+                this line. Other items in the cart still get discounted normally.
+              </span>
+            </span>
+          </label>
+        </div>
       </CardContent>
     </Card>
   )

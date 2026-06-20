@@ -17,6 +17,31 @@ async function verifyAdmin() {
   return user
 }
 
+/** See `src/app/api/admin/coupons/route.ts` for documentation. */
+async function validateCouponProductEligibility(
+  applicable: unknown,
+  excluded: unknown,
+): Promise<string | null> {
+  const allow = Array.isArray(applicable) ? applicable.filter((x): x is string => typeof x === 'string') : []
+  const deny = Array.isArray(excluded) ? excluded.filter((x): x is string => typeof x === 'string') : []
+
+  if (allow.length > 0 && deny.length > 0) {
+    return 'applicableProductIds and excludedProductIds are mutually exclusive'
+  }
+
+  const allIds = Array.from(new Set([...allow, ...deny]))
+  if (allIds.length === 0) return null
+
+  const found = await prisma.product.findMany({
+    where: { id: { in: allIds } },
+    select: { id: true },
+  })
+  if (found.length !== allIds.length) {
+    return 'One or more selected products no longer exist'
+  }
+  return null
+}
+
 // PUT - Update a coupon
 export async function PUT(
   request: NextRequest,
@@ -41,6 +66,8 @@ export async function PUT(
       isActive,
       startDate,
       endDate,
+      applicableProductIds,
+      excludedProductIds,
     } = body
 
     if (discountType && !['percentage', 'fixed'].includes(discountType)) {
@@ -53,6 +80,22 @@ export async function PUT(
 
     if (discountValue != null && discountValue < 0) {
       return NextResponse.json({ error: 'Discount value must be positive' }, { status: 400 })
+    }
+
+    // Validate eligibility arrays only when at least one is being updated.
+    if (applicableProductIds !== undefined || excludedProductIds !== undefined) {
+      // For mutual-exclusivity check we need to know what the FINAL state would
+      // look like — load the existing row when only one side is being updated.
+      const existing = await prisma.coupon.findUnique({
+        where: { id },
+        select: { applicableProductIds: true, excludedProductIds: true },
+      })
+      const finalApplicable = applicableProductIds !== undefined ? applicableProductIds : existing?.applicableProductIds ?? []
+      const finalExcluded = excludedProductIds !== undefined ? excludedProductIds : existing?.excludedProductIds ?? []
+      const eligibilityError = await validateCouponProductEligibility(finalApplicable, finalExcluded)
+      if (eligibilityError) {
+        return NextResponse.json({ error: eligibilityError }, { status: 400 })
+      }
     }
 
     // Check for duplicate code if code is being changed
@@ -81,6 +124,8 @@ export async function PUT(
         ...(isActive !== undefined && { isActive }),
         ...(startDate !== undefined && { startDate: startDate ? new Date(startDate) : null }),
         ...(endDate !== undefined && { endDate: endDate ? new Date(endDate) : null }),
+        ...(applicableProductIds !== undefined && { applicableProductIds: Array.isArray(applicableProductIds) ? applicableProductIds : [] }),
+        ...(excludedProductIds !== undefined && { excludedProductIds: Array.isArray(excludedProductIds) ? excludedProductIds : [] }),
       },
     })
 

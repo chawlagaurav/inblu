@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, source } = body
+    const { email, phone, source } = body
 
     if (!email) {
       return NextResponse.json(
@@ -42,13 +42,39 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim()
 
+    // Optional phone — strip whitespace and reject obviously bogus values, but
+    // be permissive about format (international, parentheses, dashes are fine).
+    let normalizedPhone: string | null = null
+    if (typeof phone === 'string') {
+      const trimmed = phone.trim()
+      if (trimmed.length > 0) {
+        // Require at least 6 digits somewhere in the input — catches blank/garbage.
+        const digitCount = (trimmed.match(/\d/g) ?? []).length
+        if (digitCount < 6) {
+          return NextResponse.json(
+            { error: 'Please enter a valid phone number' },
+            { status: 400 }
+          )
+        }
+        normalizedPhone = trimmed
+      }
+    }
+
     // Check if already subscribed
     const existing = await prisma.subscriber.findUnique({
       where: { email: normalizedEmail },
     })
 
     if (existing) {
-      // Already subscribed, but don't reveal this for privacy
+      // Already subscribed — quietly update the phone if they didn't have one
+      // recorded, so re-submissions can still capture a missing field. Don't
+      // overwrite a phone they previously provided.
+      if (normalizedPhone && !existing.phone) {
+        await prisma.subscriber.update({
+          where: { email: normalizedEmail },
+          data: { phone: normalizedPhone },
+        })
+      }
       return NextResponse.json({ success: true, message: 'Subscribed successfully!' })
     }
 
@@ -56,6 +82,7 @@ export async function POST(request: NextRequest) {
     await prisma.subscriber.create({
       data: {
         email: normalizedEmail,
+        phone: normalizedPhone,
         source: source || 'website',
       },
     })

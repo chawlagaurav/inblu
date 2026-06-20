@@ -11,6 +11,10 @@ interface AppliedCoupon {
   discountValue: number
   discountAmount: number
   description?: string
+  /** Names of cart items the coupon doesn't apply to — for the cart footnote. */
+  excludedItemNames?: string[]
+  /** Subtotal (after per-product sale prices) the discount was computed against. */
+  eligibleSubtotal?: number
 }
 
 interface CartStore {

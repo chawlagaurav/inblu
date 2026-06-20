@@ -43,6 +43,7 @@ export default function NewProductPage() {
     discountMode: 'percent' as 'percent' | 'fixed',
     discountPercent: '',
     salePrice: '',
+    excludeFromCoupons: false,
   })
 
   useEffect(() => {
@@ -157,6 +158,7 @@ export default function NewProductPage() {
           isOnSale: formData.isOnSale,
           discountPercent: discountPercentToSend,
           salePrice: salePriceToSend,
+          excludeFromCoupons: formData.excludeFromCoupons,
         }),
       })
 

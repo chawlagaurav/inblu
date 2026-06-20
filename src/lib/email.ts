@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 import { formatCurrency, formatDate } from './utils'
 
-const FROM_EMAIL = 'inBlu Australia <info@inblu.com.au>'
+const FROM_EMAIL = 'inBlu Australia <sales@inblu.com.au>'
 
 function getResend(): Resend | null {
   if (!process.env.RESEND_API_KEY) {

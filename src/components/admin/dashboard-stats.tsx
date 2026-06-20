@@ -34,10 +34,12 @@ interface Customer {
   createdAt: string
 }
 
-interface PurchaseOrder {
+interface Expense {
   id: string
-  totalCost: number
-  createdAt: string
+  date: string
+  category: string
+  amount: number
+  sourceType: string | null
 }
 
 interface LowStockProduct {
@@ -61,7 +63,7 @@ interface OrderStatus {
 interface DashboardStatsProps {
   orders: Order[]
   customers: Customer[]
-  purchaseOrders: PurchaseOrder[]
+  expenses: Expense[]
   lowStockProducts: LowStockProduct[]
   topProducts: TopProduct[]
   orderStatuses: OrderStatus[]
@@ -184,18 +186,21 @@ function getDateRange(preset: DatePreset, customFrom?: string, customTo?: string
   return { from, to, compareFrom, compareTo }
 }
 
-function ChangeBadge({ value }: { value: number }) {
-  if (value >= 0) {
+function ChangeBadge({ value, reverse = false }: { value: number; reverse?: boolean }) {
+  // For most metrics (revenue, orders) up is good. For expense-style metrics
+  // pass `reverse` so a rise renders red and a drop green.
+  const isPositive = reverse ? value <= 0 : value >= 0
+  if (isPositive) {
     return (
       <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100">
-        <ArrowUpRight className="h-3 w-3 mr-1" />
+        {value >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
         {Math.abs(value).toFixed(1)}%
       </Badge>
     )
   }
   return (
     <Badge variant="secondary" className="bg-red-100 text-red-700">
-      <ArrowDownRight className="h-3 w-3 mr-1" />
+      {value >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
       {Math.abs(value).toFixed(1)}%
     </Badge>
   )
@@ -220,7 +225,7 @@ const statusLabels: Record<string, string> = {
 export function DashboardStats({
   orders,
   customers,
-  purchaseOrders,
+  expenses,
   lowStockProducts,
   topProducts,
   orderStatuses,
@@ -280,19 +285,38 @@ export function DashboardStats({
       ? ((avgOrderValue - compareAvgValue) / compareAvgValue) * 100
       : avgOrderValue > 0 ? 100 : 0
 
-    // Purchase costs
-    const periodCost = purchaseOrders.filter((po) => {
-      const d = new Date(po.createdAt)
+    // Expenses for the period (manual + PO-linked) — drives the unified P&L.
+    // Filtered by `date` (admin-entered actual expense date), not `createdAt`.
+    const periodExpensesList = expenses.filter((e) => {
+      const d = new Date(e.date)
       return d >= from && d <= to
-    }).reduce((sum, po) => sum + po.totalCost, 0)
-    const compareCost = purchaseOrders.filter((po) => {
-      const d = new Date(po.createdAt)
+    })
+    const compareExpensesList = expenses.filter((e) => {
+      const d = new Date(e.date)
       return d >= compareFrom && d <= compareTo
-    }).reduce((sum, po) => sum + po.totalCost, 0)
-    const costChange = compareCost > 0
-      ? ((periodCost - compareCost) / compareCost) * 100
-      : periodCost > 0 ? 100 : 0
-    const totalCost = purchaseOrders.reduce((sum, po) => sum + po.totalCost, 0)
+    })
+    const periodExpenses = periodExpensesList.reduce((sum, e) => sum + e.amount, 0)
+    const compareExpenses = compareExpensesList.reduce((sum, e) => sum + e.amount, 0)
+    const expensesChange = compareExpenses > 0
+      ? ((periodExpenses - compareExpenses) / compareExpenses) * 100
+      : periodExpenses > 0 ? 100 : 0
+
+    // Net profit + margin
+    const netProfit = periodRevenue - periodExpenses
+    const compareNetProfit = compareRevenue - compareExpenses
+    const netProfitChange = compareNetProfit !== 0
+      ? ((netProfit - compareNetProfit) / Math.abs(compareNetProfit)) * 100
+      : netProfit > 0 ? 100 : netProfit < 0 ? -100 : 0
+    const profitMargin = periodRevenue > 0 ? (netProfit / periodRevenue) * 100 : 0
+
+    // Top expense categories (sum + sort)
+    const categoryMap = new Map<string, number>()
+    for (const e of periodExpensesList) {
+      categoryMap.set(e.category, (categoryMap.get(e.category) ?? 0) + e.amount)
+    }
+    const expensesByCategory = [...categoryMap.entries()]
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount)
 
     // Daily revenue for chart (last 7 days within the selected period)
     const dailyRevenue: { date: string; revenue: number; orders: number }[] = []
@@ -339,14 +363,17 @@ export function DashboardStats({
       customerChange,
       avgOrderValue,
       avgOrderChange,
-      periodCost,
-      costChange,
-      totalCost,
+      periodExpenses,
+      expensesChange,
+      netProfit,
+      netProfitChange,
+      profitMargin,
+      expensesByCategory,
       dailyRevenue,
       filteredStatuses,
       filteredRecentOrders,
     }
-  }, [orders, customers, purchaseOrders, preset, customFrom, customTo])
+  }, [orders, customers, expenses, preset, customFrom, customTo])
 
   const maxRevenue = Math.max(...stats.dailyRevenue.map((d) => d.revenue), 1)
   const maxStatusCount = Math.max(...stats.filteredStatuses.map((s) => s._count.status), 1)
@@ -498,8 +525,8 @@ export function DashboardStats({
           <CardContent className="p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-500">Purchase Cost</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.periodCost)}</p>
+                <p className="text-sm text-slate-500">Total Expenses</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.periodExpenses)}</p>
               </div>
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                 <Wallet className="h-5 w-5 text-red-600" />
@@ -507,11 +534,58 @@ export function DashboardStats({
             </div>
             {preset !== 'all_time' && (
               <div className="flex items-center gap-1 mt-2">
-                <ChangeBadge value={stats.costChange} />
+                <ChangeBadge value={stats.expensesChange} reverse />
                 <span className="text-xs text-slate-500">vs previous period</span>
               </div>
             )}
-            <p className="text-xs text-slate-400 mt-1">Total: {formatCurrency(stats.totalCost)}</p>
+            <p className="text-xs text-slate-400 mt-1">Includes COGS auto-synced from POs</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* P&L row — derived from the KPI grid above. Net Profit = Revenue − Expenses. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-slate-500">Net Profit</p>
+                <p
+                  className={`text-2xl font-bold mt-1 ${stats.netProfit >= 0 ? 'text-slate-900' : 'text-red-600'}`}
+                >
+                  {formatCurrency(stats.netProfit)}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
+              </div>
+            </div>
+            {preset !== 'all_time' && (
+              <div className="flex items-center gap-1 mt-2">
+                <ChangeBadge value={stats.netProfitChange} />
+                <span className="text-xs text-slate-500">vs previous period</span>
+              </div>
+            )}
+            <p className="text-xs text-slate-400 mt-1">Revenue − Total Expenses</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-slate-500">Profit Margin</p>
+                <p
+                  className={`text-2xl font-bold mt-1 ${stats.profitMargin >= 0 ? 'text-slate-900' : 'text-red-600'}`}
+                >
+                  {stats.profitMargin.toFixed(1)}%
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 mt-2">Net Profit ÷ Revenue</p>
           </CardContent>
         </Card>
       </div>
@@ -586,8 +660,8 @@ export function DashboardStats({
         </Card>
       </div>
 
-      {/* Middle Row: Top Products + Low Stock */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Middle Row: Top Products + Low Stock + Expense Categories */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Selling Products */}
         <Card>
           <CardHeader>
@@ -643,6 +717,39 @@ export function DashboardStats({
                     </Badge>
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Expenses by Category */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Expenses by Category</CardTitle>
+            <CardDescription>Spending breakdown for the selected period</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.expensesByCategory.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No expenses in the selected period</p>
+            ) : (
+              <div className="space-y-3">
+                {(() => {
+                  const max = Math.max(...stats.expensesByCategory.map((c) => c.amount), 1)
+                  return stats.expensesByCategory.map((c) => (
+                    <div key={c.category}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-slate-700">{c.category}</span>
+                        <span className="text-sm font-semibold text-slate-900">{formatCurrency(c.amount)}</span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-red-400 to-red-500 rounded-full"
+                          style={{ width: `${(c.amount / max) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                })()}
               </div>
             )}
           </CardContent>

@@ -58,6 +58,7 @@ model Product {
   isOnSale     Boolean     @default(false) @map("is_on_sale")
   discountPercent Int?     @map("discount_percent")
   salePrice    Decimal?    @db.Decimal(10, 2) @map("sale_price")
+  excludeFromCoupons Boolean @default(false) @map("exclude_from_coupons")
   displayOrder Int         @default(0) @map("display_order")
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
@@ -155,6 +156,7 @@ model MarketingContent {
 model Subscriber {
   id        String   @id @default(uuid())
   email     String   @unique
+  phone     String?
   source    String   @default("popup") // popup, newsletter, checkout
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -191,6 +193,8 @@ model Coupon {
   isActive         Boolean   @default(true) @map("is_active")
   startDate        DateTime? @map("start_date")
   endDate          DateTime? @map("end_date")
+  applicableProductIds String[] @default([]) @map("applicable_product_ids")
+  excludedProductIds   String[] @default([]) @map("excluded_product_ids")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -244,6 +248,27 @@ model PurchaseOrder {
   inventoryTransactions InventoryTransaction[]
 
   @@map("purchase_orders")
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  date        DateTime
+  category    String
+  amount      Decimal  @db.Decimal(10, 2)
+  vendor      String?
+  description String?
+  receiptUrl  String?  @map("receipt_url")
+  // sourceType / sourceId let an Expense row be auto-linked to another record
+  // (currently: PurchaseOrder). Manual entries leave both null.
+  sourceType  String?  @map("source_type")
+  sourceId    String?  @map("source_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt       @map("updated_at")
+
+  @@unique([sourceType, sourceId])
+  @@index([date])
+  @@index([category])
+  @@map("expenses")
 }
 
 model InventoryTransaction {

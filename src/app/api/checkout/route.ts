@@ -4,6 +4,7 @@ import stripe from '@/lib/stripe'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getEffectivePrice } from '@/lib/pricing'
+import { getCouponEligibleItems } from '@/lib/coupon-eligibility'
 import {
   buildCheckoutMetadata,
   parseCheckoutMetadata,
@@ -88,6 +89,7 @@ export async function POST(request: NextRequest) {
         isOnSale: true,
         discountPercent: true,
         salePrice: true,
+        excludeFromCoupons: true,
       }
     })
 
@@ -205,12 +207,17 @@ export async function POST(request: NextRequest) {
     // Build a pricing map keyed by product id. Each entry holds enough to
     // compute the effective (sale-aware) price via the same helper the
     // storefront uses, so cart-displayed totals and what we charge agree.
+    // Also carries `name` and `excludeFromCoupons` so we can feed it directly
+    // into the coupon-eligibility helper below without a second DB round-trip.
     const productPricingMap = new Map(
       products.map(p => [p.id, {
+        id: p.id,
+        name: p.name,
         price: Number(p.price),
         isOnSale: p.isOnSale,
         discountPercent: p.discountPercent,
         salePrice: p.salePrice == null ? null : Number(p.salePrice),
+        excludeFromCoupons: p.excludeFromCoupons,
       }])
     )
 
@@ -242,7 +249,11 @@ export async function POST(request: NextRequest) {
     const shippingCostCents = subtotalDollars >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
     const shippingCostDollars = shippingCostCents / 100
 
-    // Validate and apply coupon if provided
+    // Validate and apply coupon if provided. Discount is computed against the
+    // ELIGIBLE subtotal (per `getCouponEligibleItems`) so a coupon never
+    // discounts a product flagged `excludeFromCoupons` or one that the coupon's
+    // own allow/deny lists exclude. Min-order is checked against the FULL
+    // subtotal so customers with mixed carts can still hit the threshold.
     let discountCents = 0
     let validatedCouponCode: string | null = null
 
@@ -258,17 +269,34 @@ export async function POST(request: NextRequest) {
         const isMinAmountValid = coupon.minOrderAmount === null || subtotalDollars >= Number(coupon.minOrderAmount)
 
         if (isDateValid && isUsageValid && isMinAmountValid) {
-          if (coupon.discountType === 'percentage') {
-            discountCents = Math.round(subtotalCents * Number(coupon.discountValue) / 100)
-            if (coupon.maxDiscountAmount !== null) {
-              discountCents = Math.min(discountCents, Math.round(Number(coupon.maxDiscountAmount) * 100))
+          const eligibility = getCouponEligibleItems(
+            items.map(i => ({ productId: i.productId, quantity: i.quantity })),
+            {
+              applicableProductIds: coupon.applicableProductIds,
+              excludedProductIds: coupon.excludedProductIds,
+            },
+            productPricingMap,
+          )
+
+          // Soft-drop: if no item is eligible, the order proceeds at full price
+          // rather than 4xx-rejecting the whole checkout. The cart re-validation
+          // effect prevents this state in normal flow; this is defence-in-depth.
+          if (eligibility.eligibleSubtotalCents > 0) {
+            if (coupon.discountType === 'percentage') {
+              discountCents = Math.round(eligibility.eligibleSubtotalCents * Number(coupon.discountValue) / 100)
+              if (coupon.maxDiscountAmount !== null) {
+                discountCents = Math.min(discountCents, Math.round(Number(coupon.maxDiscountAmount) * 100))
+              }
+            } else {
+              discountCents = Math.min(
+                Math.round(Number(coupon.discountValue) * 100),
+                eligibility.eligibleSubtotalCents,
+              )
             }
-          } else {
-            discountCents = Math.min(Math.round(Number(coupon.discountValue) * 100), subtotalCents)
+            validatedCouponCode = coupon.code
+            // NOTE: coupon usage is incremented only when payment actually succeeds
+            // (see finalizePaidOrder), so abandoned checkouts don't consume coupons.
           }
-          validatedCouponCode = coupon.code
-          // NOTE: coupon usage is incremented only when payment actually succeeds
-          // (see finalizePaidOrder), so abandoned checkouts don't consume coupons.
         }
       }
     }

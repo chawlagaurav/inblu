@@ -14,6 +14,7 @@ export interface Product {
   isOnSale: boolean
   discountPercent: number | null
   salePrice: number | null
+  excludeFromCoupons: boolean
   manualUrl?: string
   relatedProductIds?: string[]
   createdAt: Date

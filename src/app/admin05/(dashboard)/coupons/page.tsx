@@ -24,7 +24,14 @@ interface Coupon {
   isActive: boolean
   startDate: string | null
   endDate: string | null
+  applicableProductIds: string[]
+  excludedProductIds: string[]
   createdAt: string
+}
+
+interface ProductOption {
+  id: string
+  name: string
 }
 
 const emptyCoupon = {
@@ -38,10 +45,14 @@ const emptyCoupon = {
   isActive: true,
   startDate: '',
   endDate: '',
+  applicabilityMode: 'all' as 'all' | 'only' | 'except',
+  selectedProductIds: [] as string[],
+  productSearch: '',
 }
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [products, setProducts] = useState<ProductOption[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -50,6 +61,7 @@ export default function AdminCouponsPage() {
 
   useEffect(() => {
     fetchCoupons()
+    fetchProducts()
   }, [])
 
   const fetchCoupons = async () => {
@@ -66,6 +78,18 @@ export default function AdminCouponsPage() {
     }
   }
 
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('/api/admin/products')
+      if (res.ok) {
+        const data = await res.json()
+        setProducts(data.map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })))
+      }
+    } catch {
+      // Non-fatal: the eligibility section just shows nothing to pick from.
+    }
+  }
+
   const openCreate = () => {
     setEditingId(null)
     setForm(emptyCoupon)
@@ -74,6 +98,17 @@ export default function AdminCouponsPage() {
 
   const openEdit = (coupon: Coupon) => {
     setEditingId(coupon.id)
+    // Infer applicability mode from whichever array is non-empty. Both empty
+    // means "all products" (the default).
+    const applicabilityMode: 'all' | 'only' | 'except' =
+      coupon.applicableProductIds.length > 0 ? 'only'
+      : coupon.excludedProductIds.length > 0 ? 'except'
+      : 'all'
+    const selectedProductIds =
+      applicabilityMode === 'only' ? coupon.applicableProductIds
+      : applicabilityMode === 'except' ? coupon.excludedProductIds
+      : []
+
     setForm({
       code: coupon.code,
       description: coupon.description || '',
@@ -85,6 +120,9 @@ export default function AdminCouponsPage() {
       isActive: coupon.isActive,
       startDate: coupon.startDate ? new Date(coupon.startDate).toISOString().split('T')[0] : '',
       endDate: coupon.endDate ? new Date(coupon.endDate).toISOString().split('T')[0] : '',
+      applicabilityMode,
+      selectedProductIds,
+      productSearch: '',
     })
     setDialogOpen(true)
   }
@@ -116,6 +154,10 @@ export default function AdminCouponsPage() {
         isActive: form.isActive,
         startDate: form.startDate || null,
         endDate: form.endDate || null,
+        // Mutually-exclusive arrays. "All products" is represented by both
+        // arrays empty; the API and helper both treat that as no restriction.
+        applicableProductIds: form.applicabilityMode === 'only' ? form.selectedProductIds : [],
+        excludedProductIds: form.applicabilityMode === 'except' ? form.selectedProductIds : [],
       }
 
       const url = editingId ? `/api/admin/coupons/${editingId}` : '/api/admin/coupons'
@@ -239,6 +281,20 @@ export default function AdminCouponsPage() {
                               ? `${Number(coupon.discountValue)}% off`
                               : `$${Number(coupon.discountValue).toFixed(2)} off`}
                           </Badge>
+                          {coupon.applicableProductIds.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {coupon.applicableProductIds.length === 1
+                                ? '1 product only'
+                                : `${coupon.applicableProductIds.length} products only`}
+                            </Badge>
+                          )}
+                          {coupon.excludedProductIds.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {coupon.excludedProductIds.length === 1
+                                ? 'Excludes 1 product'
+                                : `Excludes ${coupon.excludedProductIds.length} products`}
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-slate-500 truncate mt-0.5">
                           {coupon.description || 'No description'}
@@ -414,6 +470,89 @@ export default function AdminCouponsPage() {
                 onChange={(e) => setForm(prev => ({ ...prev, maxUses: e.target.value }))}
                 placeholder="Unlimited"
               />
+            </div>
+
+            {/* Product eligibility */}
+            <div className="space-y-2">
+              <Label>Product eligibility</Label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                {([
+                  { value: 'all', label: 'All products' },
+                  { value: 'only', label: 'Only selected' },
+                  { value: 'except', label: 'All except selected' },
+                ] as const).map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex-1 flex items-center gap-2 cursor-pointer rounded-xl border-2 p-2 transition-colors ${
+                      form.applicabilityMode === option.value
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="applicabilityMode"
+                      value={option.value}
+                      checked={form.applicabilityMode === option.value}
+                      onChange={() => setForm(prev => ({
+                        ...prev,
+                        applicabilityMode: option.value,
+                        // Clear selections when switching to "all" so save sends [].
+                        selectedProductIds: option.value === 'all' ? [] : prev.selectedProductIds,
+                      }))}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              {form.applicabilityMode !== 'all' && (
+                <div className="rounded-xl border border-slate-200 p-2 space-y-2">
+                  <Input
+                    placeholder="Search products..."
+                    value={form.productSearch}
+                    onChange={(e) => setForm(prev => ({ ...prev, productSearch: e.target.value }))}
+                    className="h-9"
+                  />
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {products
+                      .filter((p) =>
+                        p.name.toLowerCase().includes(form.productSearch.toLowerCase())
+                      )
+                      .map((product) => {
+                        const checked = form.selectedProductIds.includes(product.id)
+                        return (
+                          <label
+                            key={product.id}
+                            className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-slate-50"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => setForm(prev => ({
+                                ...prev,
+                                selectedProductIds: checked
+                                  ? prev.selectedProductIds.filter((id) => id !== product.id)
+                                  : [...prev.selectedProductIds, product.id],
+                              }))}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-slate-700">{product.name}</span>
+                          </label>
+                        )
+                      })}
+                    {products.length === 0 && (
+                      <p className="text-xs text-slate-400 px-2 py-1">No products found</p>
+                    )}
+                  </div>
+                  {form.selectedProductIds.length === 0 && (
+                    <p className="text-xs text-amber-600">
+                      No products selected — coupon will behave as &quot;All products&quot;.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Date Range */}

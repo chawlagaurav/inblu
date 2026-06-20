@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 interface Subscriber {
   id: string
   email: string
+  phone: string | null
   source: string
   createdAt: string
 }
@@ -233,6 +234,9 @@ The email will include your logo and a link to your store automatically."
                         <p className="text-sm font-medium text-slate-900 truncate">
                           {subscriber.email}
                         </p>
+                        {subscriber.phone && (
+                          <p className="text-xs text-slate-600 truncate">{subscriber.phone}</p>
+                        )}
                         <div className="flex items-center gap-2 mt-0.5">
                           <Badge variant="outline" className="text-xs">
                             {subscriber.source}

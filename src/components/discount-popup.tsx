@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Check, Copy, Droplets, Sparkles } from 'lucide-react'
+import { X, Mail, Phone, Check, Copy, Droplets, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -39,6 +39,7 @@ interface PopupState {
 export function DiscountPopup() {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -138,6 +139,14 @@ export function DiscountPopup() {
     return emailRegex.test(email)
   }
 
+  // Loose phone check — match what the API enforces (>=6 digits) so users get
+  // immediate feedback. Permissive about format so international, dashes,
+  // parentheses, plus signs all work.
+  const validatePhone = (raw: string): boolean => {
+    const digitCount = (raw.match(/\d/g) ?? []).length
+    return digitCount >= 6
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -152,13 +161,23 @@ export function DiscountPopup() {
       return
     }
 
+    const trimmedPhone = phone.trim()
+    if (!trimmedPhone) {
+      setError('Please enter your phone number')
+      return
+    }
+    if (!validatePhone(trimmedPhone)) {
+      setError('Please enter a valid phone number')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'popup' }),
+        body: JSON.stringify({ email, phone: trimmedPhone, source: 'popup' }),
       })
 
       const data = await response.json()
@@ -362,8 +381,29 @@ export function DiscountPopup() {
                             setError('')
                           }}
                           className={`pl-12 h-12 rounded-xl border-2 transition-colors ${
-                            error 
-                              ? 'border-red-300 focus:border-red-500' 
+                            error
+                              ? 'border-red-300 focus:border-red-500'
+                              : 'border-slate-200 focus:border-blue-500'
+                          }`}
+                          disabled={isSubmitting}
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                        <Input
+                          type="tel"
+                          inputMode="tel"
+                          autoComplete="tel"
+                          placeholder="Enter your phone number"
+                          value={phone}
+                          onChange={(e) => {
+                            setPhone(e.target.value)
+                            setError('')
+                          }}
+                          className={`pl-12 h-12 rounded-xl border-2 transition-colors ${
+                            error
+                              ? 'border-red-300 focus:border-red-500'
                               : 'border-slate-200 focus:border-blue-500'
                           }`}
                           disabled={isSubmitting}

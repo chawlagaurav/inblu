@@ -76,6 +76,7 @@ export default function EditProductPage() {
     discountMode: 'percent' as 'percent' | 'fixed',
     discountPercent: '',
     salePrice: '',
+    excludeFromCoupons: false,
   })
 
   const toggleCategory = (value: string) => {
@@ -157,6 +158,7 @@ export default function EditProductPage() {
         discountMode,
         discountPercent: data.discountPercent != null ? String(data.discountPercent) : '',
         salePrice: data.salePrice != null ? String(data.salePrice) : '',
+        excludeFromCoupons: !!data.excludeFromCoupons,
       })
     } catch {
       toast.error('Failed to load product')
@@ -247,6 +249,7 @@ export default function EditProductPage() {
           isOnSale: formData.isOnSale,
           discountPercent: discountPercentToSend,
           salePrice: salePriceToSend,
+          excludeFromCoupons: formData.excludeFromCoupons,
         }),
       })
 

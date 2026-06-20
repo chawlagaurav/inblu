@@ -23,6 +23,7 @@ const getCachedDashboardData = unstable_cache(
       orderStatuses,
       topProductItems,
       purchaseOrders,
+      expenses,
     ] = await Promise.all([
       // Get all orders for filtering (only paid orders)
       prisma.order.findMany({
@@ -79,12 +80,26 @@ const getCachedDashboardData = unstable_cache(
           product: { select: { id: true, name: true } },
         },
       }),
-      // Purchase orders
+      // Purchase orders (legacy — superseded by Expense ledger which already
+      // includes PO-linked rows. Kept for the existing chart, will be removed
+      // once we're sure nothing else reads `data.purchaseOrders`).
       prisma.purchaseOrder.findMany({
         select: {
           id: true,
           totalCost: true,
           createdAt: true,
+        },
+      }),
+      // Expenses (manual + PO-linked) — drives the dashboard P&L. Filtered by
+      // `date` (admin-entered) on the client to match the existing date-range
+      // selector pattern.
+      prisma.expense.findMany({
+        select: {
+          id: true,
+          date: true,
+          category: true,
+          amount: true,
+          sourceType: true,
         },
       }),
     ])
@@ -127,6 +142,13 @@ const getCachedDashboardData = unstable_cache(
         totalCost: Number(po.totalCost),
         createdAt: po.createdAt.toISOString(),
       })),
+      expenses: expenses.map(e => ({
+        id: e.id,
+        date: e.date.toISOString(),
+        category: e.category,
+        amount: Number(e.amount),
+        sourceType: e.sourceType,
+      })),
       topProducts,
       orderStatuses,
       lowStockProducts,
@@ -150,7 +172,7 @@ export default async function AdminDashboard() {
     <DashboardStats
       orders={data.orders}
       customers={data.customers}
-      purchaseOrders={data.purchaseOrders}
+      expenses={data.expenses}
       lowStockProducts={data.lowStockProducts}
       topProducts={data.topProducts}
       orderStatuses={data.orderStatuses}

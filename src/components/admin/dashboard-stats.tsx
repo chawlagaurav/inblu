@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { EXPENSE_SOURCE_PURCHASE_ORDER } from '@/lib/expense-categories'
 
 interface Order {
   id: string
@@ -301,6 +302,14 @@ export function DashboardStats({
       ? ((periodExpenses - compareExpenses) / compareExpenses) * 100
       : periodExpenses > 0 ? 100 : 0
 
+    // Split expenses into COGS (auto-synced from POs) vs operating (everything
+    // else) so the P&L card can show how each contributes to total spend.
+    let cogsExpenses = 0
+    for (const e of periodExpensesList) {
+      if (e.sourceType === EXPENSE_SOURCE_PURCHASE_ORDER) cogsExpenses += e.amount
+    }
+    const opExpenses = periodExpenses - cogsExpenses
+
     // Net profit + margin
     const netProfit = periodRevenue - periodExpenses
     const compareNetProfit = compareRevenue - compareExpenses
@@ -365,6 +374,8 @@ export function DashboardStats({
       avgOrderChange,
       periodExpenses,
       expensesChange,
+      cogsExpenses,
+      opExpenses,
       netProfit,
       netProfitChange,
       profitMargin,
@@ -543,52 +554,78 @@ export function DashboardStats({
         </Card>
       </div>
 
-      {/* P&L row — derived from the KPI grid above. Net Profit = Revenue − Expenses. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">Net Profit</p>
-                <p
-                  className={`text-2xl font-bold mt-1 ${stats.netProfit >= 0 ? 'text-slate-900' : 'text-red-600'}`}
-                >
-                  {formatCurrency(stats.netProfit)}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-emerald-600" />
-              </div>
+      {/* P&L — mini income statement for the selected period. The math is
+          intentionally laid out line by line (Revenue − Expenses = Net Profit)
+          so the admin can see exactly how the period's profit was derived
+          rather than just landing on a final number. */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Wallet className="h-5 w-5 text-emerald-600" />
+            P&amp;L — {presetLabels[preset]}
+          </CardTitle>
+          <CardDescription>
+            Revenue from paid orders minus all expenses (manual entries plus PO-linked cost of goods).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1.5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-slate-600">Revenue</span>
+              <span className="text-base font-semibold text-slate-900 tabular-nums">
+                {formatCurrency(stats.periodRevenue)}
+              </span>
             </div>
-            {preset !== 'all_time' && (
-              <div className="flex items-center gap-1 mt-2">
-                <ChangeBadge value={stats.netProfitChange} />
-                <span className="text-xs text-slate-500">vs previous period</span>
-              </div>
-            )}
-            <p className="text-xs text-slate-400 mt-1">Revenue − Total Expenses</p>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">Profit Margin</p>
-                <p
-                  className={`text-2xl font-bold mt-1 ${stats.profitMargin >= 0 ? 'text-slate-900' : 'text-red-600'}`}
-                >
-                  {stats.profitMargin.toFixed(1)}%
-                </p>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-slate-600">− Total Expenses</span>
+              <span className="text-base font-semibold text-slate-900 tabular-nums">
+                {formatCurrency(stats.periodExpenses)}
+              </span>
+            </div>
+
+            <div className="pl-4 space-y-1">
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-slate-500">• Inventory / COGS (from POs)</span>
+                <span className="text-xs text-slate-500 tabular-nums">
+                  {formatCurrency(stats.cogsExpenses)}
+                </span>
               </div>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-slate-500">• Operating expenses</span>
+                <span className="text-xs text-slate-500 tabular-nums">
+                  {formatCurrency(stats.opExpenses)}
+                </span>
               </div>
             </div>
-            <p className="text-xs text-slate-400 mt-2">Net Profit ÷ Revenue</p>
-          </CardContent>
-        </Card>
-      </div>
+
+            <div className="pt-2 border-t border-slate-200" />
+
+            <div className="flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-700">Net Profit</span>
+                {preset !== 'all_time' && (
+                  <ChangeBadge value={stats.netProfitChange} />
+                )}
+              </div>
+              <span
+                className={`text-2xl font-bold tabular-nums ${stats.netProfit >= 0 ? 'text-emerald-700' : 'text-red-600'}`}
+              >
+                {formatCurrency(stats.netProfit)}
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-slate-600">Profit Margin</span>
+              <span
+                className={`text-base font-semibold tabular-nums ${stats.profitMargin >= 0 ? 'text-slate-900' : 'text-red-600'}`}
+              >
+                {stats.profitMargin.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

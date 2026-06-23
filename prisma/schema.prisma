@@ -366,3 +366,48 @@ model StockReservation {
   @@index([productId])
   @@map("stock_reservations")
 }
+
+enum EmploymentStatus {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  CASUAL
+}
+
+model Employee {
+  id               String           @id @default(uuid())
+  // Admin-typed business key (e.g. EMP-001, JANE-D). Unique across the org.
+  employeeId       String           @unique @map("employee_id")
+  fullName         String           @map("full_name")
+  email            String           @unique
+  phone            String
+  address          String?
+  department       String
+  position         String
+  joiningDate      DateTime         @map("joining_date")
+  employmentStatus EmploymentStatus @map("employment_status")
+  // Free-text status the admin can set (e.g. "Active", "On leave", "Probation"). Soft-delete uses `isActive` below.
+  currentStatus    String           @map("current_status")
+  notes            String?
+  // Soft delete: deleted employees stay in the DB for audit and only appear
+  // in the admin when the "Show inactive" toggle is on.
+  isActive         Boolean          @default(true) @map("is_active")
+  documents        EmployeeDocument[]
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt       @map("updated_at")
+
+  @@index([department])
+  @@map("employees")
+}
+
+model EmployeeDocument {
+  id         String   @id @default(uuid())
+  employeeId String   @map("employee_id")
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  label      String
+  url        String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([employeeId])
+  @@map("employee_documents")
+}

@@ -18,6 +18,7 @@ import {
   Wrench,
   FolderOpen,
   MessageSquare,
+  BriefcaseBusiness,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -37,6 +38,7 @@ const navigation = [
   { name: 'Marketing', href: '/admin05/marketing', icon: Megaphone },
   { name: 'Coupons', href: '/admin05/coupons', icon: Tag },
   { name: 'Testimonials', href: '/admin05/testimonials', icon: MessageSquare },
+  { name: 'Employees', href: '/admin05/employees', icon: BriefcaseBusiness },
 ]
 
 export function AdminSidebar() {

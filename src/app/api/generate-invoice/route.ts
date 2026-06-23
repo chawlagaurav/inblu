@@ -234,9 +234,15 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     // Surface the underlying message so the admin (and our logs) see exactly
-    // why the invoice failed instead of a generic 500.
-    console.error('Invoice generation error:', error)
-    const message = error instanceof Error ? error.message : 'Failed to generate invoice'
+    // why the invoice failed instead of a generic 500. Log a structured line
+    // so it's easy to spot in Vercel's function dashboard.
+    const message = error instanceof Error ? error.message : String(error)
+    const stack = error instanceof Error ? error.stack : undefined
+    console.error(JSON.stringify({
+      where: 'POST /api/generate-invoice',
+      message,
+      stack,
+    }))
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

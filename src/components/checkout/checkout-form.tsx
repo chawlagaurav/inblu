@@ -89,6 +89,30 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [checkoutData])
 
+  // Intercept the browser's Back button on the payment step. Without this,
+  // clicking the in-app back arrow shows the cancel-checkout confirmation but
+  // the browser back gesture silently navigates away — leaving an orphan
+  // PaymentIntent + stock reservation behind. We push a sentinel history entry
+  // when the payment step opens; on `popstate` we re-push it (cancelling the
+  // navigation) and show the same confirmation dialog. If the customer
+  // confirms, `confirmCancelCheckout` does a real `router.push('/products')`.
+  useEffect(() => {
+    if (step !== 'payment' || !checkoutData) return
+    if (typeof window === 'undefined') return
+
+    // Drop a sentinel entry so the next "back" brings us right back here
+    // rather than to the previous page.
+    window.history.pushState({ checkoutGuard: true }, '')
+
+    const handlePopState = () => {
+      // Re-arm the sentinel so consecutive Back clicks keep being intercepted.
+      window.history.pushState({ checkoutGuard: true }, '')
+      setShowCancelConfirm(true)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [step, checkoutData])
+
   const handleBackClick = () => {
     if (step === 'payment' && checkoutData) {
       setShowCancelConfirm(true)
@@ -102,7 +126,10 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
     setShowCancelConfirm(false)
     setCheckoutData(null)
     setStep('shipping')
-    router.push('/products')
+    // `replace` (not `push`) overwrites the sentinel history entry the
+    // back-button guard installed, leaving the customer with a clean
+    // forward/back history pointing at /products.
+    router.replace('/products')
   }
   
   // Helper function to scroll to a field and focus it

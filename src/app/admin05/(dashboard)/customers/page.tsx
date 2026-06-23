@@ -296,7 +296,8 @@ export default function AdminCustomersPage() {
                         />
                       </th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Customer</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Contact</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Email</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Phone</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Type</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Orders</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Total Spent</th>
@@ -314,21 +315,31 @@ export default function AdminCustomersPage() {
                           />
                         </td>
                         <td className="py-3 px-4">
-                          <p className="font-medium text-slate-900">{customer.name}</p>
+                          <Link
+                            href={`/admin05/customers/${encodeURIComponent(customer.email)}`}
+                            className="font-medium text-slate-900 hover:text-blue-600 hover:underline"
+                          >
+                            {customer.name}
+                          </Link>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="space-y-1">
-                            <p className="text-sm text-slate-600 flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              {customer.email}
-                            </p>
-                            {customer.phone && (
-                              <p className="text-sm text-slate-500 flex items-center gap-1">
-                                <Phone className="h-3 w-3" />
-                                {customer.phone}
-                              </p>
-                            )}
-                          </div>
+                          <p className="text-sm text-slate-600 flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {customer.email}
+                          </p>
+                        </td>
+                        <td className="py-3 px-4">
+                          {customer.phone ? (
+                            <a
+                              href={`tel:${customer.phone}`}
+                              className="text-sm text-slate-700 hover:text-blue-600 flex items-center gap-1"
+                            >
+                              <Phone className="h-3 w-3" />
+                              {customer.phone}
+                            </a>
+                          ) : (
+                            <span className="text-sm text-slate-400">—</span>
+                          )}
                         </td>
                         <td className="py-3 px-4">
                           <Badge variant={customer.type === 'registered' ? 'secondary' : 'outline'}>

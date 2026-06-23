@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText, ExternalLink, Package, Trash2, Loader2, ChevronDown, ChevronUp, Plus, Download, Pencil } from 'lucide-react'
+import { FileText, ExternalLink, Package, Trash2, Loader2, ChevronDown, ChevronUp, Plus, Download, Pencil, Search, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FadeIn } from '@/components/motion'
 import { AddPOModal } from '@/components/admin/add-po-modal'
 import { toast } from 'sonner'
@@ -56,6 +58,12 @@ export default function PurchaseOrdersPage() {
   const [addPOOpen, setAddPOOpen] = useState(false)
   const [editingPO, setEditingPO] = useState<PurchaseOrder | null>(null)
   const [exporting, setExporting] = useState(false)
+  // Search + filter state. All matching is client-side against the list we
+  // already fetched — the dataset is small (one row per PO) and this avoids
+  // a refetch on every keystroke.
+  const [search, setSearch] = useState('')
+  const [deliveryStatusFilter, setDeliveryStatusFilter] = useState('all')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all')
 
   useEffect(() => {
     fetchPurchaseOrders()
@@ -112,7 +120,14 @@ export default function PurchaseOrdersPage() {
   const handleExport = async () => {
     setExporting(true)
     try {
-      const response = await fetch('/api/admin/purchase-orders/export')
+      // Forward the page's active filters so the download matches what's
+      // currently rendered.
+      const params = new URLSearchParams()
+      if (search.trim()) params.set('search', search.trim())
+      if (deliveryStatusFilter !== 'all') params.set('deliveryStatus', deliveryStatusFilter)
+      if (paymentStatusFilter !== 'all') params.set('paymentStatus', paymentStatusFilter)
+      const qs = params.toString()
+      const response = await fetch(`/api/admin/purchase-orders/export${qs ? `?${qs}` : ''}`)
       if (!response.ok) throw new Error('Export failed')
 
       const blob = await response.blob()
@@ -143,6 +158,41 @@ export default function PurchaseOrdersPage() {
     (sum, po) => sum + Number(po.totalCost || 0),
     0
   )
+
+  // Apply search + filter to derive the list rendered below. Search matches
+  // PO number, vendor, approver, notes, and any product name on the PO so the
+  // admin can find a record by whatever they remember about it.
+  const filteredPOs = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return purchaseOrders.filter((po) => {
+      if (deliveryStatusFilter !== 'all' && (po.deliveryStatus ?? 'PENDING') !== deliveryStatusFilter) {
+        return false
+      }
+      if (paymentStatusFilter !== 'all' && (po.paymentStatus ?? 'UNPAID') !== paymentStatusFilter) {
+        return false
+      }
+      if (!q) return true
+      const haystack = [
+        po.poNumber,
+        po.vendorName,
+        po.notes,
+        po.approvedBy,
+        ...po.inventoryTransactions.map((t) => t.product.name),
+        ...po.inventoryTransactions.map((t) => t.product.sku),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(q)
+    })
+  }, [purchaseOrders, search, deliveryStatusFilter, paymentStatusFilter])
+
+  const hasActiveFilter = search.trim() !== '' || deliveryStatusFilter !== 'all' || paymentStatusFilter !== 'all'
+  const clearFilters = () => {
+    setSearch('')
+    setDeliveryStatusFilter('all')
+    setPaymentStatusFilter('all')
+  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-AU', {
@@ -221,10 +271,72 @@ export default function PurchaseOrdersPage() {
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
               All Purchase Orders
+              {hasActiveFilter && (
+                <span className="text-sm font-normal text-slate-500 ml-1">
+                  &middot; {filteredPOs.length} of {totalPOs}
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {purchaseOrders.length === 0 ? (
+            {/* Search + filters. Visible only when there's at least one PO so the
+                empty state stays clean for a brand-new admin. */}
+            {totalPOs > 0 && (
+              <div className="mb-4 flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search by PO number, vendor, product, notes..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10 pr-9"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch('')}
+                      aria-label="Clear search"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <Select value={deliveryStatusFilter} onValueChange={setDeliveryStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Delivery status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All delivery statuses</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="IN_TRANSIT">In transit</SelectItem>
+                    <SelectItem value="DELIVERED">Delivered</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-44">
+                    <SelectValue placeholder="Payment status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All payment statuses</SelectItem>
+                    <SelectItem value="UNPAID">Unpaid</SelectItem>
+                    <SelectItem value="PARTIAL">Partial</SelectItem>
+                    <SelectItem value="PAID">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+                {hasActiveFilter && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearFilters}
+                    className="w-full sm:w-auto text-slate-600"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {totalPOs === 0 ? (
               <div className="text-center py-12">
                 <Package className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">No purchase orders yet</p>
@@ -236,9 +348,20 @@ export default function PurchaseOrdersPage() {
                   Add Your First PO
                 </Button>
               </div>
+            ) : filteredPOs.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">No purchase orders match your filters</p>
+                <p className="text-sm text-slate-400 mt-1">
+                  Try a different search or clear the filters
+                </p>
+                <Button variant="outline" className="mt-4" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              </div>
             ) : (
               <div className="space-y-3">
-                {purchaseOrders.map((po) => {
+                {filteredPOs.map((po) => {
                   const totalQty = po.inventoryTransactions.reduce((s, t) => s + t.quantity, 0)
                   const productCount = po.inventoryTransactions.length
                   const isExpanded = expandedId === po.id

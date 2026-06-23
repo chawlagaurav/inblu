@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Loader2, MessageSquare, Trash2, Search, X, Mail, Phone, ChevronDown, ChevronUp, MessageCircle, Clock, ExternalLink,
+  Loader2, MessageSquare, Trash2, Search, X, Mail, Phone, ChevronDown, ChevronUp, MessageCircle, Clock, ExternalLink, Download,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -165,12 +165,24 @@ export default function AdminEnquiriesPage() {
               Manage customer enquiries from the contact form &middot; {filtered.length} enquir{filtered.length !== 1 ? 'ies' : 'y'}
             </p>
           </div>
-          <Button asChild className="w-full sm:w-auto">
-            <a href="/support/enquiry" target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Create Enquiry
+          <div className="flex flex-col sm:flex-row gap-2">
+            <a
+              href={`/api/admin/enquiries/export?${new URLSearchParams({
+                ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+                ...(search ? { search } : {}),
+              }).toString()}`}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors w-full sm:w-auto"
+            >
+              <Download className="h-4 w-4" />
+              Export to Excel
             </a>
-          </Button>
+            <Button asChild className="w-full sm:w-auto">
+              <a href="/support/enquiry" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Create Enquiry
+              </a>
+            </Button>
+          </div>
         </div>
       </FadeIn>
 

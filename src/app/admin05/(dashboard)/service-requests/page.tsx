@@ -22,7 +22,8 @@ import {
   Save,
   X,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -277,6 +278,16 @@ export default function AdminServiceRequestsPage() {
             <p className="text-slate-500 mt-1">Manage and track customer service requests</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
+            <a
+              href={`/api/admin/service-requests/export?${new URLSearchParams({
+                ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+                ...(searchQuery ? { search: searchQuery } : {}),
+              }).toString()}`}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors w-full sm:w-auto"
+            >
+              <Download className="h-4 w-4" />
+              Export to Excel
+            </a>
             <Button asChild variant="outline" className="w-full sm:w-auto">
               <a href="/support/service-request" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-2" />

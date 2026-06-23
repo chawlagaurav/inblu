@@ -3,9 +3,12 @@
  * storefront:
  *
  * - <PriceDisplay/> renders the bold sale price next to a struck-through
- *   original (or just the price when not on sale).
- * - <SaleBadge/> is the small "-20% OFF" / "SAVE $X" pill that sits on a
- *   product image. Returns `null` when not on sale; the caller positions it.
+ *   original, plus a small "SAVE $X" / "-20% OFF" badge inline next to the
+ *   price (only when on sale). Caller can suppress the badge with
+ *   `hideBadge` for tight contexts like cart line items.
+ * - <SaleBadge/> remains as a standalone export for any caller that wants
+ *   to place the badge separately (e.g. as an image overlay). Returns
+ *   `null` when not on sale.
  *
  * Both consume the same `getPriceBreakdown` helper, so percent-mode and
  * fixed-mode discounts always agree on what's displayed.
@@ -19,7 +22,8 @@ interface PriceDisplayProps {
   product: PriceableProduct
   /** Controls font size of the primary price. Defaults to 'md'. */
   size?: 'sm' | 'md' | 'lg'
-  /** Hide the sale badge — useful inside cart line items where there's no image. */
+  /** Hide the inline sale badge (e.g. inside cart line items). */
+  hideBadge?: boolean
   className?: string
 }
 
@@ -35,7 +39,7 @@ const STRIKE_SIZE_TO_CLASS: Record<NonNullable<PriceDisplayProps['size']>, strin
   lg: 'text-base',
 }
 
-export function PriceDisplay({ product, size = 'md', className }: PriceDisplayProps) {
+export function PriceDisplay({ product, size = 'md', hideBadge = false, className }: PriceDisplayProps) {
   const breakdown = getPriceBreakdown(product)
   const sizeClass = SIZE_TO_CLASS[size]
   const strikeClass = STRIKE_SIZE_TO_CLASS[size]
@@ -48,14 +52,17 @@ export function PriceDisplay({ product, size = 'md', className }: PriceDisplayPr
     )
   }
 
+  // The wrapper uses flex-wrap so on narrow cards the badge tucks under the
+  // price block instead of overflowing the card width.
   return (
-    <span className={cn('inline-flex items-baseline gap-2', className)}>
+    <span className={cn('inline-flex items-baseline gap-2 flex-wrap', className)}>
       <span className={cn('font-bold text-red-600', sizeClass)}>
         {formatCurrency(breakdown.effectivePrice)}
       </span>
       <s className={cn('text-slate-400', strikeClass)}>
         {formatCurrency(breakdown.originalPrice)}
       </s>
+      {!hideBadge && <SaleBadge product={product} />}
     </span>
   )
 }

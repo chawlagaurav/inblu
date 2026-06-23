@@ -173,6 +173,11 @@ export async function POST(request: NextRequest) {
       await syncPurchaseOrderExpense(tx, purchaseOrder)
 
       return purchaseOrder
+    }, {
+      // Match the timeout used by PUT — many line items × remote Postgres can
+      // exceed Prisma's 5s default.
+      maxWait: 10_000,
+      timeout: 30_000,
     })
 
     return NextResponse.json({
@@ -181,6 +186,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error creating purchase order:', error)
-    return NextResponse.json({ error: 'Failed to create purchase order' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to create purchase order'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

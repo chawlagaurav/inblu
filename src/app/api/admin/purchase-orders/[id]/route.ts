@@ -153,10 +153,24 @@ export async function PUT(
       existingPO.inventoryTransactions.map((t) => [t.productId, t])
     )
 
+    // Some inventory transactions on this PO may reference products that have
+    // since been deleted from the catalog. We can't update stock for a missing
+    // product, so we skip those rows in the revert step. The InventoryTransaction
+    // row itself still gets deleted below.
+    const existingProductIdsOnPO = Array.from(oldTransactionMap.keys())
+    const productsStillExisting = existingProductIdsOnPO.length > 0
+      ? await prisma.product.findMany({
+          where: { id: { in: existingProductIdsOnPO } },
+          select: { id: true },
+        })
+      : []
+    const stillExistsSet = new Set(productsStillExisting.map((p) => p.id))
+
     // Update PO and stock in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // First, revert old stock changes
+      // First, revert old stock changes for products that still exist.
       for (const oldTx of existingPO.inventoryTransactions) {
+        if (!stillExistsSet.has(oldTx.productId)) continue
         await tx.product.update({
           where: { id: oldTx.productId },
           data: {
@@ -227,12 +241,25 @@ export async function PUT(
       await syncPurchaseOrderExpense(tx, purchaseOrder)
 
       return purchaseOrder
+    }, {
+      // Each PO can touch many products in serial (revert stock × N, delete txs,
+      // update PO, then for each new line: findUnique + create tx + update stock).
+      // On a remote Supabase Postgres, ~50-100ms per query × dozens of queries can
+      // exceed Prisma's 5s default and abort mid-flight with a transaction-timeout
+      // error that surfaces as a generic 500. 30s is comfortable headroom.
+      maxWait: 10_000,
+      timeout: 30_000,
     })
 
     return NextResponse.json(result)
   } catch (error) {
+    // Log the full error server-side and surface a meaningful message to the
+    // admin. Without this, every failure (stock conflict, missing product,
+    // upsert collision, etc.) collapses to "Failed to update" and we have to
+    // tail server logs to diagnose.
     console.error('Error updating purchase order:', error)
-    return NextResponse.json({ error: 'Failed to update purchase order' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to update purchase order'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -265,6 +292,7 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting purchase order:', error)
-    return NextResponse.json({ error: 'Failed to delete purchase order' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to delete purchase order'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

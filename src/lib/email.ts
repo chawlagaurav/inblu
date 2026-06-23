@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 import { formatCurrency, formatDate } from './utils'
 
-const FROM_EMAIL = 'inBlu Australia <sales@inblu.com.au>'
+const FROM_EMAIL = 'Inblu Filters <sales@inblu.com.au>'
 
 function getResend(): Resend | null {
   if (!process.env.RESEND_API_KEY) {
@@ -377,7 +377,7 @@ export async function sendServiceRequestConfirmation(data: ServiceRequestEmailDa
 
     if (resend) {
       const { error } = await resend.emails.send({
-        from: 'Inblu Filters Support <support@inblu.com.au>',
+        from: 'Inblu Filters <support@inblu.com.au>',
         to: data.email,
         subject,
         html,
@@ -412,7 +412,7 @@ export async function sendServiceRequestAdminNotification(data: ServiceRequestEm
 
     if (resend) {
       const { error } = await resend.emails.send({
-        from: 'inBlu System <support@inblu.com.au>',
+        from: 'Inblu Filters <support@inblu.com.au>',
         to: adminEmail,
         subject,
         html,

@@ -11,8 +11,7 @@ import { StaggerContainer, StaggerItem } from '@/components/motion'
 import { useCartStore } from '@/store/cart'
 import { Product } from '@/types'
 import { buildCategoryLabelMap, resolveProductCategoryLabel } from '@/lib/category-display'
-import { PriceDisplay, SaleBadge } from '@/components/products/price-display'
-import { getPriceBreakdown } from '@/lib/pricing'
+import { PriceDisplay } from '@/components/products/price-display'
 import { toast } from 'sonner'
 
 interface ProductsGridProps {
@@ -113,15 +112,10 @@ function ProductCard({
           </div>
         )}
         
-        {/* Sale + best-seller badges. Sale takes the priority `top-left` slot;
-            best-seller moves to top-right when both apply so they don't overlap. */}
-        <SaleBadge product={product} className="absolute top-3 left-3 z-10" />
+        {/* The sale badge sits next to the price (inside <PriceDisplay/>),
+            not on the image — so this slot is back to best-seller only. */}
         {product.isBestSeller && (
-          <Badge
-            className={getPriceBreakdown(product).isOnSale ? 'absolute top-3 right-3' : 'absolute top-3 left-3'}
-          >
-            Best Seller
-          </Badge>
+          <Badge className="absolute top-3 left-3">Best Seller</Badge>
         )}
 
         {/* Quick actions - hidden on mobile, visible on desktop hover */}

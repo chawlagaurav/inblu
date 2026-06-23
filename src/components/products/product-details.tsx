@@ -14,7 +14,7 @@ import { useCartStore } from '@/store/cart'
 import { formatCurrency, calculateSubtotal } from '@/lib/utils'
 import { Product } from '@/types'
 import { buildCategoryLabelMap, resolveProductCategoryLabel } from '@/lib/category-display'
-import { PriceDisplay, SaleBadge } from '@/components/products/price-display'
+import { PriceDisplay } from '@/components/products/price-display'
 import { getEffectivePrice } from '@/lib/pricing'
 import { toast } from 'sonner'
 
@@ -83,7 +83,6 @@ export function ProductDetails({ product, categoryOptions }: ProductDetailsProps
         <FadeIn className="space-y-4">
           {/* Main Image */}
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-blue-50 group">
-            <SaleBadge product={product} className="absolute top-3 left-3 z-20" />
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedImage}

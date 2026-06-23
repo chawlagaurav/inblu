@@ -28,11 +28,37 @@ export async function GET(request: NextRequest) {
   const dateFrom = searchParams.get('dateFrom')
   const dateTo = searchParams.get('dateTo')
   const vendor = searchParams.get('vendor')
+  // Page-driven filters — keep names in sync with the admin UI so the export
+  // anchor matches what's on screen.
+  const search = searchParams.get('search')?.trim()
+  const deliveryStatus = searchParams.get('deliveryStatus')
+  const paymentStatus = searchParams.get('paymentStatus')
 
   try {
     const purchaseOrders = await prisma.purchaseOrder.findMany({
       where: {
         ...(vendor ? { vendorName: { contains: vendor, mode: 'insensitive' } } : {}),
+        ...(deliveryStatus && deliveryStatus !== 'all' ? { deliveryStatus } : {}),
+        ...(paymentStatus && paymentStatus !== 'all' ? { paymentStatus } : {}),
+        ...(search
+          ? {
+              OR: [
+                { poNumber: { contains: search, mode: 'insensitive' } },
+                { vendorName: { contains: search, mode: 'insensitive' } },
+                { notes: { contains: search, mode: 'insensitive' } },
+                { approvedBy: { contains: search, mode: 'insensitive' } },
+                {
+                  inventoryTransactions: {
+                    some: {
+                      product: {
+                        name: { contains: search, mode: 'insensitive' },
+                      },
+                    },
+                  },
+                },
+              ],
+            }
+          : {}),
         ...(dateFrom || dateTo ? {
           createdAt: {
             ...(dateFrom ? { gte: new Date(dateFrom) } : {}),

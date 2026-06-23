@@ -106,6 +106,7 @@ export async function GET(request: NextRequest) {
           where: { paymentStatus: 'SUCCEEDED' },
           select: {
             id: true,
+            phone: true,
             totalAmount: true,
             createdAt: true,
             shippingAddress: true,
@@ -166,7 +167,10 @@ export async function GET(request: NextRequest) {
       id: c.id,
       email: c.email,
       name: c.name || c.email.split('@')[0],
-      phone: c.phone,
+      // Fall back to the most recent order's phone if the User row doesn't
+      // have one. Registered customers often complete checkout (which captures
+      // a phone) without ever filling in their profile's phone field.
+      phone: c.phone ?? c.orders.find((o) => o.phone)?.phone ?? null,
       orderCount: c.orders.length,
       totalSpent: c.orders.reduce((sum, o) => sum + Number(o.totalAmount), 0),
       lastOrder: c.orders[0]?.createdAt,

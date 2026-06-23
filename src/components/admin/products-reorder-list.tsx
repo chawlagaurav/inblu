@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ProductActions } from '@/components/admin/product-actions'
 import { formatCurrency } from '@/lib/utils'
+import { buildCategoryLabelMap } from '@/lib/category-display'
 
 interface Product {
   id: string
@@ -41,9 +42,14 @@ interface Product {
 
 interface SortableRowProps {
   product: Product
+  /** Canonical-slug → label map. When present, the row renders only those
+   *  category slugs that map to an active category (with their label), and
+   *  silently skips any orphan slug (e.g. legacy "ro-purifier"). When absent,
+   *  falls back to rendering the raw slug. */
+  labelMap?: Record<string, string>
 }
 
-function SortableRow({ product }: SortableRowProps) {
+function SortableRow({ product, labelMap }: SortableRowProps) {
   const {
     attributes,
     listeners,
@@ -106,14 +112,44 @@ function SortableRow({ product }: SortableRowProps) {
       </td>
       <td className="py-3 px-4 text-sm text-slate-600">
         <div className="flex flex-wrap gap-1">
-          {product.categories && product.categories.length > 0
-            ? product.categories.map((cat: string) => (
-                <span key={cat} className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-                  {cat}
+          {(() => {
+            // When the canonical category list is available, resolve each of
+            // the product's slugs to its label and drop slugs that no longer
+            // exist (e.g. stale "ro-purifier" from before the rename). Otherwise
+            // fall back to showing the raw slug so legacy callers still work.
+            if (labelMap) {
+              const slugs = product.categories?.length
+                ? product.categories
+                : product.category ? [product.category] : []
+              const seen = new Set<string>()
+              const chips: { slug: string; label: string }[] = []
+              for (const slug of slugs) {
+                const label = labelMap[slug.toLowerCase()]
+                if (!label || seen.has(label)) continue
+                seen.add(label)
+                chips.push({ slug, label })
+              }
+              if (chips.length === 0) {
+                return <span className="text-slate-400 italic">No category</span>
+              }
+              return chips.map((c) => (
+                <span
+                  key={c.slug}
+                  className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full"
+                >
+                  {c.label}
                 </span>
               ))
-            : <span>{product.category}</span>
-          }
+            }
+            // Legacy fallback path (labelMap not provided).
+            return product.categories && product.categories.length > 0
+              ? product.categories.map((cat: string) => (
+                  <span key={cat} className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                    {cat}
+                  </span>
+                ))
+              : <span>{product.category}</span>
+          })()}
         </div>
       </td>
       <td className="py-3 px-4 text-sm font-medium text-slate-900">
@@ -140,12 +176,16 @@ function SortableRow({ product }: SortableRowProps) {
 
 interface ProductsReorderListProps {
   products: Product[]
+  /** Active categories from the Category master, used to resolve slugs to
+   *  labels and to hide orphan slugs in the category column. */
+  activeCategories?: { value: string; label: string }[]
 }
 
-export function ProductsReorderList({ products: initialProducts }: ProductsReorderListProps) {
+export function ProductsReorderList({ products: initialProducts, activeCategories }: ProductsReorderListProps) {
   const [products, setProducts] = useState(initialProducts)
   const [hasChanges, setHasChanges] = useState(false)
   const [saving, setSaving] = useState(false)
+  const labelMap = activeCategories ? buildCategoryLabelMap(activeCategories) : undefined
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -250,7 +290,7 @@ export function ProductsReorderList({ products: initialProducts }: ProductsReord
               >
                 <tbody>
                   {products.map((product) => (
-                    <SortableRow key={product.id} product={product} />
+                    <SortableRow key={product.id} product={product} labelMap={labelMap} />
                   ))}
                 </tbody>
               </SortableContext>

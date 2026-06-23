@@ -74,7 +74,9 @@ export const emptyEmployee: EmployeeFormValue = {
 
 interface EmployeeFormProps {
   initial?: EmployeeFormValue
-  onSubmit: () => void
+  /** Called after a successful save. The server-shaped employee row is passed
+   *  back so the parent list can merge it in place without refetching. */
+  onSubmit: (saved?: unknown) => void
   onCancel?: () => void
 }
 
@@ -212,6 +214,11 @@ export function EmployeeForm({ initial, onSubmit, onCancel }: EmployeeFormProps)
       }
 
       // Flush queued docs (Add flow only — Edit flow attaches them inline).
+      // After flushing we re-fetch the employee once so we hand a row back to
+      // the parent that already includes the freshly-attached docs; otherwise
+      // the parent would render an employee with empty `documents` until its
+      // next list refresh.
+      let result = saved
       if (!form.id) {
         const pending = form.documents.filter((d) => d.isPending)
         for (const doc of pending) {
@@ -224,10 +231,14 @@ export function EmployeeForm({ initial, onSubmit, onCancel }: EmployeeFormProps)
             toast.error(`Saved employee, but failed to attach "${doc.label}"`)
           }
         }
+        if (pending.length > 0) {
+          const refetch = await fetch(`/api/admin/employees/${saved.id}`)
+          if (refetch.ok) result = await refetch.json()
+        }
       }
 
       toast.success(form.id ? 'Employee updated' : 'Employee added')
-      onSubmit()
+      onSubmit(result)
     } finally {
       setSaving(false)
     }

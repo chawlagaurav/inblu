@@ -24,21 +24,30 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
   const searchQuery = params.search
   const statusFilter = params.status
 
-  const products = await prisma.product.findMany({
-    where: {
-      ...(searchQuery ? {
-        OR: [
-          { name: { contains: searchQuery, mode: 'insensitive' } },
-          { description: { contains: searchQuery, mode: 'insensitive' } },
-          { category: { contains: searchQuery, mode: 'insensitive' } },
-        ]
-      } : {}),
+  // Pull the active Category master in parallel with products so the list can
+  // resolve raw slugs (e.g. legacy "ro-purifier") to canonical labels and skip
+  // anything that no longer exists in the master.
+  const [products, activeCategories] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        ...(searchQuery ? {
+          OR: [
+            { name: { contains: searchQuery, mode: 'insensitive' } },
+            { description: { contains: searchQuery, mode: 'insensitive' } },
+            { category: { contains: searchQuery, mode: 'insensitive' } },
+          ]
+        } : {}),
       ...(statusFilter === 'active' ? { isActive: true } : {}),
       ...(statusFilter === 'inactive' ? { isActive: false } : {}),
       ...(statusFilter === 'low-stock' ? { stock: { lte: 10 } } : {}),
     },
     orderBy: { displayOrder: 'asc' },
-  })
+    }),
+    prisma.category.findMany({
+      where: { isActive: true },
+      select: { value: true, label: true },
+    }),
+  ])
 
   const totalProducts = products.length
   const activeProducts = products.filter(p => p.isActive).length
@@ -144,7 +153,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <ProductsReorderList 
+            <ProductsReorderList
               products={products.map(p => ({
                 id: p.id,
                 name: p.name,
@@ -157,6 +166,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                 isBestSeller: p.isBestSeller,
                 displayOrder: p.displayOrder,
               }))}
+              activeCategories={activeCategories}
             />
           </CardContent>
         </Card>

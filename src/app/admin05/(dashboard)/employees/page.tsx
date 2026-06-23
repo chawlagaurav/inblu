@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Plus, Pencil, Trash2, Loader2, Search, X, Download, BriefcaseBusiness, Paperclip } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Search, X, Download, BriefcaseBusiness, Paperclip, Power } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -57,6 +57,11 @@ export default function AdminEmployeesPage() {
 
   const [search, setSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
+
+  // Per-row action lock. Keyed by employee id, so we can show a spinner on
+  // exactly the row whose action is in flight (deactivate / reactivate /
+  // delete) and block double-clicks during the round trip.
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchEmployees()
@@ -134,10 +139,14 @@ export default function AdminEmployeesPage() {
     setDialogOpen(true)
   }
 
-  const handleDelete = async (e: Employee) => {
+  // Soft delete — flip isActive=false. Done in place so the UI updates the
+  // moment the server confirms, without re-fetching the whole list (which was
+  // the main source of perceived lag).
+  const handleDeactivate = async (e: Employee) => {
     if (!confirm(
       `Deactivate ${e.fullName}? Their record stays in the system for audit but won't appear in the default list. Toggle "Show inactive" to find them again.`,
     )) return
+    setBusyId(e.id)
     try {
       const res = await fetch(`/api/admin/employees/${e.id}`, { method: 'DELETE' })
       if (!res.ok) {
@@ -145,10 +154,66 @@ export default function AdminEmployeesPage() {
         toast.error(data.error || 'Failed to deactivate employee')
         return
       }
+      // If the user isn't viewing inactive rows, the row disappears; otherwise
+      // it stays put but flips visually to its inactive style.
+      setEmployees((prev) =>
+        showInactive
+          ? prev.map((row) => (row.id === e.id ? { ...row, isActive: false } : row))
+          : prev.filter((row) => row.id !== e.id)
+      )
       toast.success('Employee deactivated')
-      fetchEmployees()
     } catch {
       toast.error('Failed to deactivate employee')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  // Reactivate flips isActive back to true via the existing PUT route.
+  const handleReactivate = async (e: Employee) => {
+    setBusyId(e.id)
+    try {
+      const res = await fetch(`/api/admin/employees/${e.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: true }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Failed to reactivate employee')
+        return
+      }
+      setEmployees((prev) =>
+        prev.map((row) => (row.id === e.id ? { ...row, isActive: true } : row))
+      )
+      toast.success('Employee reactivated')
+    } catch {
+      toast.error('Failed to reactivate employee')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  // Permanent delete is only available on already-inactive rows. The server
+  // enforces this too (409 if you try on an active employee).
+  const handlePermanentDelete = async (e: Employee) => {
+    if (!confirm(
+      `Permanently delete ${e.fullName}? This wipes the employee record AND all attached documents from the database. This cannot be undone.`,
+    )) return
+    setBusyId(e.id)
+    try {
+      const res = await fetch(`/api/admin/employees/${e.id}/permanent`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Failed to delete employee')
+        return
+      }
+      setEmployees((prev) => prev.filter((row) => row.id !== e.id))
+      toast.success('Employee permanently deleted')
+    } catch {
+      toast.error('Failed to delete employee')
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -300,22 +365,54 @@ export default function AdminEmployeesPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
+                          {/* Action set depends on the row's state.
+                              Active   → Edit + Deactivate (soft delete).
+                              Inactive → Reactivate + Permanent delete. Edit is
+                                         intentionally hidden because editing
+                                         an inactive record is rarely useful and
+                                         risks reviving "ghost" employees by
+                                         accident; reactivate first, then edit. */}
                           <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => openEdit(e)}
-                              className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors"
-                              aria-label="Edit"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            {e.isActive && (
-                              <button
-                                onClick={() => handleDelete(e)}
-                                className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
-                                aria-label="Deactivate"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                            {busyId === e.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-slate-400 mr-2" />
+                            ) : e.isActive ? (
+                              <>
+                                <button
+                                  onClick={() => openEdit(e)}
+                                  className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors"
+                                  aria-label="Edit"
+                                  title="Edit"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeactivate(e)}
+                                  className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
+                                  aria-label="Deactivate"
+                                  title="Deactivate"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleReactivate(e)}
+                                  className="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors"
+                                  aria-label="Reactivate"
+                                  title="Reactivate"
+                                >
+                                  <Power className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handlePermanentDelete(e)}
+                                  className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
+                                  aria-label="Delete permanently"
+                                  title="Delete permanently"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -336,9 +433,24 @@ export default function AdminEmployeesPage() {
           </DialogHeader>
           <EmployeeForm
             initial={editing ?? emptyEmployee}
-            onSubmit={() => {
+            onSubmit={(saved) => {
               setDialogOpen(false)
-              fetchEmployees()
+              // Merge the saved row in place instead of refetching the whole
+              // list. The form hands back a server-shaped employee (including
+              // its current documents), so we can update / prepend without a
+              // round-trip and avoid the visible loading flash.
+              if (saved && typeof saved === 'object' && 'id' in saved) {
+                const row = saved as Employee
+                setEmployees((prev) => {
+                  const exists = prev.some((p) => p.id === row.id)
+                  return exists
+                    ? prev.map((p) => (p.id === row.id ? row : p))
+                    : [row, ...prev]
+                })
+              } else {
+                // Fallback if for any reason the form didn't return a row.
+                fetchEmployees()
+              }
             }}
             onCancel={() => setDialogOpen(false)}
           />

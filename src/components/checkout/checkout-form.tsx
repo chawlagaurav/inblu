@@ -443,9 +443,13 @@ export function CheckoutForm({ isGuest = false, userDetails }: CheckoutFormProps
           </StripeProvider>
         </div>
 
-        {/* Cancel checkout confirmation */}
+        {/* Cancel checkout confirmation.
+            z-[100] (not the stock z-50) because the PayPal Buttons SDK injects
+            its own iframes that establish their own stacking context and can
+            paint over a z-50 modal. Matches the discount-popup convention
+            used elsewhere for top-of-stack overlays. */}
         {showCancelConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setShowCancelConfirm(false)}

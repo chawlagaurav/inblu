@@ -139,9 +139,9 @@ export default function AdminEmployeesPage() {
     setDialogOpen(true)
   }
 
-  // Soft delete — flip isActive=false. Done in place so the UI updates the
-  // moment the server confirms, without re-fetching the whole list (which was
-  // the main source of perceived lag).
+  // Soft delete — flip isActive=false. The list view is always single-state
+  // (active-only OR inactive-only), so deactivating a row always removes it
+  // from the current view, regardless of which view we're on.
   const handleDeactivate = async (e: Employee) => {
     if (!confirm(
       `Deactivate ${e.fullName}? Their record stays in the system for audit but won't appear in the default list. Toggle "Show inactive" to find them again.`,
@@ -154,13 +154,7 @@ export default function AdminEmployeesPage() {
         toast.error(data.error || 'Failed to deactivate employee')
         return
       }
-      // If the user isn't viewing inactive rows, the row disappears; otherwise
-      // it stays put but flips visually to its inactive style.
-      setEmployees((prev) =>
-        showInactive
-          ? prev.map((row) => (row.id === e.id ? { ...row, isActive: false } : row))
-          : prev.filter((row) => row.id !== e.id)
-      )
+      setEmployees((prev) => prev.filter((row) => row.id !== e.id))
       toast.success('Employee deactivated')
     } catch {
       toast.error('Failed to deactivate employee')
@@ -169,7 +163,8 @@ export default function AdminEmployeesPage() {
     }
   }
 
-  // Reactivate flips isActive back to true via the existing PUT route.
+  // Reactivate flips isActive back to true. Removes the row from the current
+  // (inactive-only) view since it no longer matches.
   const handleReactivate = async (e: Employee) => {
     setBusyId(e.id)
     try {
@@ -183,10 +178,8 @@ export default function AdminEmployeesPage() {
         toast.error(data.error || 'Failed to reactivate employee')
         return
       }
-      setEmployees((prev) =>
-        prev.map((row) => (row.id === e.id ? { ...row, isActive: true } : row))
-      )
-      toast.success('Employee reactivated')
+      setEmployees((prev) => prev.filter((row) => row.id !== e.id))
+      toast.success('Employee reactivated. Toggle "Show inactive" off to see them in the active list.')
     } catch {
       toast.error('Failed to reactivate employee')
     } finally {
@@ -291,10 +284,19 @@ export default function AdminEmployeesPage() {
               <div className="text-center py-16 text-slate-500">
                 <BriefcaseBusiness className="h-12 w-12 mx-auto mb-3 text-slate-300" />
                 {employees.length === 0 ? (
-                  <>
-                    <p>No employees yet</p>
-                    <p className="text-sm text-slate-400 mt-1">Click &quot;Add Employee&quot; to create the first record</p>
-                  </>
+                  showInactive ? (
+                    <>
+                      <p>No inactive employees</p>
+                      <p className="text-sm text-slate-400 mt-1">
+                        Deactivated employees show up here. Toggle &quot;Show inactive&quot; off to see your active team.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>No employees yet</p>
+                      <p className="text-sm text-slate-400 mt-1">Click &quot;Add Employee&quot; to create the first record</p>
+                    </>
+                  )
                 ) : (
                   <p>No employees match your search</p>
                 )}
@@ -438,14 +440,18 @@ export default function AdminEmployeesPage() {
               // Merge the saved row in place instead of refetching the whole
               // list. The form hands back a server-shaped employee (including
               // its current documents), so we can update / prepend without a
-              // round-trip and avoid the visible loading flash.
+              // round-trip. The list is single-state (active-only OR
+              // inactive-only), so we only merge in rows whose isActive
+              // matches the current view — otherwise the row would appear
+              // in a list where it doesn't belong.
               if (saved && typeof saved === 'object' && 'id' in saved) {
                 const row = saved as Employee
+                const matchesView = row.isActive === !showInactive
                 setEmployees((prev) => {
-                  const exists = prev.some((p) => p.id === row.id)
-                  return exists
-                    ? prev.map((p) => (p.id === row.id ? row : p))
-                    : [row, ...prev]
+                  const withoutRow = prev.filter((p) => p.id !== row.id)
+                  if (!matchesView) return withoutRow
+                  const existed = prev.some((p) => p.id === row.id)
+                  return existed ? withoutRow.concat(row) : [row, ...withoutRow]
                 })
               } else {
                 // Fallback if for any reason the form didn't return a row.

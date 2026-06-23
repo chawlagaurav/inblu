@@ -23,14 +23,16 @@ function isEmploymentStatus(v: unknown): v is EmploymentStatus {
 /**
  * Build the Prisma `where` clause shared by GET (list) and the export route.
  *   - `search`: case-insensitive substring across employeeId / fullName / email / phone / department / position.
- *   - `showInactive`: when 'true', include soft-deleted rows; otherwise filter them out.
+ *   - `showInactive`: when 'true', the list switches to the inactive-only
+ *     archive view (returns only `isActive=false` rows). Otherwise returns the
+ *     active-only view. Either way the list is single-state — never mixed —
+ *     so reactivating / deactivating naturally moves a row OUT of the current
+ *     view, which is the UX the admin expects.
  */
 export function buildEmployeeWhere(searchParams: URLSearchParams) {
   const where: Record<string, unknown> = {}
 
-  if (searchParams.get('showInactive') !== 'true') {
-    where.isActive = true
-  }
+  where.isActive = searchParams.get('showInactive') !== 'true'
 
   const q = searchParams.get('search')?.trim()
   if (q) {

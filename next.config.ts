@@ -6,6 +6,17 @@ const nextConfig: NextConfig = {
   // path resolves at runtime in the serverless function. puppeteer-core is
   // grouped with it to keep them in sync.
   serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  // Vercel's file tracer only bundles JS files referenced from imports. The
+  // chromium binary is resolved at runtime via `chromium.executablePath()`,
+  // so the tracer misses /bin entirely and the function 500s with
+  // "The input directory /var/task/node_modules/@sparticuz/chromium/bin
+  // does not exist." Force-include those binary assets here for the
+  // /api/generate-invoice route.
+  outputFileTracingIncludes: {
+    '/api/generate-invoice': [
+      './node_modules/@sparticuz/chromium/bin/**/*',
+    ],
+  },
   images: {
     // Disable image optimization to reduce server load on shared hosting
     unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === 'true',

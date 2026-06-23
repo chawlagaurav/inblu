@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import puppeteer from 'puppeteer'
+import puppeteer, { type Browser } from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
 import { v2 as cloudinary } from 'cloudinary'
 import { Resend } from 'resend'
 import { generateInvoiceHtml } from '@/lib/invoice-html'
@@ -12,7 +13,12 @@ import {
   COMPANY_DETAILS,
 } from '@/lib/invoice'
 import prisma from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
+
+// Puppeteer + PDF generation can easily take 10–20s on a cold start in
+// Vercel's Node runtime. The default 10s function budget cuts the call off
+// silently. 60s gives chromium plenty of headroom and is the maximum the
+// Hobby/Pro plans allow for non-Edge routes.
+export const maxDuration = 60
 
 // Configure Cloudinary
 cloudinary.config({
@@ -23,6 +29,48 @@ cloudinary.config({
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+/**
+ * Launch a headless Chromium instance that works both in Vercel's serverless
+ * runtime AND on a local developer machine.
+ *
+ * Vercel: the function image has no browser binary. `@sparticuz/chromium`
+ * ships a tiny chromium build the function can run; we point puppeteer-core
+ * at it via `chromium.executablePath()`.
+ *
+ * Local dev: `@sparticuz/chromium` doesn't ship a darwin/win32 binary, so
+ * `executablePath()` resolves to nothing. Fall back to a system Chrome at
+ * one of the usual paths, or honour `PUPPETEER_EXECUTABLE_PATH` if set.
+ */
+async function launchBrowser(): Promise<Browser> {
+  const isProd = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
+
+  if (isProd) {
+    return puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    })
+  }
+
+  // Local-dev fallback. PUPPETEER_EXECUTABLE_PATH wins if set; otherwise we
+  // try a few common system locations.
+  const envPath = process.env.PUPPETEER_EXECUTABLE_PATH
+  const fallbackPaths = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  ]
+  const executablePath = envPath || fallbackPaths[0]
+
+  return puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    executablePath,
+  })
+}
 
 interface GenerateInvoiceRequest {
   orderId: string
@@ -96,15 +144,15 @@ export async function POST(request: NextRequest) {
       bankDetails,
     })
 
-    // Generate PDF using Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    })
-    
+    // Generate PDF using Puppeteer (serverless-compatible launch).
+    const browser = await launchBrowser()
+
     const page = await browser.newPage()
-    await page.setContent(invoiceHtml, { waitUntil: 'networkidle0' })
-    
+    // Use 'load' (puppeteer-core 25 trimmed its waitUntil types). The invoice
+    // HTML is self-contained — no external resources — so 'load' is enough
+    // and avoids waiting on phantom network idle.
+    await page.setContent(invoiceHtml, { waitUntil: 'load' })
+
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
@@ -185,11 +233,11 @@ export async function POST(request: NextRequest) {
       emailSent,
     })
   } catch (error) {
+    // Surface the underlying message so the admin (and our logs) see exactly
+    // why the invoice failed instead of a generic 500.
     console.error('Invoice generation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate invoice' },
-      { status: 500 }
-    )
+    const message = error instanceof Error ? error.message : 'Failed to generate invoice'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

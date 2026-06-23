@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // @sparticuz/chromium ships a chromium binary that must NOT be bundled by
+  // Webpack/Turbopack — it has to be left as a real node_module so the file
+  // path resolves at runtime in the serverless function. puppeteer-core is
+  // grouped with it to keep them in sync.
+  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
   images: {
     // Disable image optimization to reduce server load on shared hosting
     unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === 'true',

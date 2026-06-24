@@ -18,6 +18,7 @@ import {
   Plus,
   Trash2,
   Pencil,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -123,6 +124,10 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
   const [exporting, setExporting] = useState(false)
   const [sendingEmailFor, setSendingEmailFor] = useState<string | null>(null)
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null)
+  // Reconciliation kicks off a server sweep over every flagged backlog order
+  // and clears any whose stock has caught up. Used to clean up orders that
+  // pre-date the per-PO auto-clear logic; harmless to re-run.
+  const [reconciling, setReconciling] = useState(false)
 
   function getServiceDueInfo(order: Order): { daysLeft: number | null; dueDate: Date | null; label: string; color: string } {
     // Use serviceDueDate if set, otherwise calculate from delivery date
@@ -310,6 +315,41 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
     guestFilter !== 'all' ||
     backlogFilter !== 'all'
 
+  // Sweep every flagged backlog order and clear any whose stock has caught
+  // up (every item's product.stock >= 0). One-time cleanup for orders that
+  // pre-date the per-PO auto-clear; idempotent if re-run.
+  const handleReconcileBacklog = async () => {
+    setReconciling(true)
+    try {
+      const res = await fetch('/api/admin/orders/reconcile-backlog', { method: 'POST' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to reconcile backlog orders')
+      }
+      const clearedCount = Array.isArray(data?.cleared) ? data.cleared.length : 0
+      const scanned = typeof data?.scanned === 'number' ? data.scanned : 0
+      if (clearedCount === 0) {
+        toast.success(
+          scanned === 0
+            ? 'No backlog orders to reconcile.'
+            : `Scanned ${scanned} backlog ${scanned === 1 ? 'order' : 'orders'} — all still short on stock.`,
+        )
+      } else {
+        toast.success(
+          `Cleared backlog tag on ${clearedCount} ${clearedCount === 1 ? 'order' : 'orders'}.`,
+        )
+        // Refresh the server-rendered list so the badges disappear without a
+        // manual reload. The page is `force-dynamic` so a router.refresh()
+        // hits the DB.
+        router.refresh()
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to reconcile backlog orders')
+    } finally {
+      setReconciling(false)
+    }
+  }
+
   const handleExport = async () => {
     setExporting(true)
     try {
@@ -432,6 +472,25 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
             Backlog ({statCounts.BACKLOG})
           </Badge>
         </button>
+        {/* Reconcile-backlog action: only shown when at least one order is
+            currently flagged. Hidden otherwise to keep the toolbar quiet. */}
+        {statCounts.BACKLOG > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReconcileBacklog}
+            disabled={reconciling}
+            className="border-amber-300 text-amber-700 hover:bg-amber-50"
+            title="Clear backlog tag on orders whose stock has already been replenished"
+          >
+            {reconciling ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+            )}
+            Reconcile
+          </Button>
+        )}
       </div>
 
       {/* Search + Filter Toggle */}

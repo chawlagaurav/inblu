@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { syncPurchaseOrderExpense, deletePurchaseOrderExpense } from '@/lib/po-expense-sync'
+import { clearFulfillableBacklogOrders } from '@/lib/po-backlog-clear'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -237,10 +238,29 @@ export async function PUT(
         })
       }
 
+      // Clear `isBacklog` on any paid, not-yet-shipped order that this PO's
+      // restock has made fully fulfillable. Runs INSIDE the transaction so the
+      // flag flip is atomic with the stock bump that justifies it. On a PUT
+      // we also include the products that WERE on the old PO but got removed,
+      // because reverting their stock above may have re-broken a previously-
+      // cleared backlog order — though `clearFulfillableBacklogOrders` only
+      // flips false→nothing→stays-true, so the worst case here is that we
+      // recheck a few extra orders. Safer than missing a relevant product.
+      const touchedProductIds = Array.from(
+        new Set([
+          ...items.map((i) => i.productId),
+          ...existingPO.inventoryTransactions.map((t) => t.productId),
+        ]),
+      )
+      const clearedBacklogOrderIds = await clearFulfillableBacklogOrders(
+        tx,
+        touchedProductIds,
+      )
+
       // Mirror this PO into the Expense ledger so dashboard P&L stays in sync.
       await syncPurchaseOrderExpense(tx, purchaseOrder)
 
-      return purchaseOrder
+      return { purchaseOrder, clearedBacklogOrderIds }
     }, {
       // Each PO can touch many products in serial (revert stock × N, delete txs,
       // update PO, then for each new line: findUnique + create tx + update stock).
@@ -251,7 +271,13 @@ export async function PUT(
       timeout: 30_000,
     })
 
-    return NextResponse.json(result)
+    // Preserve the existing top-level PO shape that the frontend expects and
+    // attach the list of cleared backlog orders as a sibling field for any
+    // future UI hook (admin toast, audit log, etc.).
+    return NextResponse.json({
+      ...result.purchaseOrder,
+      clearedBacklogOrderIds: result.clearedBacklogOrderIds,
+    })
   } catch (error) {
     // Log the full error server-side and surface a meaningful message to the
     // admin. Without this, every failure (stock conflict, missing product,

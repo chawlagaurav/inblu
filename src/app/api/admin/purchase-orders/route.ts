@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { syncPurchaseOrderExpense } from '@/lib/po-expense-sync'
+import { clearFulfillableBacklogOrders } from '@/lib/po-backlog-clear'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -169,10 +170,19 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // Clear `isBacklog` on any paid, not-yet-shipped order that this PO's
+      // restock has made fully fulfillable. Runs INSIDE the transaction so the
+      // flag flip is atomic with the stock bump that justifies it. See
+      // `po-backlog-clear.ts` for the rule (every item's stock >= 0).
+      const clearedBacklogOrderIds = await clearFulfillableBacklogOrders(
+        tx,
+        items.map((i) => i.productId),
+      )
+
       // Mirror this PO into the Expense ledger so dashboard P&L includes it.
       await syncPurchaseOrderExpense(tx, purchaseOrder)
 
-      return purchaseOrder
+      return { purchaseOrder, clearedBacklogOrderIds }
     }, {
       // Match the timeout used by PUT — many line items × remote Postgres can
       // exceed Prisma's 5s default.
@@ -182,7 +192,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      purchaseOrder: result,
+      purchaseOrder: result.purchaseOrder,
+      clearedBacklogOrderIds: result.clearedBacklogOrderIds,
     })
   } catch (error) {
     console.error('Error creating purchase order:', error)

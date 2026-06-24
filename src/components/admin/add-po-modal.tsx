@@ -260,12 +260,26 @@ export function AddPOModal({ open, onOpenChange, onPOCreated, editData }: AddPOM
         throw new Error(data.error || `Failed to ${isEditMode ? 'update' : 'create'} purchase order`)
       }
 
+      // Both POST and PUT now return `clearedBacklogOrderIds` — orders that
+      // were flagged backlog at checkout and have become fully fulfillable
+      // thanks to this PO's restock. Surface that to the admin so they know
+      // the flag flip happened without having to dig into the Orders list.
+      const responseData = await res.json().catch(() => null)
+      const clearedCount = Array.isArray(responseData?.clearedBacklogOrderIds)
+        ? responseData.clearedBacklogOrderIds.length
+        : 0
+
       const totalQty = items.reduce((sum, item) => sum + parseInt(item.quantity.toString(), 10), 0)
       toast.success(
-        isEditMode 
-          ? `Purchase order updated successfully.` 
+        isEditMode
+          ? `Purchase order updated successfully.`
           : `Purchase order created. ${totalQty} units added to stock.`
       )
+      if (clearedCount > 0) {
+        toast.success(
+          `${clearedCount} backlog ${clearedCount === 1 ? 'order is' : 'orders are'} now fulfillable — backlog tag cleared.`
+        )
+      }
       resetForm()
       onOpenChange(false)
       onPOCreated()

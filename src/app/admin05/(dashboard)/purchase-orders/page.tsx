@@ -403,7 +403,7 @@ export default function PurchaseOrdersPage() {
                             {/* Document */}
                             {po.fileUrl && (
                               <a
-                                href={po.fileUrl}
+                                href={`/api/admin/purchase-orders/${po.id}/file`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hidden md:inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
@@ -520,7 +520,7 @@ export default function PurchaseOrdersPage() {
                           {po.fileUrl && (
                             <div className="mt-4 pt-3 border-t border-slate-200 md:hidden">
                               <a
-                                href={po.fileUrl}
+                                href={`/api/admin/purchase-orders/${po.id}/file`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"

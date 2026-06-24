@@ -18,6 +18,7 @@ export async function uploadToCloudinary(
         folder,
         resource_type: resourceType,
         public_id: publicId,
+        access_mode: 'public',
       },
       (error, result) => {
         if (error) return reject(error)

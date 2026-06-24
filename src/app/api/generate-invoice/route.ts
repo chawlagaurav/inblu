@@ -208,7 +208,6 @@ export async function POST(request: NextRequest) {
               </p>
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
               <p style="color: #94a3b8; font-size: 12px;">
-                ${COMPANY_DETAILS.address}<br>
                 ${COMPANY_DETAILS.phone} | ${COMPANY_DETAILS.email}
               </p>
             </div>

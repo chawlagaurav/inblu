@@ -100,10 +100,14 @@ export function calculateDueDate(invoiceDate: Date): Date {
 
 /**
  * Company details for invoice
+ *
+ * `address` is intentionally omitted: the business address is not shown on
+ * customer-facing invoices or emails per the latest branding direction. If
+ * you re-introduce it later, restore the field here AND the line in
+ * `invoice-html.ts` / `generate-invoice/route.ts` that renders it.
  */
 export const COMPANY_DETAILS = {
-  name: 'Inblu',
-  address: '22 Wentworth Street, The Ponds NSW 2769',
+  name: 'Inblu Filters',
   abn: '87947612461',
   website: 'www.inblu.com.au',
   email: 'sales@inblu.com.au',

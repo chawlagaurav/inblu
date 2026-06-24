@@ -27,7 +27,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
   // Pull the active Category master in parallel with products so the list can
   // resolve raw slugs (e.g. legacy "ro-purifier") to canonical labels and skip
   // anything that no longer exists in the master.
-  const [products, activeCategories] = await Promise.all([
+  const [products, activeCategories, soldAgg] = await Promise.all([
     prisma.product.findMany({
       where: {
         ...(searchQuery ? {
@@ -47,7 +47,13 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
       where: { isActive: true },
       select: { value: true, label: true },
     }),
+    prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: { quantity: true },
+    }),
   ])
+
+  const soldMap = new Map(soldAgg.map((r) => [r.productId, r._sum.quantity ?? 0]))
 
   const totalProducts = products.length
   const activeProducts = products.filter(p => p.isActive).length
@@ -165,6 +171,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                 isActive: p.isActive,
                 isBestSeller: p.isBestSeller,
                 displayOrder: p.displayOrder,
+                unitsSold: soldMap.get(p.id) ?? 0,
               }))}
               activeCategories={activeCategories}
             />

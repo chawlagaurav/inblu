@@ -179,7 +179,6 @@ export function generateInvoiceHtml(data: InvoiceHtmlData): string {
         <h1 style="font-size: 36px; font-weight: 700; color: #0f172a; letter-spacing: -0.025em; margin-bottom: 4px;">INVOICE</h1>
         <div style="margin-top: 24px; font-size: 14px; color: #475569;">
           <p style="font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 8px;">${COMPANY_DETAILS.name}</p>
-          <p style="margin: 4px 0;">${COMPANY_DETAILS.address}</p>
           <p style="margin: 4px 0;">ABN: ${COMPANY_DETAILS.abn}</p>
           <p style="margin: 4px 0;">${COMPANY_DETAILS.website}</p>
           <p style="margin: 4px 0;">${COMPANY_DETAILS.email}</p>

@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const { error: emailError } = await resend.emails.send({
       from: 'Inblu Filters <info@inblu.com.au>',
       to: email,
-      subject: 'Reset your Inblu password',
+      subject: 'Reset your Inblu Filters password',
       html: `
         <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; background: #f8fafc;">
           <div style="background: white; border-radius: 12px; padding: 40px; border: 1px solid #e2e8f0;">
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
             </p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
             <p style="color: #94a3b8; font-size: 12px; margin: 0;">
-              Inblu Filters &mdash; 22 Wentworth Street, The Ponds NSW 2769
+              Inblu Filters
             </p>
           </div>
         </div>

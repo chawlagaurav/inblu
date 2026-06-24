@@ -516,16 +516,16 @@ export function DashboardStats({
           <CardContent className="p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-500">Avg Order Value</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.avgOrderValue)}</p>
+                <p className="text-sm text-slate-500">P&amp;L</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.netProfit)}</p>
               </div>
-              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-amber-600" />
+              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
               </div>
             </div>
             {preset !== 'all_time' && (
               <div className="flex items-center gap-1 mt-2">
-                <ChangeBadge value={stats.avgOrderChange} />
+                <ChangeBadge value={stats.netProfitChange} />
                 <span className="text-xs text-slate-500">vs previous period</span>
               </div>
             )}

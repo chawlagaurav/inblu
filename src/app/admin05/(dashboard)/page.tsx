@@ -37,10 +37,14 @@ const getCachedDashboardData = unstable_cache(
         },
         orderBy: { createdAt: 'desc' },
       }),
-      // Get all customers
-      prisma.user.findMany({
-        where: { role: 'CUSTOMER' },
-        select: { id: true, createdAt: true },
+      // Customers — sourced from paid orders rather than the User table so the
+      // count includes guest checkouts (which have no User row). We project
+      // (email, createdAt) and dedupe by lowercased email in JS so the same
+      // person counts once whether they checked out as guest or registered.
+      prisma.order.findMany({
+        where: { paymentStatus: 'SUCCEEDED' },
+        select: { email: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
       }),
       // Low stock products
       prisma.product.findMany({
@@ -125,6 +129,18 @@ const getCachedDashboardData = unstable_cache(
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5)
 
+    // Dedupe customers by lowercased email, keeping the earliest order date.
+    // The dashboard then bucketizes by `createdAt` to compute "new customers
+    // in the selected period", treating each unique email as one customer.
+    const firstOrderByEmail = new Map<string, Date>()
+    for (const o of customers) {
+      const key = o.email.toLowerCase()
+      const existing = firstOrderByEmail.get(key)
+      if (!existing || o.createdAt < existing) {
+        firstOrderByEmail.set(key, o.createdAt)
+      }
+    }
+
     return {
       orders: orders.map(o => ({
         id: o.id,
@@ -133,9 +149,9 @@ const getCachedDashboardData = unstable_cache(
         status: o.status,
         createdAt: o.createdAt.toISOString(),
       })),
-      customers: customers.map(c => ({
-        id: c.id,
-        createdAt: c.createdAt.toISOString(),
+      customers: Array.from(firstOrderByEmail.entries()).map(([email, createdAt]) => ({
+        id: email,
+        createdAt: createdAt.toISOString(),
       })),
       purchaseOrders: purchaseOrders.map(po => ({
         id: po.id,

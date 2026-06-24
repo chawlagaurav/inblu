@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -52,6 +52,7 @@ export async function PUT(request: NextRequest) {
     // Revalidate product pages
     revalidatePath('/products', 'page')
     revalidatePath('/', 'page')
+    revalidateTag('products')
 
     return NextResponse.json({ success: true })
   } catch (error) {

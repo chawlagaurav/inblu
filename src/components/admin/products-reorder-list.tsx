@@ -38,6 +38,7 @@ interface Product {
   isActive: boolean
   isBestSeller: boolean
   displayOrder: number
+  unitsSold: number
 }
 
 interface SortableRowProps {
@@ -162,6 +163,9 @@ function SortableRow({ product, labelMap }: SortableRowProps) {
           {product.stock}
         </span>
       </td>
+      <td className="py-3 px-4 text-sm text-slate-700">
+        {product.unitsSold.toLocaleString()}
+      </td>
       <td className="py-3 px-4">
         <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
           {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
@@ -280,6 +284,7 @@ export function ProductsReorderList({ products: initialProducts, activeCategorie
                   <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Category</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Price</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Stock</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Sold</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Status</th>
                   <th className="text-right py-3 px-4 text-sm font-semibold text-slate-900">Actions</th>
                 </tr>

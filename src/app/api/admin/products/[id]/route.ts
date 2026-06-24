@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -195,6 +195,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       revalidatePath(`/products/${product.slug}`, 'page')
     }
     revalidatePath('/', 'page')
+    // revalidatePath does not invalidate unstable_cache entries — only revalidateTag does.
+    // Without this, getCachedProductBySlug/getCachedProducts keep returning the
+    // pre-toggle Product (so e.g. the new isSoldOut flag is invisible to the
+    // detail page for up to 60s).
+    revalidateTag('products')
 
     return NextResponse.json(product)
   } catch (error) {
@@ -237,7 +242,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       // Revalidate cache
       revalidatePath('/products', 'page')
       revalidatePath('/', 'page')
-      
+      revalidateTag('products')
+
       return NextResponse.json({ message: 'Product deactivated (has order history)' })
     }
 
@@ -249,6 +255,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Revalidate cache
     revalidatePath('/products', 'page')
     revalidatePath('/', 'page')
+    revalidateTag('products')
 
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {

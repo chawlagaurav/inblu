@@ -61,7 +61,6 @@ export function InvoiceTemplate({
           <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-1">INVOICE</h1>
           <div className="mt-6 space-y-1 text-sm text-slate-600">
             <p className="text-xl font-semibold text-slate-900">{COMPANY_DETAILS.name}</p>
-            <p>{COMPANY_DETAILS.address}</p>
             <p>ABN: {COMPANY_DETAILS.abn}</p>
             <p>{COMPANY_DETAILS.website}</p>
             <p>{COMPANY_DETAILS.email}</p>

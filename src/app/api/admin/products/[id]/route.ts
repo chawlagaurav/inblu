@@ -116,6 +116,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       discountPercent,
       salePrice,
       excludeFromCoupons,
+      isSoldOut,
     } = body
 
     // Get current product to check if name changed
@@ -184,6 +185,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(discountPercent !== undefined ? { discountPercent: normalisedDiscountPercent } : {}),
         ...(salePrice !== undefined ? { salePrice: normalisedSalePrice } : {}),
         ...(excludeFromCoupons !== undefined ? { excludeFromCoupons: !!excludeFromCoupons } : {}),
+        ...(isSoldOut !== undefined ? { isSoldOut: !!isSoldOut } : {}),
       },
     })
 

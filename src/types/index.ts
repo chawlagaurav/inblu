@@ -12,6 +12,7 @@ export interface Product {
   categories: string[]
   isBestSeller: boolean
   isOnSale: boolean
+  isSoldOut: boolean
   discountPercent: number | null
   salePrice: number | null
   excludeFromCoupons: boolean

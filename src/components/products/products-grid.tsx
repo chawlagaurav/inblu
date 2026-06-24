@@ -118,21 +118,36 @@ function ProductCard({
           <Badge className="absolute top-3 left-3">Best Seller</Badge>
         )}
 
-        {/* Quick actions - hidden on mobile, visible on desktop hover */}
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent hidden md:block opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onAddToCart(product)
-            }}
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Add to Cart
-          </Button>
-        </div>
+        {/* Sold-out overlay. Pure UI flag — independent of stock. When set,
+            the card stays clickable to the detail page but the Add-to-Cart
+            quick action is replaced with a non-interactive badge so customers
+            can't queue an unfulfillable order from the listing. */}
+        {product.isSoldOut && (
+          <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center pointer-events-none">
+            <span className="bg-slate-900 text-white text-sm font-bold uppercase tracking-wider px-4 py-2 rounded-full shadow">
+              Sold Out
+            </span>
+          </div>
+        )}
+
+        {/* Quick actions - hidden on mobile, visible on desktop hover. Suppressed
+            entirely when the product is sold out. */}
+        {!product.isSoldOut && (
+          <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent hidden md:block opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
+            <Button
+              size="sm"
+              className="w-full"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onAddToCart(product)
+              }}
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Add to Cart
+            </Button>
+          </div>
+        )}
       </div>
       
         <CardContent className="p-4">

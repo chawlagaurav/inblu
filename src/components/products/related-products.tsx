@@ -52,6 +52,13 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                         </span>
                       </div>
                     )}
+                    {product.isSoldOut && (
+                      <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center pointer-events-none">
+                        <span className="bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow">
+                          Sold Out
+                        </span>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-2.5">
@@ -60,17 +67,19 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                     </h3>
                     <div className="mt-1.5 flex items-center justify-between">
                       <PriceDisplay product={product} size="sm" />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          handleAddToCart(product)
-                        }}
-                      >
-                        <ShoppingCart className="h-3.5 w-3.5" />
-                      </Button>
+                      {!product.isSoldOut && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            handleAddToCart(product)
+                          }}
+                        >
+                          <ShoppingCart className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

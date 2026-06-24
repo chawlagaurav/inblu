@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         name: true,
         stock: true,
         isActive: true,
+        isSoldOut: true,
         price: true,
         isOnSale: true,
         discountPercent: true,
@@ -141,6 +142,21 @@ export async function POST(request: NextRequest) {
           productId: item.productId,
           productName: product.name,
           reason: 'Product is no longer available',
+          requested: item.quantity,
+          available: 0,
+          isStockIssue: false
+        })
+        continue
+      }
+
+      // Sold-out flag is a deliberate admin override — independent of stock.
+      // We block server-side too so a stale cart entry (added before the
+      // toggle was flipped) can't be checked out.
+      if (product.isSoldOut) {
+        unavailableItems.push({
+          productId: item.productId,
+          productName: product.name,
+          reason: `${product.name} is sold out`,
           requested: item.quantity,
           available: 0,
           isStockIssue: false

@@ -55,6 +55,7 @@ model Product {
   relatedProductIds String[] @default([]) @map("related_product_ids")
   isBestSeller Boolean     @default(false) @map("is_best_seller")
   isActive     Boolean     @default(true) @map("is_active")
+  isSoldOut    Boolean     @default(false) @map("is_sold_out")
   isOnSale     Boolean     @default(false) @map("is_on_sale")
   discountPercent Int?     @map("discount_percent")
   salePrice    Decimal?    @db.Decimal(10, 2) @map("sale_price")

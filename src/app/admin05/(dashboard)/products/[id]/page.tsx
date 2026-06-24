@@ -39,6 +39,7 @@ interface Product {
   relatedProductIds: string[]
   isBestSeller: boolean
   isActive: boolean
+  isSoldOut: boolean
 }
 
 interface ProductListItem {
@@ -71,6 +72,7 @@ export default function EditProductPage() {
     relatedProductIds: [] as string[],
     isBestSeller: false,
     isActive: true,
+    isSoldOut: false,
     specifications: '',
     isOnSale: false,
     discountMode: 'percent' as 'percent' | 'fixed',
@@ -153,6 +155,7 @@ export default function EditProductPage() {
         relatedProductIds: data.relatedProductIds || [],
         isBestSeller: data.isBestSeller,
         isActive: data.isActive,
+        isSoldOut: !!data.isSoldOut,
         specifications: data.specifications ? JSON.stringify(data.specifications, null, 2) : '',
         isOnSale: !!data.isOnSale,
         discountMode,
@@ -246,6 +249,7 @@ export default function EditProductPage() {
           relatedProductIds: formData.relatedProductIds,
           isBestSeller: formData.isBestSeller,
           isActive: formData.isActive,
+          isSoldOut: formData.isSoldOut,
           isOnSale: formData.isOnSale,
           discountPercent: discountPercentToSend,
           salePrice: salePriceToSend,
@@ -396,7 +400,7 @@ export default function EditProductPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 pt-2">
+              <div className="flex items-center gap-6 pt-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -418,6 +422,17 @@ export default function EditProductPage() {
                     className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                   />
                   <Label htmlFor="isActive">Active (visible to customers)</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isSoldOut"
+                    name="isSoldOut"
+                    checked={formData.isSoldOut}
+                    onChange={handleChange}
+                    className="rounded border-red-300 text-red-600 focus:ring-red-500"
+                  />
+                  <Label htmlFor="isSoldOut">Mark as Sold Out</Label>
                 </div>
               </div>
             </CardContent>

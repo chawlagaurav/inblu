@@ -92,21 +92,31 @@ function ProductCard({
         {product.isBestSeller && (
           <Badge className="absolute top-3 left-3">Best Seller</Badge>
         )}
-        {/* Quick actions - hidden on mobile, visible on desktop hover */}
-        <div className="absolute inset-0 bg-black/5 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
-          <Button
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onAddToCart(product)
-            }}
-            className="gap-2"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Add to Cart
-          </Button>
-        </div>
+        {/* Sold-out overlay — pure UI flag, suppresses Add-to-Cart. */}
+        {product.isSoldOut && (
+          <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center pointer-events-none">
+            <span className="bg-slate-900 text-white text-sm font-bold uppercase tracking-wider px-4 py-2 rounded-full shadow">
+              Sold Out
+            </span>
+          </div>
+        )}
+        {/* Quick actions - hidden on mobile, visible on desktop hover. Suppressed when sold out. */}
+        {!product.isSoldOut && (
+          <div className="absolute inset-0 bg-black/5 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity">
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onAddToCart(product)
+              }}
+              className="gap-2"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Add to Cart
+            </Button>
+          </div>
+        )}
       </div>
         <CardContent className="p-4">
           <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">

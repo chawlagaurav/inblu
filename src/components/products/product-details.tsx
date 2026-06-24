@@ -83,6 +83,13 @@ export function ProductDetails({ product, categoryOptions }: ProductDetailsProps
         <FadeIn className="space-y-4">
           {/* Main Image */}
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-blue-50 group">
+            {product.isSoldOut && (
+              <div className="absolute inset-0 z-30 bg-slate-900/40 flex items-center justify-center pointer-events-none">
+                <span className="bg-slate-900 text-white text-sm font-bold uppercase tracking-wider px-4 py-2 rounded-full shadow">
+                  Sold Out
+                </span>
+              </div>
+            )}
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedImage}
@@ -189,52 +196,66 @@ export function ProductDetails({ product, categoryOptions }: ProductDetailsProps
 
             <Separator />
 
-            {/* Quantity & Add to Cart */}
-            <div className="space-y-4">
-              {/* Quantity */}
-              <div>
-                <label className="text-sm font-semibold text-slate-900 mb-2 block">
-                  Quantity
-                </label>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="h-10 w-10 rounded-xl border border-blue-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 transition-colors"
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="w-12 text-center font-medium">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="h-10 w-10 rounded-xl border border-blue-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+            {/* Quantity & Add to Cart — entirely suppressed when the product
+                is marked sold out. We replace the controls with a clear
+                "Sold Out" banner so the customer can't queue an unfulfillable
+                order. Independent of stock level. */}
+            {product.isSoldOut ? (
+              <div className="space-y-4">
+                <div className="rounded-2xl bg-slate-900 text-white px-6 py-4 text-center">
+                  <p className="text-base font-bold uppercase tracking-wider">Sold Out</p>
+                  <p className="text-sm text-slate-300 mt-1">
+                    This product is currently unavailable. Please check back later.
+                  </p>
                 </div>
               </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Quantity */}
+                <div>
+                  <label className="text-sm font-semibold text-slate-900 mb-2 block">
+                    Quantity
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="h-10 w-10 rounded-xl border border-blue-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 transition-colors"
+                      disabled={quantity <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-12 text-center font-medium">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="h-10 w-10 rounded-xl border border-blue-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 transition-colors"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
 
-              {/* Buttons */}
-              <div className="space-y-3">
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={handleAddToCart}
-                >
-                  <ShoppingCart className="h-5 w-5 mr-2" />
-                  Add to Cart
-                </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-                  onClick={handleBuyNow}
-                >
-                  <Zap className="h-5 w-5 mr-2" />
-                  Buy Now
-                </Button>
+                {/* Buttons */}
+                <div className="space-y-3">
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={handleAddToCart}
+                  >
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    Add to Cart
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                    onClick={handleBuyNow}
+                  >
+                    <Zap className="h-5 w-5 mr-2" />
+                    Buy Now
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
 
             <Separator />
 

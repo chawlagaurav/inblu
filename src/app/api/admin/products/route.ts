@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
       discountPercent,
       salePrice,
       excludeFromCoupons,
+      isSoldOut,
     } = body
 
     // Validate discount fields against the resolved price.
@@ -155,6 +156,7 @@ export async function POST(request: NextRequest) {
         discountPercent: discountPercent == null || discountPercent === '' ? null : Number(discountPercent),
         salePrice: salePrice == null || salePrice === '' ? null : Number(salePrice),
         excludeFromCoupons: !!excludeFromCoupons,
+        isSoldOut: !!isSoldOut,
       },
     })
 

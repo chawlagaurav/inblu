@@ -38,6 +38,7 @@ export default function NewProductPage() {
     serviceTenureMonths: '6',
     isBestSeller: false,
     isActive: true,
+    isSoldOut: false,
     specifications: '',
     isOnSale: false,
     discountMode: 'percent' as 'percent' | 'fixed',
@@ -155,6 +156,7 @@ export default function NewProductPage() {
           serviceTenureMonths: parseInt(formData.serviceTenureMonths) || 6,
           isBestSeller: formData.isBestSeller,
           isActive: formData.isActive,
+          isSoldOut: formData.isSoldOut,
           isOnSale: formData.isOnSale,
           discountPercent: discountPercentToSend,
           salePrice: salePriceToSend,
@@ -292,7 +294,7 @@ export default function NewProductPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 pt-2">
+              <div className="flex items-center gap-6 pt-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -314,6 +316,17 @@ export default function NewProductPage() {
                     className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                   />
                   <Label htmlFor="isActive">Active (visible to customers)</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isSoldOut"
+                    name="isSoldOut"
+                    checked={formData.isSoldOut}
+                    onChange={handleChange}
+                    className="rounded border-red-300 text-red-600 focus:ring-red-500"
+                  />
+                  <Label htmlFor="isSoldOut">Mark as Sold Out</Label>
                 </div>
               </div>
             </CardContent>

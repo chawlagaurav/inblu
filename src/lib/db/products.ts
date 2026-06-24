@@ -19,6 +19,7 @@ function transformProduct(product: {
   categories: string[]
   isBestSeller: boolean
   isOnSale: boolean
+  isSoldOut: boolean
   discountPercent: number | null
   salePrice: unknown
   excludeFromCoupons: boolean
@@ -40,6 +41,7 @@ function transformProduct(product: {
     categories: product.categories || [],
     isBestSeller: product.isBestSeller,
     isOnSale: product.isOnSale ?? false,
+    isSoldOut: product.isSoldOut ?? false,
     discountPercent: product.discountPercent ?? null,
     salePrice: product.salePrice == null ? null : Number(product.salePrice),
     excludeFromCoupons: product.excludeFromCoupons ?? false,

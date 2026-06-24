@@ -199,7 +199,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Without this, getCachedProductBySlug/getCachedProducts keep returning the
     // pre-toggle Product (so e.g. the new isSoldOut flag is invisible to the
     // detail page for up to 60s).
-    revalidateTag('products')
+    // Next 16 requires the second arg: 'max' = fully invalidate (matches the
+    // pre-16 single-arg behaviour).
+    revalidateTag('products', 'max')
 
     return NextResponse.json(product)
   } catch (error) {
@@ -242,7 +244,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       // Revalidate cache
       revalidatePath('/products', 'page')
       revalidatePath('/', 'page')
-      revalidateTag('products')
+      revalidateTag('products', 'max')
 
       return NextResponse.json({ message: 'Product deactivated (has order history)' })
     }
@@ -255,7 +257,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Revalidate cache
     revalidatePath('/products', 'page')
     revalidatePath('/', 'page')
-    revalidateTag('products')
+    revalidateTag('products', 'max')
 
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {

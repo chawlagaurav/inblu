@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     // Revalidate product pages cache
     revalidatePath('/products', 'page')
     revalidatePath('/', 'page')
-    revalidateTag('products')
+    revalidateTag('products', 'max')
 
     return NextResponse.json(product, { status: 201 })
   } catch (error) {

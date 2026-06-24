@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest) {
     // Revalidate product pages
     revalidatePath('/products', 'page')
     revalidatePath('/', 'page')
-    revalidateTag('products')
+    revalidateTag('products', 'max')
 
     return NextResponse.json({ success: true })
   } catch (error) {

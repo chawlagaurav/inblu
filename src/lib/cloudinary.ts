@@ -8,7 +8,7 @@ cloudinary.config({
 
 export async function uploadToCloudinary(
   buffer: Buffer,
-  options: { folder?: string; resourceType?: 'image' | 'raw' | 'auto'; publicId?: string } = {}
+  options: { folder?: string; resourceType?: 'image' | 'raw' | 'auto' | 'video'; publicId?: string } = {}
 ): Promise<{ url: string; publicId: string }> {
   const { folder = 'purchase-orders', resourceType = 'auto', publicId } = options
 

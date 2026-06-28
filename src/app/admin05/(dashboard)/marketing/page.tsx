@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Save, ImageIcon, Loader2, Mail, Upload, X, Eye } from 'lucide-react'
+import { Save, ImageIcon, Loader2, Mail, Upload, X, Eye, Video, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +28,7 @@ const defaultContent = {
   hero_cta_text: 'Shop Now',
   hero_cta_link: '/products',
   hero_background_image: '/hero-bg.png',
+  hero_video_url: '',
 }
 
 export default function AdminMarketingPage() {
@@ -36,7 +37,9 @@ export default function AdminMarketingPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchContent()
@@ -161,6 +164,97 @@ export default function AdminMarketingPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+    }
+  }
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate type — match server allow-list
+    if (!['video/mp4', 'video/webm'].includes(file.type)) {
+      toast.error('Please upload an MP4 or WebM video')
+      return
+    }
+
+    // Validate size — server allows 15MB, mirror here for a friendlier error.
+    // If you have an uncompressed file, compress it with ffmpeg first:
+    //   ffmpeg -i in.mp4 -vf scale=1920:-2 -c:v libx264 -crf 28 -preset slow -an -movflags +faststart out.mp4
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error(
+        `Video is ${(file.size / 1024 / 1024).toFixed(1)}MB — max 15MB. Please compress before uploading.`
+      )
+      return
+    }
+
+    setUploadingVideo(true)
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+      formDataUpload.append('folder', 'hero')
+      formDataUpload.append('type', 'video')
+
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Upload failed' }))
+        throw new Error(err.error || 'Upload failed')
+      }
+
+      const data = await response.json()
+      const videoUrl = data.url
+
+      handleChange('hero_video_url', videoUrl)
+
+      const saveResponse = await fetch('/api/admin/marketing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'hero_video_url',
+          content: videoUrl,
+          isActive: true,
+        }),
+      })
+
+      if (saveResponse.ok) {
+        toast.success('Hero video updated successfully')
+      } else {
+        throw new Error('Failed to save video URL')
+      }
+    } catch (error) {
+      console.error('Error uploading video:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to upload video')
+    } finally {
+      setUploadingVideo(false)
+      if (videoInputRef.current) {
+        videoInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveVideo = async () => {
+    handleChange('hero_video_url', '')
+    try {
+      const response = await fetch('/api/admin/marketing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'hero_video_url',
+          content: '',
+          isActive: true,
+        }),
+      })
+      if (response.ok) {
+        toast.success('Hero video removed — falling back to background image')
+      } else {
+        throw new Error('Failed to remove video')
+      }
+    } catch (error) {
+      console.error('Error removing video:', error)
+      toast.error('Failed to remove video')
     }
   }
 
@@ -291,6 +385,103 @@ export default function AdminMarketingPage() {
                           size="sm"
                         >
                           {saving === 'hero_background_image' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hero Video (optional) */}
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <Video className="h-4 w-4 text-blue-600" />
+                    Hero Video <span className="text-xs font-normal text-slate-500">(optional, plays over the background image)</span>
+                  </Label>
+                  {formData.hero_video_url && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveVideo}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remove video
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Current Video Preview */}
+                  <div className="relative w-full sm:w-64 h-40 rounded-xl overflow-hidden bg-slate-900 border-2 border-dashed border-slate-200">
+                    {formData.hero_video_url ? (
+                      <video
+                        src={formData.hero_video_url}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
+                        <Video className="h-10 w-10" />
+                        <span className="text-xs">No video set</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Controls */}
+                  <div className="flex-1 space-y-3">
+                    <input
+                      ref={videoInputRef}
+                      type="file"
+                      accept="video/mp4,video/webm"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => videoInputRef.current?.click()}
+                      disabled={uploadingVideo}
+                      className="w-full sm:w-auto"
+                    >
+                      {uploadingVideo ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading video...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {formData.hero_video_url ? 'Replace Video' : 'Upload Video'}
+                        </>
+                      )}
+                    </Button>
+                    <div className="text-xs text-slate-500 space-y-1">
+                      <p>MP4 or WebM. Max 15MB — compress first for best performance (target: 3–5MB, 1920×1080, no audio).</p>
+                      <p className="text-slate-400">Video is muted, loops, and is skipped on Save-Data / 2G connections.</p>
+                    </div>
+
+                    {/* Or enter URL manually */}
+                    <div className="pt-2 border-t">
+                      <Label htmlFor="hero_video_url" className="text-xs text-slate-500">Or enter video URL (Cloudinary recommended)</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          id="hero_video_url"
+                          value={formData.hero_video_url || ''}
+                          onChange={(e) => handleChange('hero_video_url', e.target.value)}
+                          placeholder="https://res.cloudinary.com/.../herovideo.mp4"
+                          className="text-sm"
+                        />
+                        <Button
+                          onClick={() => handleSave('hero_video_url')}
+                          disabled={saving === 'hero_video_url'}
+                          size="sm"
+                        >
+                          {saving === 'hero_video_url' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                         </Button>
                       </div>
                     </div>

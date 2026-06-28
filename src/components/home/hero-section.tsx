@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -13,6 +13,7 @@ const DEFAULT_CONTENT = {
   hero_cta_text: 'Shop Now',
   hero_cta_link: '/products',
   hero_background_image: '/hero-bg.png',
+  hero_video_url: '',
 }
 
 interface HeroContent {
@@ -21,15 +22,33 @@ interface HeroContent {
   hero_cta_text?: string
   hero_cta_link?: string
   hero_background_image?: string
+  hero_video_url?: string
+}
+
+// Decide whether this device/connection should load the hero video.
+// We skip on Save-Data or 2G to protect users on metered/slow links; everyone
+// else (including mobile on 3G/4G/5G/wifi) gets the video.
+function shouldLoadVideo(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const conn = (navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string }
+  }).connection
+  if (conn?.saveData) return false
+  if (conn?.effectiveType && /(^|-)2g$/.test(conn.effectiveType)) return false
+  return true
 }
 
 export function HeroSection() {
   const [mounted, setMounted] = useState(false)
   const [content, setContent] = useState<HeroContent>(DEFAULT_CONTENT)
+  const [videoReady, setVideoReady] = useState(false)
+  const [loadVideo, setLoadVideo] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     queueMicrotask(() => setMounted(true))
-    
+    queueMicrotask(() => setLoadVideo(shouldLoadVideo()))
+
     // Fetch hero content from API
     fetch('/api/marketing/hero')
       .then(res => res.json())
@@ -42,10 +61,12 @@ export function HeroSection() {
   }, [])
 
   const bgImage = content.hero_background_image || DEFAULT_CONTENT.hero_background_image
+  const videoUrl = content.hero_video_url || ''
   const heading = content.hero_heading || DEFAULT_CONTENT.hero_heading
   const description = content.hero_description || DEFAULT_CONTENT.hero_description
   const ctaText = content.hero_cta_text || DEFAULT_CONTENT.hero_cta_text
   const ctaLink = content.hero_cta_link || DEFAULT_CONTENT.hero_cta_link
+  const showVideo = loadVideo && Boolean(videoUrl)
 
   // Parse heading to highlight the second line in blue
   const headingLines = heading.split('\n')
@@ -54,7 +75,7 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
-      {/* Fullscreen Background Image */}
+      {/* Fullscreen Background — Image renders instantly (poster), video fades in on top once buffered */}
       <div className="absolute inset-0">
         <Image
           src={bgImage}
@@ -65,6 +86,22 @@ export function HeroSection() {
           className="object-cover"
           sizes="100vw"
         />
+        {showVideo && (
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={bgImage}
+            onCanPlay={() => setVideoReady(true)}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+            aria-hidden="true"
+          >
+            <source src={videoUrl} type={videoUrl.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+          </video>
+        )}
       </div>
 
       {/* Dark Overlay - 40% */}

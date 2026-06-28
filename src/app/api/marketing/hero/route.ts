@@ -11,6 +11,7 @@ export async function GET() {
       'hero_cta_text',
       'hero_cta_link',
       'hero_background_image',
+      'hero_video_url',
     ]
 
     const content = await prisma.marketingContent.findMany({

@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/motion'
 import { PopupSettingsForm } from '@/components/admin/popup-settings-form'
+import { PromoBannerForm } from '@/components/admin/promo-banner-form'
 
 interface MarketingContent {
   id: string
@@ -292,6 +293,11 @@ export default function AdminMarketingPage() {
       </FadeIn>
 
       <StaggerContainer className="space-y-6">
+        {/* Promo Banner (top of site) */}
+        <StaggerItem>
+          <PromoBannerForm />
+        </StaggerItem>
+
         {/* Discount Popup Settings */}
         <StaggerItem>
           <PopupSettingsForm />

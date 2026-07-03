@@ -178,16 +178,20 @@ export async function GET(request: NextRequest) {
     }))
 
     // Build the workbook. Every sheet gets appended even if empty so the admin
-    // sees a clear "no data" placeholder rather than a missing tab.
+    // sees a clear "no data" placeholder rather than a missing tab. The
+    // placeholder shape (`{Info: string}[]`) is intentionally different from
+    // each domain's row shape, so we widen to `Record<string, unknown>[]` at
+    // the union point — XLSX only reads keys off the objects, so a widened
+    // type is fine at runtime.
     const workbook = XLSX.utils.book_new()
 
-    const emptyPlaceholder = (label: string) => [{
+    const emptyPlaceholder = (label: string): Record<string, unknown>[] => [{
       Info: `No ${label} in the selected date range`,
     }]
 
     // Orders sheet
     {
-      const rows = orderRows.length > 0 ? orderRows : emptyPlaceholder('orders')
+      const rows: Record<string, unknown>[] = orderRows.length > 0 ? orderRows : emptyPlaceholder('orders')
       const sheet = XLSX.utils.json_to_sheet(rows)
       autoSizeColumns(sheet, rows)
       XLSX.utils.book_append_sheet(workbook, sheet, 'Orders')
@@ -195,7 +199,7 @@ export async function GET(request: NextRequest) {
 
     // Purchase Orders sheet
     {
-      const rows = poRows.length > 0 ? poRows : emptyPlaceholder('purchase orders')
+      const rows: Record<string, unknown>[] = poRows.length > 0 ? poRows : emptyPlaceholder('purchase orders')
       const sheet = XLSX.utils.json_to_sheet(rows)
       autoSizeColumns(sheet, rows)
       XLSX.utils.book_append_sheet(workbook, sheet, 'Purchase Orders')
@@ -203,7 +207,7 @@ export async function GET(request: NextRequest) {
 
     // Expenses sheet
     {
-      const rows = expenseRows.length > 0 ? expenseRows : emptyPlaceholder('expenses')
+      const rows: Record<string, unknown>[] = expenseRows.length > 0 ? expenseRows : emptyPlaceholder('expenses')
       const sheet = XLSX.utils.json_to_sheet(rows)
       autoSizeColumns(sheet, rows)
       XLSX.utils.book_append_sheet(workbook, sheet, 'Expenses')

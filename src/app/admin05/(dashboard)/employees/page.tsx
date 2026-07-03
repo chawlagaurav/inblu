@@ -36,6 +36,9 @@ interface Employee {
   employmentStatus: EmploymentStatus
   currentStatus: string
   notes: string | null
+  bankName: string | null
+  accountNumber: string | null
+  bsb: string | null
   isActive: boolean
   documents: EmployeeDoc[]
   createdAt: string
@@ -134,6 +137,9 @@ export default function AdminEmployeesPage() {
       employmentStatus: e.employmentStatus,
       currentStatus: e.currentStatus,
       notes: e.notes ?? '',
+      bankName: e.bankName ?? '',
+      accountNumber: e.accountNumber ?? '',
+      bsb: e.bsb ?? '',
       documents: e.documents.map((d) => ({ id: d.id, label: d.label, url: d.url })),
     })
     setDialogOpen(true)

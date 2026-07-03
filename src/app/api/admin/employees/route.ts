@@ -11,7 +11,7 @@ async function verifyAdmin() {
     where: { id: user.id },
     select: { role: true },
   })
-  if (dbUser?.role !== 'ADMIN') return null
+  if (dbUser?.role !== 'ADMIN' && dbUser?.role !== 'SUPER_ADMIN') return null
   return user
 }
 
@@ -90,6 +90,9 @@ export async function POST(request: NextRequest) {
       employmentStatus,
       currentStatus,
       notes,
+      bankName,
+      accountNumber,
+      bsb,
     } = body
 
     // Required-field validation. Mirrors the form's client-side checks so a
@@ -155,6 +158,9 @@ export async function POST(request: NextRequest) {
         employmentStatus,
         currentStatus: currentStatus.trim(),
         notes: notes?.trim() || null,
+        bankName: bankName?.trim() || null,
+        accountNumber: accountNumber?.trim() || null,
+        bsb: bsb?.trim() || null,
       },
       include: { documents: true },
     })

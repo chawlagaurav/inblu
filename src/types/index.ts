@@ -70,7 +70,7 @@ export interface Testimonial {
 export interface User {
   id: string
   email: string
-  role: 'ADMIN' | 'CUSTOMER'
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'CUSTOMER'
   createdAt: Date
   updatedAt: Date
 }

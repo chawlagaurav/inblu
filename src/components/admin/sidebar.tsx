@@ -19,6 +19,7 @@ import {
   FolderOpen,
   MessageSquare,
   BriefcaseBusiness,
+  ShieldCheck,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -41,16 +42,32 @@ const navigation = [
   { name: 'Employees', href: '/admin05/employees', icon: BriefcaseBusiness },
 ]
 
-export function AdminSidebar() {
+// Super-admin-only nav items. Kept separate from the shared `navigation` list
+// so we filter once, at render time, based on the role prop.
+const superAdminNavigation = [
+  { name: 'Admins', href: '/admin05/admins', icon: ShieldCheck },
+]
+
+type AdminRole = 'SUPER_ADMIN' | 'ADMIN'
+
+interface AdminSidebarProps {
+  role: AdminRole
+}
+
+export function AdminSidebar({ role }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const isMobileNavOpen = useAdminUi((s) => s.isMobileNavOpen)
   const closeMobileNav = useAdminUi((s) => s.closeMobileNav)
 
+  // Compose the visible nav based on role — super admin gets the extra items.
+  const visibleNavigation =
+    role === 'SUPER_ADMIN' ? [...navigation, ...superAdminNavigation] : navigation
+
   // Prefetch all admin routes on mount for faster navigation
   useEffect(() => {
-    navigation.forEach((item) => {
+    visibleNavigation.forEach((item) => {
       router.prefetch(item.href)
     })
   }, [router])
@@ -109,7 +126,7 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="mt-8 flex-1 px-4 space-y-1 overflow-y-auto">
-        {navigation.map((item) => {
+        {visibleNavigation.map((item) => {
           const isActive = pathname === item.href ||
             (item.href !== '/admin05' && pathname.startsWith(item.href))
 

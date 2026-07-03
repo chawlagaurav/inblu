@@ -218,13 +218,17 @@ export default function PurchaseOrdersPage() {
             <p className="text-slate-500 mt-1">Track all stock-in purchase orders and documents</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={handleExport} disabled={exporting || purchaseOrders.length === 0} className="w-full sm:w-auto">
+            <Button
+              onClick={handleExport}
+              disabled={exporting || purchaseOrders.length === 0}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto"
+            >
               {exporting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Download className="h-4 w-4 mr-2" />
               )}
-              Export
+              {exporting ? 'Exporting...' : 'Export to Excel'}
             </Button>
             <Button onClick={() => setAddPOOpen(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />

@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       select: { role: true },
     })
 
-    if (dbUser?.role !== 'ADMIN') {
+    if (dbUser?.role !== 'ADMIN' && dbUser?.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

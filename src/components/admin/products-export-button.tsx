@@ -35,13 +35,17 @@ export function ProductsExportButton() {
   }
 
   return (
-    <Button variant="outline" onClick={handleExport} disabled={exporting} className="w-full sm:w-auto">
+    <Button
+      onClick={handleExport}
+      disabled={exporting}
+      className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto"
+    >
       {exporting ? (
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
       ) : (
         <Download className="h-4 w-4 mr-2" />
       )}
-      Export
+      {exporting ? 'Exporting...' : 'Export to Excel'}
     </Button>
   )
 }

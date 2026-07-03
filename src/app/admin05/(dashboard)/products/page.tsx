@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Plus, Search, Package } from 'lucide-react'
+import { Plus, Search, Package, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -58,6 +58,10 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
   const totalProducts = products.length
   const activeProducts = products.filter(p => p.isActive).length
   const lowStockProducts = products.filter(p => p.stock <= 10).length
+  // Total units sold across all products (all-time). soldAgg is workspace-wide,
+  // not filtered — a search/status filter narrows the list but "Sold" always
+  // reflects the full catalog's lifetime units.
+  const totalSold = soldAgg.reduce((sum, r) => sum + (r._sum.quantity ?? 0), 0)
 
   return (
     <div className="space-y-6">
@@ -81,7 +85,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
 
       {/* Stats */}
       <FadeIn delay={0.05}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -112,6 +116,17 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
               <div>
                 <p className="text-2xl font-bold text-slate-900">{lowStockProducts}</p>
                 <p className="text-sm text-slate-500">Low Stock</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <ShoppingBag className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{totalSold.toLocaleString()}</p>
+                <p className="text-sm text-slate-500">Sold</p>
               </div>
             </CardContent>
           </Card>

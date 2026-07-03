@@ -15,7 +15,7 @@ async function verifyAdmin() {
     .eq('id', user.id)
     .single()
 
-  if (userData?.role !== 'ADMIN') return null
+  if (userData?.role !== 'ADMIN' && userData?.role !== 'SUPER_ADMIN') return null
 
   return user
 }

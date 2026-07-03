@@ -47,7 +47,7 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (userData?.role !== 'ADMIN') {
+    if (userData?.role !== 'ADMIN' && userData?.role !== 'SUPER_ADMIN') {
       const url = request.nextUrl.clone()
       url.pathname = '/'
       return NextResponse.redirect(url)

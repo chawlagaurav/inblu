@@ -17,7 +17,7 @@ async function verifyAdmin() {
     select: { role: true },
   })
 
-  if (dbUser?.role !== 'ADMIN') {
+  if (dbUser?.role !== 'ADMIN' && dbUser?.role !== 'SUPER_ADMIN') {
     return null
   }
 

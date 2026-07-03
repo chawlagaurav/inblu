@@ -76,7 +76,7 @@ export async function GET(request: Request) {
 
     // If trying to access admin, verify admin role
     if (redirect.startsWith('/admin05')) {
-      if (dbUser.role !== 'ADMIN') {
+      if (dbUser.role !== 'ADMIN' && dbUser.role !== 'SUPER_ADMIN') {
         finalRedirect = '/admin05/login?error=not_admin'
       }
     }

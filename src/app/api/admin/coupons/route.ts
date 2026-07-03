@@ -13,7 +13,7 @@ async function verifyAdmin() {
     select: { role: true },
   })
 
-  if (dbUser?.role !== 'ADMIN') return null
+  if (dbUser?.role !== 'ADMIN' && dbUser?.role !== 'SUPER_ADMIN') return null
   return user
 }
 

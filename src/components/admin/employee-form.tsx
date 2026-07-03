@@ -54,6 +54,10 @@ export interface EmployeeFormValue {
   employmentStatus: EmploymentStatus
   currentStatus: string
   notes: string
+  // Bank details (optional).
+  bankName: string
+  accountNumber: string
+  bsb: string
   documents: EmployeeDoc[]
 }
 
@@ -69,6 +73,9 @@ export const emptyEmployee: EmployeeFormValue = {
   employmentStatus: 'FULL_TIME',
   currentStatus: 'Active',
   notes: '',
+  bankName: '',
+  accountNumber: '',
+  bsb: '',
   documents: [],
 }
 
@@ -205,6 +212,9 @@ export function EmployeeForm({ initial, onSubmit, onCancel }: EmployeeFormProps)
           employmentStatus: form.employmentStatus,
           currentStatus: form.currentStatus,
           notes: form.notes || null,
+          bankName: form.bankName || null,
+          accountNumber: form.accountNumber || null,
+          bsb: form.bsb || null,
         }),
       })
       const saved = await res.json().catch(() => ({}))
@@ -370,6 +380,48 @@ export function EmployeeForm({ initial, onSubmit, onCancel }: EmployeeFormProps)
           rows={3}
           className="mt-1"
         />
+      </div>
+
+      {/* Bank details — all optional; used for payroll. */}
+      <div className="border-t border-slate-100 pt-4">
+        <Label>Bank Details</Label>
+        <p className="text-xs text-slate-500 mb-2">
+          Optional. Used for payroll transfers.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="sm:col-span-2">
+            <Label htmlFor="emp_bank_name" className="text-xs">Bank Name</Label>
+            <Input
+              id="emp_bank_name"
+              value={form.bankName}
+              onChange={(e) => setForm((p) => ({ ...p, bankName: e.target.value }))}
+              placeholder="e.g. Commonwealth Bank"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="emp_account_no" className="text-xs">Account Number</Label>
+            <Input
+              id="emp_account_no"
+              inputMode="numeric"
+              value={form.accountNumber}
+              onChange={(e) => setForm((p) => ({ ...p, accountNumber: e.target.value }))}
+              placeholder="e.g. 12345678"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="emp_bsb" className="text-xs">BSB</Label>
+            <Input
+              id="emp_bsb"
+              inputMode="numeric"
+              value={form.bsb}
+              onChange={(e) => setForm((p) => ({ ...p, bsb: e.target.value }))}
+              placeholder="e.g. 062-000"
+              className="mt-1"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Documents */}

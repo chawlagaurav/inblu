@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   // Only redirect if we confirmed the user exists but is not an admin
   // If dbUser is null, the user might not be in our database yet (new signup)
-  if (dbUser && dbUser.role !== 'ADMIN') {
+  if (dbUser && dbUser.role !== 'ADMIN' && dbUser.role !== 'SUPER_ADMIN') {
     redirect('/')
   }
 
@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <AdminSidebar />
+      <AdminSidebar role={dbUser.role as 'SUPER_ADMIN' | 'ADMIN'} />
       <div className="lg:pl-64">
         <AdminHeader user={user} />
         <main className="p-4 sm:p-6 min-w-0 max-w-full overflow-x-hidden">{children}</main>

@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { EXPENSE_SOURCE_PURCHASE_ORDER } from '@/lib/expense-categories'
+import { DashboardExportButton } from '@/components/admin/dashboard-export-button'
 
 interface Order {
   id: string
@@ -405,6 +406,7 @@ export function DashboardStats({
           <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
           <p className="text-slate-500 mt-1">Welcome to your admin dashboard</p>
         </div>
+        <DashboardExportButton />
       </div>
 
       {/* Date Filter */}
@@ -450,7 +452,8 @@ export function DashboardStats({
         </CardContent>
       </Card>
 
-      {/* KPI Cards */}
+      {/* KPI Cards. Order: Revenue → Total Expenses → P&L → Orders → New Customers,
+          i.e. money-in, money-out, and the net first, then order/customer volumes. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -466,6 +469,47 @@ export function DashboardStats({
             {preset !== 'all_time' && (
               <div className="flex items-center gap-1 mt-2">
                 <ChangeBadge value={stats.revenueChange} />
+                <span className="text-xs text-slate-500">vs previous period</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-slate-500">Total Expenses</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.periodExpenses)}</p>
+              </div>
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <Wallet className="h-5 w-5 text-red-600" />
+              </div>
+            </div>
+            {preset !== 'all_time' && (
+              <div className="flex items-center gap-1 mt-2">
+                <ChangeBadge value={stats.expensesChange} reverse />
+                <span className="text-xs text-slate-500">vs previous period</span>
+              </div>
+            )}
+            <p className="text-xs text-slate-400 mt-1">Includes COGS auto-synced from POs</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-slate-500">P&amp;L</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.netProfit)}</p>
+              </div>
+              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
+              </div>
+            </div>
+            {preset !== 'all_time' && (
+              <div className="flex items-center gap-1 mt-2">
+                <ChangeBadge value={stats.netProfitChange} />
                 <span className="text-xs text-slate-500">vs previous period</span>
               </div>
             )}
@@ -509,47 +553,6 @@ export function DashboardStats({
                 <span className="text-xs text-slate-500">vs previous period</span>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">P&amp;L</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.netProfit)}</p>
-              </div>
-              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-emerald-600" />
-              </div>
-            </div>
-            {preset !== 'all_time' && (
-              <div className="flex items-center gap-1 mt-2">
-                <ChangeBadge value={stats.netProfitChange} />
-                <span className="text-xs text-slate-500">vs previous period</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-slate-500">Total Expenses</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.periodExpenses)}</p>
-              </div>
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <Wallet className="h-5 w-5 text-red-600" />
-              </div>
-            </div>
-            {preset !== 'all_time' && (
-              <div className="flex items-center gap-1 mt-2">
-                <ChangeBadge value={stats.expensesChange} reverse />
-                <span className="text-xs text-slate-500">vs previous period</span>
-              </div>
-            )}
-            <p className="text-xs text-slate-400 mt-1">Includes COGS auto-synced from POs</p>
           </CardContent>
         </Card>
       </div>

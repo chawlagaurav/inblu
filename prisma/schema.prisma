@@ -12,6 +12,7 @@ datasource db {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   CUSTOMER
 }
@@ -390,6 +391,11 @@ model Employee {
   // Free-text status the admin can set (e.g. "Active", "On leave", "Probation"). Soft-delete uses `isActive` below.
   currentStatus    String           @map("current_status")
   notes            String?
+  // Bank details for payroll. All optional — legacy rows and non-payroll
+  // records (e.g. contractors on invoice) may not have these.
+  bankName         String?          @map("bank_name")
+  accountNumber    String?          @map("account_number")
+  bsb              String?          @map("bsb")
   // Soft delete: deleted employees stay in the DB for audit and only appear
   // in the admin when the "Show inactive" toggle is on.
   isActive         Boolean          @default(true) @map("is_active")

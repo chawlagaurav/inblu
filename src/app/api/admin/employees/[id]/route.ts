@@ -11,7 +11,7 @@ async function verifyAdmin() {
     where: { id: user.id },
     select: { role: true },
   })
-  if (dbUser?.role !== 'ADMIN') return null
+  if (dbUser?.role !== 'ADMIN' && dbUser?.role !== 'SUPER_ADMIN') return null
   return user
 }
 
@@ -67,6 +67,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       employmentStatus,
       currentStatus,
       notes,
+      bankName,
+      accountNumber,
+      bsb,
       isActive,
     } = body
 
@@ -120,6 +123,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(employmentStatus !== undefined ? { employmentStatus } : {}),
         ...(currentStatus !== undefined ? { currentStatus: String(currentStatus).trim() } : {}),
         ...(notes !== undefined ? { notes: notes ? String(notes).trim() : null } : {}),
+        ...(bankName !== undefined ? { bankName: bankName ? String(bankName).trim() : null } : {}),
+        ...(accountNumber !== undefined ? { accountNumber: accountNumber ? String(accountNumber).trim() : null } : {}),
+        ...(bsb !== undefined ? { bsb: bsb ? String(bsb).trim() : null } : {}),
         ...(isActive !== undefined ? { isActive: !!isActive } : {}),
       },
       include: { documents: { orderBy: { createdAt: 'asc' } } },

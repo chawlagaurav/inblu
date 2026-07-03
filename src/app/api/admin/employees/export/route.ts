@@ -12,7 +12,7 @@ async function verifyAdmin() {
     where: { id: user.id },
     select: { role: true },
   })
-  if (dbUser?.role !== 'ADMIN') return null
+  if (dbUser?.role !== 'ADMIN' && dbUser?.role !== 'SUPER_ADMIN') return null
   return user
 }
 
@@ -59,6 +59,9 @@ export async function GET(request: NextRequest) {
       'Employment Status': employmentStatusLabel[e.employmentStatus] ?? e.employmentStatus,
       'Current Status': e.currentStatus,
       'Notes': e.notes || '',
+      'Bank Name': e.bankName || '',
+      'Account Number': e.accountNumber || '',
+      'BSB': e.bsb || '',
       // Each row gets a single "Documents" cell that joins labels with their
       // URLs for quick visibility. Spreadsheet doesn't render hyperlinks per
       // label, but the URLs are clickable when the cell is selected.

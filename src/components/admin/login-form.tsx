@@ -50,7 +50,7 @@ export function AdminLoginForm() {
         .eq('id', data.user.id)
         .single()
 
-      if (userError || userData?.role !== 'ADMIN') {
+      if (userError || (userData?.role !== 'ADMIN' && userData?.role !== 'SUPER_ADMIN')) {
         await supabase.auth.signOut()
         throw new Error('Access denied. Admin privileges required.')
       }

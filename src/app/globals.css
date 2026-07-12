@@ -182,3 +182,16 @@ body {
 [data-sonner-toast] {
   padding-right: 36px;
 }
+
+/* Hero background video is decorative (muted, looping, aria-hidden).
+   Suppress the browser's native play button / media controls so a stray
+   play overlay never appears when autoplay is blocked (e.g. iOS Low Power). */
+.hero-video::-webkit-media-controls,
+.hero-video::-webkit-media-controls-panel,
+.hero-video::-webkit-media-controls-start-playback-button,
+.hero-video::-webkit-media-controls-play-button,
+.hero-video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+}

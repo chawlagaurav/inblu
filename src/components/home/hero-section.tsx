@@ -42,6 +42,7 @@ export function HeroSection() {
   const [mounted, setMounted] = useState(false)
   const [content, setContent] = useState<HeroContent>(DEFAULT_CONTENT)
   const [videoReady, setVideoReady] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
   const [loadVideo, setLoadVideo] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -86,7 +87,7 @@ export function HeroSection() {
           className="object-cover"
           sizes="100vw"
         />
-        {showVideo && (
+        {showVideo && !videoFailed && (
           <video
             ref={videoRef}
             autoPlay
@@ -95,9 +96,17 @@ export function HeroSection() {
             playsInline
             preload="metadata"
             poster={bgImage}
-            onCanPlay={() => setVideoReady(true)}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+            onCanPlay={() => {
+              setVideoReady(true)
+              // Explicitly kick off playback; if the browser rejects autoplay
+              // (e.g. iOS Low Power Mode) drop the video and keep the poster
+              // image instead of leaving a stuck native play button behind.
+              videoRef.current?.play().catch(() => setVideoFailed(true))
+            }}
+            onError={() => setVideoFailed(true)}
+            className={`hero-video absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
             aria-hidden="true"
+            tabIndex={-1}
           >
             <source src={videoUrl} type={videoUrl.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
           </video>

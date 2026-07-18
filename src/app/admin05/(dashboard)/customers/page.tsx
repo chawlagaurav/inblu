@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Mail, Phone, ShoppingBag, DollarSign, Users, UserX, Download, Trash2, Loader2 } from 'lucide-react'
+import { Search, Mail, Phone, ShoppingBag, DollarSign, Users, UserX, Download, Trash2, Loader2, Send } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -48,6 +48,8 @@ export default function AdminCustomersPage() {
   const [stats, setStats] = useState<Stats>({ total: 0, registered: 0, guests: 0 })
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [inviting, setInviting] = useState(false)
+  const [invitingEmail, setInvitingEmail] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -137,6 +139,51 @@ export default function AdminCustomersPage() {
     }
   }
 
+  const sendInvites = async (recipients: { email: string; name?: string }[]) => {
+    const res = await fetch('/api/admin/customers/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customers: recipients }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      toast.success(data.message)
+    } else {
+      toast.error(data.error || 'Failed to send invites')
+    }
+  }
+
+  const handleInviteOne = async (customer: Customer) => {
+    setInvitingEmail(customer.email)
+    try {
+      await sendInvites([{ email: customer.email, name: customer.name }])
+    } catch (error) {
+      console.error('Error sending invite:', error)
+      toast.error('Failed to send invite')
+    } finally {
+      setInvitingEmail(null)
+    }
+  }
+
+  const handleInviteSelected = async () => {
+    const guests = customers.filter(c => selectedIds.has(c.id) && c.type === 'guest')
+    if (guests.length === 0) {
+      toast.error('No guest customers selected')
+      return
+    }
+
+    setInviting(true)
+    try {
+      await sendInvites(guests.map(c => ({ email: c.email, name: c.name })))
+      setSelectedIds(new Set())
+    } catch (error) {
+      console.error('Error sending invites:', error)
+      toast.error('Failed to send invites')
+    } finally {
+      setInviting(false)
+    }
+  }
+
   const filteredCustomers = customers.filter(customer => {
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
@@ -149,6 +196,7 @@ export default function AdminCustomersPage() {
 
   const allSelected = filteredCustomers.length > 0 && filteredCustomers.every(c => selectedIds.has(c.id))
   const someSelected = selectedIds.size > 0
+  const selectedGuestCount = customers.filter(c => selectedIds.has(c.id) && c.type === 'guest').length
 
   if (loading) {
     return (
@@ -167,6 +215,21 @@ export default function AdminCustomersPage() {
             <p className="text-slate-500 mt-1">Manage your customers</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
+            {selectedGuestCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={handleInviteSelected}
+                disabled={inviting}
+                className="w-full sm:w-auto"
+              >
+                {inviting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Invite ({selectedGuestCount})
+              </Button>
+            )}
             {someSelected && (
               <Button
                 variant="destructive"
@@ -303,6 +366,7 @@ export default function AdminCustomersPage() {
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Total Spent</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Shipping Address</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Last Order</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -373,6 +437,26 @@ export default function AdminCustomersPage() {
                         </td>
                         <td className="py-3 px-4 text-sm text-slate-500">
                           {customer.lastOrder ? formatDate(customer.lastOrder) : 'No orders'}
+                        </td>
+                        <td className="py-3 px-4">
+                          {customer.type === 'guest' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleInviteOne(customer)}
+                              disabled={invitingEmail === customer.email}
+                              title="Send an email inviting this guest to register"
+                            >
+                              {invitingEmail === customer.email ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                              ) : (
+                                <Send className="h-3.5 w-3.5 mr-1.5" />
+                              )}
+                              Invite
+                            </Button>
+                          ) : (
+                            <span className="text-sm text-slate-400">&mdash;</span>
+                          )}
                         </td>
                       </tr>
                     ))}

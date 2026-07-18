@@ -3,7 +3,7 @@ import { FadeIn, FadeInOnScroll } from '@/components/motion'
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions | Inblu',
-  description: 'Terms and conditions for using Inblu water filtration products and services.',
+  description: 'Terms and conditions and privacy policy for using Inblu water filtration products and services.',
 }
 
 export default function TermsPage() {
@@ -14,121 +14,117 @@ export default function TermsPage() {
           <FadeIn>
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-                Terms & Conditions
+                Terms &amp; Conditions and Privacy Policy
               </h1>
               <p className="mt-4 text-lg text-slate-600">
-                Last updated: March 2026
+                Last updated: July 2026
               </p>
             </div>
           </FadeIn>
 
           <FadeInOnScroll>
             <div className="prose prose-slate max-w-none">
-              <h2>1. Introduction</h2>
               <p>
-                Welcome to Inblu. These terms and conditions outline the rules and regulations 
-                for the use of Inblu&apos;s website and services. By accessing this website, we assume 
-                you accept these terms and conditions in full. Do not continue to use Inblu&apos;s 
-                website if you do not accept all of the terms and conditions stated on this page.
+                Welcome to Inblu (ABN 87 947 612 461). These Terms and Conditions govern your use of our
+                website and the purchase of Inblu water filtration systems and accessories. By placing an
+                order, you agree to these terms.
               </p>
 
-              <h2>2. Definitions</h2>
+              <h2>Pricing and Payment</h2>
+              <p>
+                All prices are listed in Australian Dollars (AUD) and include a 10% Goods and Services Tax
+                (GST). We reserve the right to change pricing without prior notice.
+              </p>
+
+              <h2>Product Information &amp; Health Disclaimers</h2>
+              <p>
+                Inblu products are designed to filter municipal tap water, improving taste and reducing
+                impurities. We do not make medical or physiological health claims. Customers with non-mains
+                water (e.g., bore or tank water) should seek independent testing before purchasing.
+              </p>
+
+              <h2>Installation &amp; Warranty</h2>
+              <p>
+                To ensure the safety and longevity of your Inblu system, hard-plumbed systems (like under-sink
+                models) must be installed by a licensed plumber. Failure to do so may void your warranty. Inblu
+                is not liable for damages caused by incorrect DIY installation, excessive water pressure, or
+                failure to replace filters on schedule.
+              </p>
+
+              <h2>Australian Consumer Law (ACL) &amp; ACCC</h2>
+              <p>
+                Nothing in these terms excludes, restricts, or modifies any consumer guarantee, right, or remedy
+                conferred by the Australian Consumer Law (ACL) and the guidelines set by the Australian
+                Competition and Consumer Commission (ACCC).
+              </p>
+
+              <h2>Limitation of Liability</h2>
+              <p>
+                To the maximum extent permitted by the Australian Consumer Law, Inblu, our directors,
+                employees, and suppliers shall not be liable for any direct, indirect, incidental, or
+                consequential damages arising from your use of our products. This includes, but is not limited
+                to, property damage caused by leaks, improper DIY installation, or failure to monitor the
+                system. Our liability shall be limited to the replacement or refund of the product purchased.
+              </p>
+
+              <h2>Order Acceptance &amp; Billing</h2>
+              <p>
+                We reserve the right to refuse or cancel any order you place with us. We may limit quantities
+                purchased per person or per household. If we cancel an order, we will attempt to notify you via
+                the email or phone number provided. You agree to provide current, complete, and accurate
+                purchase information for all transactions.
+              </p>
+
+              <h2>Privacy Policy</h2>
+              <p>
+                Inblu respects your privacy and is committed to protecting your personal data in accordance
+                with the Privacy Act 1988 (Cth) and the Australian Privacy Principles (APPs).
+              </p>
+
+              <h3>Information We Collect</h3>
+              <p>
+                We collect personal information such as your name, delivery address, email, phone number, and
+                payment details when you place an order or contact us.
+              </p>
+
+              <h3>How We Use Your Data</h3>
+              <p>
+                Your information is used strictly to process and fulfill your orders, provide customer support,
+                send filter replacement reminders, and (if you opt-in) send promotional offers.
+              </p>
+
+              <h3>Data Sharing</h3>
+              <p>
+                We do not sell your data. We only share necessary information with trusted third parties to
+                facilitate your order, such as secure payment gateways (e.g., Stripe, PayPal) and our shipping
+                partners (e.g., Australia Post, StarTrack).
+              </p>
+
+              <h3>Security</h3>
+              <p>
+                Our website uses secure SSL encryption to ensure your payment and personal details are kept
+                safe from unauthorized access.
+              </p>
+
+              <h3>Cookies &amp; Tracking Technologies</h3>
+              <p>
+                We use cookies and similar tracking pixels (such as Google and Meta) to analyze website
+                traffic, improve your shopping experience, and serve relevant advertisements. You can opt out
+                of targeted advertising through your browser settings or by contacting us.
+              </p>
+
+              <h3>Text Marketing &amp; Notifications</h3>
+              <p>
+                If you opt-in at checkout, you agree that we may send you text notifications (such as shipping
+                updates or abandoned cart reminders) and marketing offers. You can unsubscribe at any time by
+                replying STOP to our messages.
+              </p>
+
+              <h2>Contact Us</h2>
+              <p>For any questions or support, please reach out to us:</p>
               <ul>
-                <li><strong>&quot;Company&quot;</strong> refers to Inblu Pty Ltd, ABN 12 345 678 901</li>
-                <li><strong>&quot;Customer&quot;</strong> refers to any person who purchases products or services from us</li>
-                <li><strong>&quot;Products&quot;</strong> refers to water filtration systems and related items</li>
-                <li><strong>&quot;Services&quot;</strong> refers to installation, maintenance, and support services</li>
-              </ul>
-
-              <h2>3. Products and Services</h2>
-              <p>
-                Inblu offers premium water filtration products including RO purifiers, water ionisers, 
-                and undersink filters. All products come with fast professional installation for 
-                Australian customers.
-              </p>
-
-              <h3>3.1 Product Descriptions</h3>
-              <p>
-                We make every effort to ensure product descriptions and images are accurate. However, 
-                we do not warrant that product descriptions or other content is error-free.
-              </p>
-
-              <h3>3.2 Pricing</h3>
-              <p>
-                All prices are in Australian Dollars (AUD) and include GST. We reserve the right to 
-                change prices at any time without notice.
-              </p>
-
-              <h2>4. Orders and Payment</h2>
-              <h3>4.1 Order Acceptance</h3>
-              <p>
-                All orders are subject to acceptance and availability. We reserve the right to refuse 
-                or cancel any order at our discretion.
-              </p>
-
-              <h3>4.2 Payment Methods</h3>
-              <p>
-                We accept payment via credit card (Visa, Mastercard, American Express) through our 
-                secure payment processor, Stripe.
-              </p>
-
-              <h2>5. Delivery and Installation</h2>
-              <p>
-                Delivery times are estimates only. We are not liable for any delays in delivery. 
-                Fast installation is provided for all water purifier purchases within Australia.
-              </p>
-
-              <h2>6. Returns and Refunds</h2>
-              <p>
-                Please refer to our <a href="/support/returns" className="text-blue-600">Returns & Refunds Policy</a> for 
-                detailed information about our return process.
-              </p>
-
-              <h2>7. Warranty</h2>
-              <p>
-                All products are covered by the manufacturer&apos;s warranty. Warranty claims must be made 
-                through Inblu customer support.
-              </p>
-
-              <h2>8. Limitation of Liability</h2>
-              <p>
-                To the maximum extent permitted by law, Inblu shall not be liable for any indirect, 
-                incidental, special, consequential, or punitive damages arising from your use of 
-                our products or services.
-              </p>
-
-              <h2>9. Privacy</h2>
-              <p>
-                Your privacy is important to us. Please review our Privacy Policy for information 
-                about how we collect, use, and protect your personal information.
-              </p>
-
-              <h2>10. Intellectual Property</h2>
-              <p>
-                All content on this website, including text, images, logos, and graphics, is the 
-                property of Inblu and is protected by Australian and international copyright laws.
-              </p>
-
-              <h2>11. Governing Law</h2>
-              <p>
-                These terms and conditions are governed by the laws of New South Wales, Australia. 
-                Any disputes will be resolved in the courts of New South Wales.
-              </p>
-
-              <h2>12. Changes to Terms</h2>
-              <p>
-                We reserve the right to modify these terms at any time. Changes will be effective 
-                immediately upon posting on this website.
-              </p>
-
-              <h2>13. Contact Us</h2>
-              <p>
-                If you have any questions about these Terms & Conditions, please contact us at:
-              </p>
-              <ul>
-                <li>Email: <a href="mailto:legal@inblu.com.au" className="text-blue-600">legal@inblu.com.au</a></li>
-                <li>Phone: <a href="tel:1800123456" className="text-blue-600">1800 123 456</a></li>
-                <li>Address: 123 Water Street, Sydney NSW 2000, Australia</li>
+                <li>Email: <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a></li>
+                <li>Phone: <a href="tel:+61431318665" className="text-blue-600">+61 431 318 665</a></li>
               </ul>
             </div>
           </FadeInOnScroll>

@@ -332,8 +332,8 @@ export default function EditProductPage() {
                     required
                     value={formData.description}
                     onChange={handleChange}
-                    rows={4}
-                    className="mt-1"
+                    rows={12}
+                    className="mt-1 min-h-[300px] resize-y"
                   />
                 </div>
 

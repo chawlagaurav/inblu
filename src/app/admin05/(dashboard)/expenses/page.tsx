@@ -30,23 +30,14 @@ interface Expense {
 
 type SourceFilter = 'ALL' | 'MANUAL' | 'PURCHASE_ORDER'
 
-// Default range: this calendar month, so the page opens with a useful slice.
-const monthRange = () => {
-  const now = new Date()
-  const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
-  return { from, to }
-}
-
 export default function AdminExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<ExpenseFormValue | undefined>()
 
-  const initial = monthRange()
-  const [from, setFrom] = useState(initial.from)
-  const [to, setTo] = useState(initial.to)
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
   const [category, setCategory] = useState<'ALL' | ExpenseCategory>('ALL')
   const [source, setSource] = useState<SourceFilter>('ALL')
 
@@ -126,15 +117,27 @@ export default function AdminExpensesPage() {
 
   // Summary stats from the currently filtered set.
   const stats = useMemo(() => {
-    const total = expenses.reduce((s, e) => s + e.amount, 0)
-    const byCategory = new Map<string, number>()
+    let manualTotal = 0
     let linkedTotal = 0
+    let manualCount = 0
+    let linkedCount = 0
     for (const e of expenses) {
-      byCategory.set(e.category, (byCategory.get(e.category) ?? 0) + e.amount)
-      if (e.sourceType === EXPENSE_SOURCE_PURCHASE_ORDER) linkedTotal += e.amount
+      if (e.sourceType === EXPENSE_SOURCE_PURCHASE_ORDER) {
+        linkedTotal += e.amount
+        linkedCount += 1
+      } else {
+        manualTotal += e.amount
+        manualCount += 1
+      }
     }
-    const largest = [...byCategory.entries()].sort((a, b) => b[1] - a[1])[0]
-    return { total, largestCategory: largest, linkedTotal, count: expenses.length }
+    return {
+      manualTotal,
+      linkedTotal,
+      total: manualTotal + linkedTotal,
+      manualCount,
+      linkedCount,
+      count: expenses.length,
+    }
   }, [expenses])
 
   return (
@@ -172,29 +175,34 @@ export default function AdminExpensesPage() {
                 <Wallet className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.total)}</p>
-                <p className="text-sm text-slate-500">Total ({stats.count} entries)</p>
+                <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.manualTotal)}</p>
+                <p className="text-sm text-slate-500">Expenses ({stats.manualCount} entries)</p>
+                <p className="text-xs text-slate-400">Created in the Expenses tab</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-slate-500">Largest category</p>
-              {stats.largestCategory ? (
-                <>
-                  <p className="text-lg font-semibold text-slate-900 mt-1 truncate">{stats.largestCategory[0]}</p>
-                  <p className="text-sm text-slate-500">{formatCurrency(stats.largestCategory[1])}</p>
-                </>
-              ) : (
-                <p className="text-sm text-slate-400 mt-1">No expenses in this period</p>
-              )}
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                <Receipt className="h-6 w-6 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.linkedTotal)}</p>
+                <p className="text-sm text-slate-500">Linked from POs ({stats.linkedCount} entries)</p>
+                <p className="text-xs text-slate-400">Auto-synced from Purchase Orders</p>
+              </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-slate-500">Linked from POs</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.linkedTotal)}</p>
-              <p className="text-xs text-slate-400">Auto-synced from Purchase Orders</p>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.total)}</p>
+                <p className="text-sm text-slate-500">Total ({stats.count} entries)</p>
+                <p className="text-xs text-slate-400">Expenses + linked POs</p>
+              </div>
             </CardContent>
           </Card>
         </div>

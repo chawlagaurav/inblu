@@ -5,29 +5,29 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Shipping Policy | Inblu',
-  description: 'Learn about our shipping rates, delivery estimates, and coverage across Australia.',
+  description: 'Learn about our handling times, delivery estimates, tracking, and coverage across Australia.',
 }
 
 const shippingInfo = [
   {
     icon: Truck,
     title: 'Free Standard Shipping',
-    description: 'Free standard shipping on all orders across Australia.',
+    description: 'Free standard shipping on all system orders across Australia.',
   },
   {
     icon: Clock,
-    title: 'Fast Delivery',
-    description: 'Standard delivery in 3-8 business days, express in 1-3 business days.',
+    title: 'Fast Handling',
+    description: 'All orders processed within 24 to 48 hours (excluding weekends and NSW public holidays).',
   },
   {
     icon: MapPin,
-    title: 'Australian Coverage',
-    description: 'We deliver to the majority of territories within the Australian continent.',
+    title: 'Shipped Locally',
+    description: 'Dispatched from our NSW warehouse at 22 Wentworth Street, The Ponds NSW 2769.',
   },
   {
     icon: Package,
-    title: 'Quick Handling',
-    description: 'Most packages shipped within 24 hours except weekends and holidays.',
+    title: 'Order Tracking',
+    description: 'Receive an email with your tracking number as soon as your order is dispatched.',
   },
 ]
 
@@ -42,7 +42,7 @@ export default function ShippingPage() {
                 Shipping Policy
               </h1>
               <p className="mt-4 text-lg text-slate-600">
-                Shipping rates and delivery estimates
+                Fast, reliable delivery across Australia
               </p>
             </div>
           </FadeIn>
@@ -69,7 +69,18 @@ export default function ShippingPage() {
 
           <FadeInOnScroll delay={0.1}>
             <div className="prose prose-slate max-w-none">
-              <h2>Shipping Rates</h2>
+              <p>
+                We know you are eager to get your Inblu system up and running. We process all orders
+                locally from our warehouse located at 22 Wentworth Street, The Ponds NSW 2769 to ensure
+                fast, reliable delivery across Australia.
+              </p>
+
+              <h2>Handling Time</h2>
+              <p>
+                All orders are processed within 24 to 48 hours (excluding weekends and NSW public holidays).
+              </p>
+
+              <h2>Delivery Timeframes &amp; Costs</h2>
               <div className="overflow-x-auto">
                 <table>
                   <thead>
@@ -82,66 +93,44 @@ export default function ShippingPage() {
                   <tbody>
                     <tr>
                       <td>Standard Shipping</td>
-                      <td>3-8 Business Days</td>
-                      <td>Free</td>
+                      <td>2–6 Business Days</td>
+                      <td>Free on all system orders</td>
                     </tr>
                     <tr>
                       <td>Express Shipping</td>
-                      <td>1-3 Business Days</td>
-                      <td>$14.99 AUD</td>
+                      <td>1–3 Business Days (metro areas)</td>
+                      <td>Calculated at checkout</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+
+              <h2>Tracking</h2>
+              <p>
+                Once your order is dispatched from our NSW warehouse, you will receive an email with your
+                tracking number.
+              </p>
+
+              <h2>Delivery Liability</h2>
+              <p>
+                Risk of loss or damage to the goods passes to the customer once the courier provides proof
+                of delivery at your nominated address. We currently do not offer international shipping.
+              </p>
+
+              <h2>Delivery Delays</h2>
+              <p>
+                While we strive to meet all delivery estimates, transit times may occasionally be delayed by
+                factors outside our control (e.g., extreme weather or courier network issues). If your delivery
+                timeframe has significantly exceeded the estimate, please contact us so we can open an
+                investigation with the courier on your behalf.
+              </p>
+
+              <h2>Contact Us</h2>
+              <p>For any questions or support, please reach out to us:</p>
               <ul>
-                <li>Shipping charges for your order will be calculated and displayed at checkout.</li>
-                <li>The Delivery Time is calculated based on the shipping date, not the order date. The actual shipping date can be delayed due to invalid shipping address, weekends/holidays, etc.</li>
+                <li>Email: <a href="mailto:support@inblu.com.au" className="text-blue-600">support@inblu.com.au</a></li>
+                <li>Phone: <a href="tel:+61431318665" className="text-blue-600">+61 431 318 665</a></li>
               </ul>
-
-              <h3>Handling Time</h3>
-              <p>
-                We need 24h to 48h to prepare your order. Most packages will be shipped out within 24 hours except weekends and holidays.
-              </p>
-
-              <h3>Track Your Order</h3>
-              <p>
-                Once your order is shipped, you will receive an email from us containing the tracking information. Tracking information is also available in your &quot;Order Details&quot; page.
-              </p>
-
-              <h3>Shipping Origin</h3>
-              <p>
-                The package will be shipped from one of our AU warehouses closest to your location. If you have any questions, you can contact our customer service via LiveChat or email to{' '}
-                <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a>, we will reply to you as soon as possible!
-              </p>
-
-              <h3>Shipping Areas</h3>
-              <p>
-                The products can be delivered to the majority of territories within the Australian continent, excluding its surrounding islands.
-              </p>
-
-              <h3>International Shipping</h3>
-              <p>
-                We are sorry that the international shipping service is not supported for the time being.
-              </p>
-
-              <h3>Shipping Carriers</h3>
-              <p>
-                We work with 2 carriers to make sure your order will arrive on time: eParcel, Fastway.
-              </p>
-              <p>
-                <strong>Note:</strong> We don&apos;t accept requests to specify a certain carrier to deliver the package.
-              </p>
-
-              <h3>Delivery Time Exceeded</h3>
-              <p>
-                If your order is delayed, please contact us via email{' '}
-                <a href="mailto:info@inblu.com.au" className="text-blue-600">info@inblu.com.au</a>, we will check the situation with the transportation company in time. Thanks for your understanding and support.
-              </p>
-
-              <h3>Sales Tax</h3>
-              <p>
-                The sales tax will be collected in accordance with Australian tax laws. Customers with delivery addresses within Australia will be charged a standard rate of 10% GST at checkout. All taxes collected will be reported and filed to the ATO on time.
-              </p>
             </div>
           </FadeInOnScroll>
         </div>

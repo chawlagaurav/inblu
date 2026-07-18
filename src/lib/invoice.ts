@@ -108,7 +108,7 @@ export function calculateDueDate(invoiceDate: Date): Date {
  */
 export const COMPANY_DETAILS = {
   name: 'Inblu Filters',
-  abn: '87947612461',
+  abn: '87 947 612 461',
   website: 'www.inblu.com.au',
   email: 'sales@inblu.com.au',
   phone: '0431 318 665',

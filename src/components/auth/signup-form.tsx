@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,8 @@ import { FadeIn } from '@/components/motion'
 
 export function SignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const prefilledEmail = searchParams.get('email') || ''
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const supabase = createClient()
@@ -109,6 +111,7 @@ export function SignupForm() {
                 name="email"
                 type="email"
                 placeholder="you@example.com"
+                defaultValue={prefilledEmail}
                 required
                 disabled={isLoading}
               />
@@ -203,7 +206,7 @@ export function SignupForm() {
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="/privacy" className="underline hover:text-gray-900">
+              <a href="/support/terms" className="underline hover:text-gray-900">
                 Privacy Policy
               </a>
             </p>

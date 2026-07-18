@@ -4,6 +4,7 @@ import { SignupForm } from '@/components/auth/signup-form'
 import { PageTransition } from '@/components/motion'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Suspense } from 'react'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +25,9 @@ export default function SignupPage() {
             </p>
           </div>
           
-          <SignupForm />
+          <Suspense fallback={null}>
+            <SignupForm />
+          </Suspense>
           
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}

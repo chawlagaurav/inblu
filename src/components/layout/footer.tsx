@@ -43,7 +43,7 @@ const footerNavigation = {
     { name: 'Shipping & Returns', href: '/support/shipping' },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Privacy Policy', href: '/support/terms' },
     { name: 'Terms of Service', href: '/support/terms' },
     { name: 'Refund Policy', href: '/support/returns' },
   ],

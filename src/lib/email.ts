@@ -679,6 +679,105 @@ function generateWelcomeEmailHtml(email: string, discountCode?: string): string 
   `
 }
 
+// Registration invite for guest customers — encourages them to create an account.
+export async function sendRegistrationInviteEmail(
+  email: string,
+  name?: string
+): Promise<boolean> {
+  try {
+    const subject = 'Create your Inblu account 💧'
+    const html = generateRegistrationInviteHtml(email, name)
+    const resend = getResend()
+
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject,
+        html,
+      })
+
+      if (error) {
+        console.error('Resend error (registration invite):', error)
+        return false
+      }
+
+      console.log(`Registration invite sent to ${email}`)
+    } else {
+      console.log('=== REGISTRATION INVITE EMAIL (not sent — Resend not configured) ===')
+      console.log(`To: ${email}`)
+      console.log(`Subject: ${subject}`)
+      console.log('=================================')
+    }
+
+    return true
+  } catch (error) {
+    console.error('Failed to send registration invite email:', error)
+    return false
+  }
+}
+
+function generateRegistrationInviteHtml(email: string, name?: string): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://inblu.com.au'
+  const signupUrl = `${appUrl}/auth/signup?email=${encodeURIComponent(email)}`
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px;">
+      <div style="max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #0a508e 0%, #1e3a5f 100%); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+          <img src="https://inblu.com.au/inblutextlogo.png" alt="Inblu Filters" style="height: 60px; margin-bottom: 16px;">
+          <h1 style="color: white; margin: 0; font-size: 26px;">Create your Inblu account</h1>
+        </div>
+
+        <div style="background: white; border-radius: 0 0 16px 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+            ${greeting}
+          </p>
+
+          <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+            Thanks for shopping with Inblu Filters! We noticed you checked out as a guest.
+            Create a free account to make your next order even easier.
+          </p>
+
+          <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+            With an account you can:
+          </p>
+
+          <ul style="color: #334155; font-size: 16px; line-height: 1.8;">
+            <li>Track your orders and view your order history</li>
+            <li>Check out faster with saved details</li>
+            <li>Manage your filter service reminders</li>
+            <li>Get access to exclusive offers</li>
+          </ul>
+
+          <div style="text-align: center; margin-top: 32px;">
+            <a href="${signupUrl}" style="display: inline-block; background: #0a508e; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              Create My Account
+            </a>
+          </div>
+
+          <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 14px; margin: 0;">
+              Questions? Contact us at <a href="mailto:info@inblu.com.au" style="color: #0a508e;">info@inblu.com.au</a>
+            </p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 16px 0 0;">
+              <a href="https://inblu.com.au" style="color: #64748b;">Inblu Filters</a> | Premium Water Filtration
+            </p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
 // Send newsletter/campaign email to a single subscriber
 export async function sendNewsletterEmail(
   to: string,

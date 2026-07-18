@@ -66,7 +66,7 @@ export function CookieConsent() {
                   <p className="text-sm text-slate-600 leading-relaxed">
                     We use cookies to enhance your browsing experience, serve personalized content, 
                     and analyze our traffic. By clicking &quot;Accept All&quot;, you consent to our use of cookies.{' '}
-                    <Link href="/privacy" className="text-blue-600 hover:underline">
+                    <Link href="/support/terms" className="text-blue-600 hover:underline">
                       Learn more
                     </Link>
                   </p>

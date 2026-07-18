@@ -13,6 +13,8 @@ import prisma from '@/lib/prisma'
  * regenerated on every request from the live Supabase data via Prisma.
  */
 
+// (redeploy trigger)
+
 // Always render dynamically — the feed must reflect current stock/pricing, so
 // we opt out of static generation and route caching entirely.
 export const dynamic = 'force-dynamic'

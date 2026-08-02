@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         'Address - State': address?.state || '',
         'Address - Postcode': address?.postcode || '',
         'Address - Country': address?.country || '',
-        'Notes': order.notes || '',
+        'Internal Notes': order.notes || '',
         'Installation Date': order.installationDate ? new Date(order.installationDate).toLocaleDateString('en-AU') : '',
         'Delivered At': order.deliveredAt ? new Date(order.deliveredAt).toLocaleDateString('en-AU') : '',
         'Service Due Date': order.serviceDueDate ? new Date(order.serviceDueDate).toLocaleDateString('en-AU') : '',

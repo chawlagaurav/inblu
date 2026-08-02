@@ -1,4 +1,21 @@
 import { SEO_CONFIG, FAQ_DATA } from '@/lib/seo'
+import { prisma } from '@/lib/prisma'
+
+// Fetch active categories to drive SEO navigation links from the real
+// Category table so the schema never drifts from the actual site structure.
+async function getSeoCategories() {
+  try {
+    return await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: 'asc' },
+      select: { value: true, label: true, description: true },
+    })
+  } catch {
+    // If the database is unavailable at build/render time, fall back to no
+    // category links rather than emitting incorrect ones.
+    return []
+  }
+}
 
 // ============================================================
 // ORGANIZATION SCHEMA (For Google Business Panel)
@@ -95,13 +112,6 @@ export function LocalBusinessSchema() {
     areaServed: {
       '@type': 'Country',
       name: 'Australia',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.9',
-      reviewCount: '150',
-      bestRating: '5',
-      worstRating: '1',
     },
   }
 
@@ -460,28 +470,22 @@ export function HowToSchema({
 // ============================================================
 // SITE NAVIGATION SCHEMA (For Google Sitelinks)
 // ============================================================
-export function SiteNavigationSchema() {
+export async function SiteNavigationSchema() {
+  const categories = await getSeoCategories()
+
   const siteLinks = [
     {
       name: 'All Water Filters',
       description: 'Browse our complete range of premium water filtration systems',
       url: `${SEO_CONFIG.siteUrl}/products`,
     },
-    {
-      name: 'Counter Top Filters',
-      description: 'Advanced RO purifiers for clean drinking water at home',
-      url: `${SEO_CONFIG.siteUrl}/products?category=ro-purifiers`,
-    },
-    {
-      name: 'Water Ionisers',
-      description: 'Alkaline antioxidant water systems for healthy hydration',
-      url: `${SEO_CONFIG.siteUrl}/products?category=water-ionisers`,
-    },
-    {
-      name: 'Undersink Filters',
-      description: 'Space-saving under sink water filtration solutions',
-      url: `${SEO_CONFIG.siteUrl}/products?category=undersink-filters`,
-    },
+    // Real product categories, sourced from the Category table so the links
+    // Google sees always match the live site.
+    ...categories.map((cat) => ({
+      name: cat.label,
+      description: cat.description || `Shop ${cat.label} at Inblu Filters`,
+      url: `${SEO_CONFIG.siteUrl}/products?category=${cat.value}`,
+    })),
     {
       name: 'About Us',
       description: 'Learn about Inblu Filters and our mission for clean water',

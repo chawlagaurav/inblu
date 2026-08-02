@@ -87,21 +87,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }))
 
-  // Category pages
-  const categories = [
-    'ro-purifiers',
-    'countertop',
-    'undersink',
-    'ionisers',
-    'replacement',
-  ]
+  // Category pages (sourced from the real Category table so URLs match the
+  // live site instead of drifting to non-existent category slugs).
+  let categoryPages: MetadataRoute.Sitemap = []
 
-  const categoryPages: MetadataRoute.Sitemap = categories.map((category) => ({
-    url: `${BASE_URL}/products?category=${category}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }))
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: 'asc' },
+      select: { value: true, updatedAt: true },
+    })
+
+    categoryPages = categories.map((category) => ({
+      url: `${BASE_URL}/products?category=${category.value}`,
+      lastModified: category.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
+  } catch (error) {
+    console.log('Sitemap: Database unavailable, skipping category pages')
+  }
 
   // Dynamic product pages
   let productPages: MetadataRoute.Sitemap = []

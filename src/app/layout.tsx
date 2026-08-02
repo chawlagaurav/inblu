@@ -100,7 +100,7 @@ export const metadata: Metadata = {
   category: 'technology',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -112,7 +112,7 @@ export default function RootLayout({
         <OrganizationSchema />
         <LocalBusinessSchema />
         <WebsiteSchema />
-        <SiteNavigationSchema />
+        {await SiteNavigationSchema()}
       </head>
       <body className={`${inter.variable} font-sans antialiased bg-white text-slate-900`}>
         {children}

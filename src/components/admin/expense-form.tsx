@@ -14,7 +14,8 @@ export interface ExpenseFormValue {
   id?: string
   date: string             // ISO date input value (YYYY-MM-DD)
   category: ExpenseCategory
-  amount: string           // string so the input can hold partial numbers
+  entryType: 'expense' | 'credit'  // credit = offsetting entry, stored negative
+  amount: string           // always a POSITIVE magnitude; sign comes from entryType
   vendor: string
   description: string
   receiptUrl: string
@@ -25,6 +26,7 @@ const today = () => new Date().toISOString().split('T')[0]
 export const emptyExpense: ExpenseFormValue = {
   date: today(),
   category: 'Misc',
+  entryType: 'expense',
   amount: '',
   vendor: '',
   description: '',
@@ -62,6 +64,9 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
       toast.error('Amount must be greater than 0')
       return
     }
+    // Credits offset costs: store as a negative amount. The input itself always
+    // holds a positive magnitude; the sign is derived from the entry type.
+    const signedAmount = form.entryType === 'credit' ? -amountNum : amountNum
 
     setSaving(true)
     try {
@@ -73,7 +78,7 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
         body: JSON.stringify({
           date: form.date,
           category: form.category,
-          amount: amountNum,
+          amount: signedAmount,
           vendor: form.vendor || null,
           description: form.description || null,
           receiptUrl: form.receiptUrl || null,
@@ -117,6 +122,39 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <Label>Type *</Label>
+        <div className="mt-1 inline-flex rounded-md border border-slate-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setForm((prev) => ({ ...prev, entryType: 'expense' }))}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              form.entryType === 'expense'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Expense
+          </button>
+          <button
+            type="button"
+            onClick={() => setForm((prev) => ({ ...prev, entryType: 'credit' }))}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-l border-slate-200 ${
+              form.entryType === 'credit'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Credit (offset)
+          </button>
+        </div>
+        {form.entryType === 'credit' && (
+          <p className="mt-1 text-xs text-emerald-600">
+            Stored as a negative amount to offset expenses (e.g. refund, vendor credit).
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

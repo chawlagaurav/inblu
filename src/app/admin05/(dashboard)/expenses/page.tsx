@@ -87,7 +87,8 @@ export default function AdminExpensesPage() {
       id: expense.id,
       date: expense.date.split('T')[0],
       category: expense.category,
-      amount: String(expense.amount),
+      entryType: expense.amount < 0 ? 'credit' : 'expense',
+      amount: String(Math.abs(expense.amount)),
       vendor: expense.vendor ?? '',
       description: expense.description ?? '',
       receiptUrl: expense.receiptUrl ?? '',
@@ -310,8 +311,17 @@ export default function AdminExpensesPage() {
                           <td className="px-4 py-3 text-slate-600 max-w-xs truncate" title={e.description ?? ''}>
                             {e.description || '—'}
                           </td>
-                          <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
-                            {formatCurrency(e.amount)}
+                          <td className="px-4 py-3 text-right font-semibold whitespace-nowrap">
+                            {e.amount < 0 ? (
+                              <span className="text-emerald-600">
+                                {formatCurrency(e.amount)}
+                                <span className="ml-1 inline-block rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-600 align-middle">
+                                  Credit
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-900">{formatCurrency(e.amount)}</span>
+                            )}
                           </td>
                           <td className="px-4 py-3">
                             {e.receiptUrl ? (

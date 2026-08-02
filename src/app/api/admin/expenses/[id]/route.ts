@@ -59,8 +59,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
     }
     const amountNum = Number(amount)
-    if (!Number.isFinite(amountNum) || amountNum <= 0) {
-      return NextResponse.json({ error: 'Amount must be greater than 0' }, { status: 400 })
+    if (!Number.isFinite(amountNum) || amountNum === 0) {
+      return NextResponse.json({ error: 'Amount must be a non-zero number' }, { status: 400 })
     }
 
     const expense = await prisma.expense.update({

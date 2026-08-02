@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { getEffectivePrice } from '@/lib/pricing'
 import { toast } from 'sonner'
+import { CustomerSearchSelect, type CustomerOption } from './customer-search-select'
 
 interface Product {
   id: string
@@ -143,6 +144,21 @@ export function AddOrderModal({ isOpen, onClose, onSuccess, editOrder }: AddOrde
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  // Prefill customer + address fields when an existing customer is picked.
+  // All fields remain editable afterward (e.g. a different delivery address).
+  const handleSelectCustomer = (customer: CustomerOption) => {
+    setFormData(prev => ({
+      ...prev,
+      customerName: customer.name || '',
+      email: customer.email || '',
+      phone: customer.phone || '',
+      address: customer.address?.address || '',
+      city: customer.address?.city || '',
+      state: customer.address?.state || prev.state,
+      postcode: customer.address?.postcode || '',
+    }))
   }
 
   const addItem = () => {
@@ -297,6 +313,9 @@ export function AddOrderModal({ isOpen, onClose, onSuccess, editOrder }: AddOrde
             {/* Customer Information */}
             <div>
               <h3 className="font-semibold text-slate-900 mb-3">Customer Information</h3>
+              {!isEditMode && (
+                <CustomerSearchSelect onSelect={handleSelectCustomer} />
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="customerName">Customer Name *</Label>

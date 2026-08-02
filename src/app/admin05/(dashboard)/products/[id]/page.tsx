@@ -28,6 +28,7 @@ interface Product {
   name: string
   description: string
   price: number
+  costPrice: number | null
   stock: number
   category: string
   categories: string[]
@@ -63,6 +64,7 @@ export default function EditProductPage() {
     name: '',
     description: '',
     price: '',
+    costPrice: '',
     stock: '',
     categories: [] as string[],
     imageUrl: '',
@@ -147,6 +149,7 @@ export default function EditProductPage() {
         name: data.name,
         description: data.description,
         price: String(data.price),
+        costPrice: data.costPrice != null ? String(data.costPrice) : '',
         stock: String(data.stock),
         categories: data.categories && data.categories.length > 0 ? data.categories : (data.category ? [data.category] : []),
         imageUrl: data.imageUrl || '',
@@ -240,6 +243,7 @@ export default function EditProductPage() {
           name: formData.name,
           description: formData.description,
           price: priceNum,
+          costPrice: formData.costPrice === '' ? null : parseFloat(formData.costPrice),
           stock: parseInt(formData.stock),
           category: formData.categories[0] || '',
           categories: formData.categories,
@@ -354,6 +358,23 @@ export default function EditProductPage() {
                     onChange={handleChange}
                     className="mt-1"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="costPrice">Cost Price (AUD)</Label>
+                  <Input
+                    id="costPrice"
+                    name="costPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.costPrice}
+                    onChange={handleChange}
+                    className="mt-1"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Fallback purchase cost for margin when no PO cost is on record.
+                  </p>
                 </div>
 
                 <div>

@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
-import { buildProductCostHistory, computeOrderCost } from '@/lib/order-cost'
+import { buildProductCostHistory, buildCostPriceMap, computeOrderCost } from '@/lib/order-cost'
 import * as XLSX from 'xlsx'
+
+// Human-readable label for the cost-resolution source in the export.
+const COST_SOURCE_EXPORT_LABEL: Record<'po-asof' | 'po-latest' | 'manual' | 'none', string> = {
+  'po-asof': 'PO cost (as of order date)',
+  'po-latest': 'Latest PO cost',
+  manual: 'Manual cost price',
+  none: '',
+}
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -68,11 +76,13 @@ export async function GET(request: NextRequest) {
       new Set(orders.flatMap((o) => o.items.map((i) => i.productId)))
     )
     const costHistory = await buildProductCostHistory(prisma, productIds)
+    const costPriceMap = await buildCostPriceMap(prisma, productIds)
 
     const rows = orders.map((order) => {
       const address = order.shippingAddress as Record<string, string>
-      const { purchasePrice, margin, marginPercent } = computeOrderCost(
+      const { purchasePrice, margin, marginPercent, costSource } = computeOrderCost(
         costHistory,
+        costPriceMap,
         order.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         order.createdAt,
         Number(order.totalAmount)
@@ -93,6 +103,7 @@ export async function GET(request: NextRequest) {
         'Total Amount': Number(order.totalAmount),
         'Selling Price': Number(order.totalAmount),
         'Purchase Price': purchasePrice == null ? '' : purchasePrice,
+        'Cost Source': purchasePrice == null ? '' : COST_SOURCE_EXPORT_LABEL[costSource],
         'Margin': margin == null ? '' : margin,
         'Margin %': marginPercent == null ? '' : Number(marginPercent.toFixed(1)),
         'Payment Status': order.paymentStatus,

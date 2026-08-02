@@ -29,6 +29,7 @@ export default function NewProductPage() {
     name: '',
     description: '',
     price: '',
+    costPrice: '',
     stock: '',
     categories: [] as string[],
     imageUrl: '',
@@ -146,6 +147,7 @@ export default function NewProductPage() {
           name: formData.name,
           description: formData.description,
           price: priceNum,
+          costPrice: formData.costPrice === '' ? null : parseFloat(formData.costPrice),
           stock: 0, // Stock managed via Inventory section
           category: formData.categories[0],
           categories: formData.categories,
@@ -246,6 +248,24 @@ export default function NewProductPage() {
                     className="mt-1"
                     placeholder="0.00"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="costPrice">Cost Price (AUD)</Label>
+                  <Input
+                    id="costPrice"
+                    name="costPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.costPrice}
+                    onChange={handleChange}
+                    className="mt-1"
+                    placeholder="0.00"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Fallback purchase cost for margin when no PO cost is on record.
+                  </p>
                 </div>
 
                 <div>

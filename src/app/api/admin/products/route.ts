@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
       isOnSale,
       discountPercent,
       salePrice,
+      costPrice,
       excludeFromCoupons,
       isSoldOut,
     } = body
@@ -157,6 +158,7 @@ export async function POST(request: NextRequest) {
         isOnSale: !!isOnSale,
         discountPercent: discountPercent == null || discountPercent === '' ? null : Number(discountPercent),
         salePrice: salePrice == null || salePrice === '' ? null : Number(salePrice),
+        costPrice: costPrice == null || costPrice === '' ? null : Number(costPrice),
         excludeFromCoupons: !!excludeFromCoupons,
         isSoldOut: !!isSoldOut,
       },

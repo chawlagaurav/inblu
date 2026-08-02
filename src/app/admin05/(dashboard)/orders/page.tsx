@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import prisma from '@/lib/prisma'
 import { OrdersList } from '@/components/admin/orders-list'
-import { buildProductCostHistory, computeOrderCost } from '@/lib/order-cost'
+import { buildProductCostHistory, buildCostPriceMap, computeOrderCost } from '@/lib/order-cost'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,11 +58,13 @@ export default async function AdminOrdersPage() {
     new Set(orders.flatMap((o) => o.items.map((i) => i.productId)))
   )
   const costHistory = await buildProductCostHistory(prisma, productIds)
+  const costPriceMap = await buildCostPriceMap(prisma, productIds)
 
   // Serialize Decimal and Date for client component
   const serializedOrders = orders.map((o) => {
-    const { purchasePrice, margin, marginPercent } = computeOrderCost(
+    const { purchasePrice, margin, marginPercent, costSource } = computeOrderCost(
       costHistory,
+      costPriceMap,
       o.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       o.createdAt,
       Number(o.totalAmount)
@@ -76,6 +78,7 @@ export default async function AdminOrdersPage() {
     purchasePrice,
     margin,
     marginPercent,
+    costSource,
     shippingCost: Number(o.shippingCost),
     discountAmount: Number(o.discountAmount),
     status: o.status,

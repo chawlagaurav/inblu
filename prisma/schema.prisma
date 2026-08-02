@@ -44,6 +44,7 @@ model Product {
   name         String
   description  String
   price        Decimal     @db.Decimal(10, 2)
+  costPrice    Decimal?    @db.Decimal(10, 2) @map("cost_price")
   imageUrl     String      @map("image_url")
   images       String[]    @default([])
   sku          String?

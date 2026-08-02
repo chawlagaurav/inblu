@@ -116,6 +116,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       isOnSale,
       discountPercent,
       salePrice,
+      costPrice,
       excludeFromCoupons,
       isSoldOut,
     } = body
@@ -186,6 +187,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(isOnSale !== undefined ? { isOnSale: normalisedIsOnSale } : {}),
         ...(discountPercent !== undefined ? { discountPercent: normalisedDiscountPercent } : {}),
         ...(salePrice !== undefined ? { salePrice: normalisedSalePrice } : {}),
+        ...(costPrice !== undefined ? { costPrice: costPrice == null || costPrice === '' ? null : Number(costPrice) } : {}),
         ...(excludeFromCoupons !== undefined ? { excludeFromCoupons: !!excludeFromCoupons } : {}),
         ...(isSoldOut !== undefined ? { isSoldOut: !!isSoldOut } : {}),
       },

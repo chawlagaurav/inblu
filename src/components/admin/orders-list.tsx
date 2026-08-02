@@ -64,6 +64,7 @@ interface Order {
   purchasePrice: number | null
   margin: number | null
   marginPercent: number | null
+  costSource: 'po-asof' | 'po-latest' | 'manual' | 'none'
   shippingCost: number
   discountAmount: number
   status: string
@@ -95,6 +96,20 @@ interface OrdersListProps {
   statCounts: StatCounts
   currentStatus?: string
   currentSearch?: string
+}
+
+// Short labels for where an order's purchase cost came from (fallback chain).
+const COST_SOURCE_LABEL: Record<Order['costSource'], string> = {
+  'po-asof': 'PO cost',
+  'po-latest': 'latest PO',
+  manual: 'manual cost',
+  none: '',
+}
+const COST_SOURCE_TOOLTIP: Record<Order['costSource'], string> = {
+  'po-asof': 'Purchase-order unit cost as of the order date',
+  'po-latest': 'Most recent purchase-order unit cost (order predates PO history)',
+  manual: 'Manually set product cost price (no PO cost available)',
+  none: 'No cost available',
 }
 
 function formatCurrency(amount: number): string {
@@ -775,7 +790,16 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                         {formatCurrency(Number(order.totalAmount))}
                       </td>
                       <td className="py-3 px-4 text-sm text-slate-600">
-                        {order.purchasePrice == null ? '—' : formatCurrency(order.purchasePrice)}
+                        {order.purchasePrice == null ? (
+                          '—'
+                        ) : (
+                          <div className="flex flex-col">
+                            <span>{formatCurrency(order.purchasePrice)}</span>
+                            <span className="text-[10px] uppercase tracking-wide text-slate-400" title={COST_SOURCE_TOOLTIP[order.costSource]}>
+                              {COST_SOURCE_LABEL[order.costSource]}
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-sm font-medium">
                         {order.margin == null ? (

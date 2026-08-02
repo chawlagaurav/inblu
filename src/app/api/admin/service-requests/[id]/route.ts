@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { ServiceRequestStatus } from '@prisma/client'
+import { maxServiceableTenure, addMonths } from '@/lib/service-due'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -108,7 +109,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           items: {
             include: {
               product: {
-                select: { serviceTenureMonths: true },
+                select: { serviceTenureMonths: true, isServiceable: true },
               },
             },
           },
@@ -116,19 +117,23 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       })
 
       if (order) {
-        // Find the maximum service tenure from all products in the order
-        const maxTenure = order.items.reduce((max, item) => {
-          return Math.max(max, item.product.serviceTenureMonths || 6)
-        }, 6)
+        // Use only serviceable items — consumables (filter kits, spare parts)
+        // must not create or extend a service window.
+        const maxTenure = maxServiceableTenure(
+          order.items.map((item) => ({
+            serviceTenureMonths: item.product.serviceTenureMonths,
+            isServiceable: item.product.isServiceable,
+          }))
+        )
 
-        // Calculate new service due date from now
-        const newServiceDueDate = new Date()
-        newServiceDueDate.setMonth(newServiceDueDate.getMonth() + maxTenure)
-
-        await prisma.order.update({
-          where: { id: currentRequest.orderId },
-          data: { serviceDueDate: newServiceDueDate },
-        })
+        // Only reset the due date when the order has serviceable items.
+        if (maxTenure != null) {
+          const newServiceDueDate = addMonths(new Date(), maxTenure)
+          await prisma.order.update({
+            where: { id: currentRequest.orderId },
+            data: { serviceDueDate: newServiceDueDate },
+          })
+        }
       }
     }
 

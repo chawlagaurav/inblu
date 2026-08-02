@@ -37,6 +37,7 @@ export async function GET() {
       'Status': p.isActive ? 'Active' : 'Inactive',
       'Best Seller': p.isBestSeller ? 'Yes' : 'No',
       'Service Tenure (months)': p.serviceTenureMonths,
+      'Serviceable': p.isServiceable ? 'Yes' : 'No',
       'Display Order': p.displayOrder,
       'Slug': p.slug || '',
       'Image URL': p.imageUrl,

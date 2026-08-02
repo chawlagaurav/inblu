@@ -110,6 +110,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       manualUrl,
       serviceTenureMonths,
       relatedProductIds,
+      isServiceable,
       isBestSeller,
       isActive,
       isOnSale,
@@ -176,6 +177,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         manualUrl,
         serviceTenureMonths: serviceTenureMonths ?? undefined,
         relatedProductIds: relatedProductIds ?? undefined,
+        isServiceable: isServiceable ?? undefined,
         isBestSeller,
         isActive,
         // Persist discount fields when explicitly present in the body. Use the

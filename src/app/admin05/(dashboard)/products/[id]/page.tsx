@@ -37,6 +37,7 @@ interface Product {
   specifications: Record<string, string> | null
   manualUrl: string | null
   relatedProductIds: string[]
+  isServiceable: boolean
   isBestSeller: boolean
   isActive: boolean
   isSoldOut: boolean
@@ -70,6 +71,7 @@ export default function EditProductPage() {
     manualUrl: '',
     serviceTenureMonths: '6',
     relatedProductIds: [] as string[],
+    isServiceable: true,
     isBestSeller: false,
     isActive: true,
     isSoldOut: false,
@@ -153,6 +155,7 @@ export default function EditProductPage() {
         manualUrl: data.manualUrl || '',
         serviceTenureMonths: String(data.serviceTenureMonths ?? 6),
         relatedProductIds: data.relatedProductIds || [],
+        isServiceable: data.isServiceable ?? true,
         isBestSeller: data.isBestSeller,
         isActive: data.isActive,
         isSoldOut: !!data.isSoldOut,
@@ -247,6 +250,7 @@ export default function EditProductPage() {
           specifications: specs,
           serviceTenureMonths: parseInt(formData.serviceTenureMonths) || 6,
           relatedProductIds: formData.relatedProductIds,
+          isServiceable: formData.isServiceable,
           isBestSeller: formData.isBestSeller,
           isActive: formData.isActive,
           isSoldOut: formData.isSoldOut,
@@ -411,6 +415,19 @@ export default function EditProductPage() {
                     className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                   />
                   <Label htmlFor="isBestSeller">Best Seller</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isServiceable"
+                    name="isServiceable"
+                    checked={formData.isServiceable}
+                    onChange={handleChange}
+                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Label htmlFor="isServiceable" title="Uncheck for filter kits, spare parts and consumables — they won't create a service-due date.">
+                    Serviceable (has service window)
+                  </Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <input

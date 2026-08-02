@@ -36,6 +36,7 @@ export default function NewProductPage() {
     sku: '',
     manualUrl: '',
     serviceTenureMonths: '6',
+    isServiceable: true,
     isBestSeller: false,
     isActive: true,
     isSoldOut: false,
@@ -154,6 +155,7 @@ export default function NewProductPage() {
           manualUrl: formData.manualUrl || null,
           specifications: specs,
           serviceTenureMonths: parseInt(formData.serviceTenureMonths) || 6,
+          isServiceable: formData.isServiceable,
           isBestSeller: formData.isBestSeller,
           isActive: formData.isActive,
           isSoldOut: formData.isSoldOut,
@@ -305,6 +307,19 @@ export default function NewProductPage() {
                     className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                   />
                   <Label htmlFor="isBestSeller">Best Seller</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isServiceable"
+                    name="isServiceable"
+                    checked={formData.isServiceable}
+                    onChange={handleChange}
+                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Label htmlFor="isServiceable" title="Uncheck for filter kits, spare parts and consumables — they won't create a service-due date.">
+                    Serviceable (has service window)
+                  </Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <input

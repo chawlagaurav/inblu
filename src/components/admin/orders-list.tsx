@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { AddOrderModal } from './add-order-modal'
+import { maxServiceableTenure, addMonths } from '@/lib/service-due'
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -51,7 +52,7 @@ interface OrderItem {
   productId: string
   quantity: number
   price: string | number
-  product: { name: string; serviceTenureMonths: number }
+  product: { name: string; serviceTenureMonths: number; isServiceable: boolean }
 }
 
 interface Order {
@@ -60,6 +61,9 @@ interface Order {
   email: string
   phone: string | null
   totalAmount: string | number
+  purchasePrice: number | null
+  margin: number | null
+  marginPercent: number | null
   shippingCost: number
   discountAmount: number
   status: string
@@ -136,11 +140,18 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
     if (order.serviceDueDate) {
       dueDate = new Date(order.serviceDueDate)
     } else if (order.status === 'DELIVERED' && order.deliveredAt) {
-      // Fallback: calculate from delivery date using max service tenure
-      const maxTenure = Math.max(...order.items.map((i) => i.product.serviceTenureMonths || 6))
-      const delivered = new Date(order.deliveredAt)
-      dueDate = new Date(delivered)
-      dueDate.setMonth(dueDate.getMonth() + maxTenure)
+      // Fallback: calculate from delivery date using the max tenure of the
+      // serviceable items only. Consumables (filter kits, spares) are excluded;
+      // an order with no serviceable items gets no service-due date.
+      const maxTenure = maxServiceableTenure(
+        order.items.map((i) => ({
+          serviceTenureMonths: i.product.serviceTenureMonths,
+          isServiceable: i.product.isServiceable,
+        }))
+      )
+      if (maxTenure != null) {
+        dueDate = addMonths(new Date(order.deliveredAt), maxTenure)
+      }
     }
     
     if (!dueDate) {
@@ -686,9 +697,15 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                       onClick={() => handleSort('total')}
                     >
                       <span className="inline-flex items-center">
-                        Total
+                        Selling Price
                         <SortIcon field="total" />
                       </span>
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
+                      Purchase Price
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
+                      Margin
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
                       Payment
@@ -756,6 +773,21 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                       </td>
                       <td className="py-3 px-4 text-sm font-medium text-slate-900">
                         {formatCurrency(Number(order.totalAmount))}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-slate-600">
+                        {order.purchasePrice == null ? '—' : formatCurrency(order.purchasePrice)}
+                      </td>
+                      <td className="py-3 px-4 text-sm font-medium">
+                        {order.margin == null ? (
+                          <span className="text-slate-400">—</span>
+                        ) : (
+                          <span className={order.margin >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {formatCurrency(order.margin)}
+                            {order.marginPercent != null && (
+                              <span className="text-slate-400 font-normal"> ({order.marginPercent.toFixed(0)}%)</span>
+                            )}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <Badge className={paymentStatusColors[order.paymentStatus]}>

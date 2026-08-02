@@ -53,6 +53,7 @@ model Product {
   specifications Json?     @default("{}")
   manualUrl    String?     @map("manual_url")
   serviceTenureMonths Int   @default(6) @map("service_tenure_months")
+  isServiceable Boolean    @default(true) @map("is_serviceable")
   relatedProductIds String[] @default([]) @map("related_product_ids")
   isBestSeller Boolean     @default(false) @map("is_best_seller")
   isActive     Boolean     @default(true) @map("is_active")

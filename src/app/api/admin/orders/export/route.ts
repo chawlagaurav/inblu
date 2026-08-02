@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { buildProductCostHistory, computeOrderCost } from '@/lib/order-cost'
 import * as XLSX from 'xlsx'
 
 async function verifyAdmin() {
@@ -61,8 +62,21 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Purchase price / margin per order, using PO unit costs as-of the order
+    // date (same logic as the on-screen orders table).
+    const productIds = Array.from(
+      new Set(orders.flatMap((o) => o.items.map((i) => i.productId)))
+    )
+    const costHistory = await buildProductCostHistory(prisma, productIds)
+
     const rows = orders.map((order) => {
       const address = order.shippingAddress as Record<string, string>
+      const { purchasePrice, margin, marginPercent } = computeOrderCost(
+        costHistory,
+        order.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        order.createdAt,
+        Number(order.totalAmount)
+      )
       return {
         'Order ID': order.id,
         'Order #': `#${order.id.slice(0, 8).toUpperCase()}`,
@@ -77,6 +91,10 @@ export async function GET(request: NextRequest) {
         'GST': Number(order.gst),
         'Shipping': Number(order.shippingCost),
         'Total Amount': Number(order.totalAmount),
+        'Selling Price': Number(order.totalAmount),
+        'Purchase Price': purchasePrice == null ? '' : purchasePrice,
+        'Margin': margin == null ? '' : margin,
+        'Margin %': marginPercent == null ? '' : Number(marginPercent.toFixed(1)),
         'Payment Status': order.paymentStatus,
         'Order Status': order.status,
         'Is Backlog': order.isBacklog ? 'Yes' : 'No',

@@ -693,6 +693,9 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                 <thead>
                   <tr className="border-b border-blue-100">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
+                      S.No
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
                       Order
                     </th>
                     <th
@@ -755,11 +758,14 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOrders.map((order) => (
+                  {filteredOrders.map((order, index) => (
                     <tr
                       key={order.id}
                       className="border-b border-blue-50 hover:bg-blue-50/50 transition-colors"
                     >
+                      <td className="py-3 px-4 text-sm text-slate-600">
+                        {index + 1}
+                      </td>
                       <td className="py-3 px-4">
                         <p className="text-sm font-medium text-slate-900">
                           #{order.id.slice(0, 8).toUpperCase()}

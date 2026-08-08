@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
               select: {
                 id: true,
                 quantity: true,
-                product: { select: { name: true } },
+                product: { select: { name: true, isServiceable: true } },
               },
             },
           },
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             quantity: true,
-            product: { select: { name: true } },
+            product: { select: { name: true, isServiceable: true } },
           },
         },
         partsOrders: {

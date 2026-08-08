@@ -39,7 +39,7 @@ import { toast } from 'sonner'
 interface OrderItemLite {
   id: string
   quantity: number
-  product: { name: string }
+  product: { name: string; isServiceable?: boolean }
 }
 
 interface ServiceRequest {
@@ -141,6 +141,7 @@ export default function AdminServiceRequestsPage() {
     resolution: '',
     servicedOrderItemId: '',
     partsOrderIds: [] as string[],
+    orderId: '',
   })
   // Draft value for the "add parts order" input (before it's added to the list)
   const [partsOrderDraft, setPartsOrderDraft] = useState('')
@@ -214,25 +215,43 @@ export default function AdminServiceRequestsPage() {
       resolution: request.resolution || '',
       servicedOrderItemId: request.servicedOrderItemId || '',
       partsOrderIds: (request.partsOrders || []).map((p) => p.orderId),
+      orderId: request.orderId ? request.orderId.slice(0, 8).toUpperCase() : '',
     })
     setPartsOrderDraft('')
     setExpandedId(request.id)
   }
 
-  const handleSave = async (id: string) => {
+  const handleSave = async (id: string, opts?: { recomputeServiceDue?: boolean }) => {
     setSaving(true)
     try {
       const res = await fetch(`/api/admin/service-requests/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          ...editForm,
+          recomputeServiceDue: opts?.recomputeServiceDue ?? false,
+        }),
       })
 
       if (res.ok) {
         const updated = await res.json()
+        const due = updated._serviceDue
         setRequests(prev => prev.map(r => r.id === id ? updated : r))
         setEditingId(null)
         toast.success('Service request updated')
+        // Surface the service-due outcome so a consumable-only order (which
+        // yields no due date) doesn't look like a silent failure.
+        if (due?.set) {
+          toast.success(
+            `Service due set to ${formatDateOnly(due.date)} on order #${due.orderShort}`
+          )
+        } else if (due?.reason === 'consumable-only') {
+          toast.warning(
+            'Linked order has no serviceable product — no service due date was set.'
+          )
+        } else if (due?.reason === 'no-order') {
+          toast.warning('No order linked — no service due date was set.')
+        }
       } else {
         const data = await res.json().catch(() => null)
         toast.error(data?.error || 'Failed to update service request')
@@ -628,9 +647,10 @@ export default function AdminServiceRequestsPage() {
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <Label>Status</Label>
-                                      <Select 
-                                        value={editForm.status} 
+                                      <Select
+                                        value={editForm.status}
                                         onValueChange={(v) => setEditForm(prev => ({ ...prev, status: v }))}
+                                        disabled={request.status === 'COMPLETED'}
                                       >
                                         <SelectTrigger className="mt-1">
                                           <SelectValue />
@@ -643,6 +663,11 @@ export default function AdminServiceRequestsPage() {
                                           <SelectItem value="CANCELLED">Cancelled</SelectItem>
                                         </SelectContent>
                                       </Select>
+                                      {request.status === 'COMPLETED' && (
+                                        <p className="text-xs text-slate-500 mt-1">
+                                          Completed — status is locked and can&apos;t be changed.
+                                        </p>
+                                      )}
                                     </div>
                                     <div>
                                       <Label>Priority</Label>
@@ -703,6 +728,43 @@ export default function AdminServiceRequestsPage() {
                                       rows={3}
                                       className="mt-1"
                                     />
+                                  </div>
+
+                                  {/* Linked order — the MAIN order this service
+                                      is for. Drives the service-due recompute.
+                                      Fixable here if the customer entered the
+                                      wrong order ID (e.g. a parts order). */}
+                                  <div>
+                                    <Label>Linked Order (main)</Label>
+                                    <Input
+                                      value={editForm.orderId}
+                                      onChange={(e) => setEditForm(prev => ({ ...prev, orderId: e.target.value }))}
+                                      placeholder="Order ID this service is for (e.g., A1B2C3D4)"
+                                      className="mt-1 font-mono"
+                                    />
+                                    <p className="text-xs text-slate-500 mt-1">
+                                      The order whose product was serviced. Completing the
+                                      request (or Recompute below) sets its next service-due date.
+                                    </p>
+                                    {request.order &&
+                                      (request.order.items?.length ?? 0) > 0 &&
+                                      request.order.items?.every((it) => it.product.isServiceable === false) && (
+                                        <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">
+                                          ⚠ This order only contains consumable parts (e.g. a filter
+                                          kit), so no service-due date will be set. If the service was
+                                          for a unit, change the Linked Order above to the unit&apos;s order.
+                                        </p>
+                                      )}
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="mt-2"
+                                      disabled={saving}
+                                      onClick={() => handleSave(request.id, { recomputeServiceDue: true })}
+                                    >
+                                      Recompute service due date
+                                    </Button>
                                   </div>
 
                                   {/* Serviced product — which item in the linked

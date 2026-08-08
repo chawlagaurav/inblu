@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
               select: {
                 id: true,
                 quantity: true,
-                product: { select: { name: true } },
+                product: { select: { name: true, isServiceable: true } },
               },
             },
           },
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
           select: {
             id: true,
             quantity: true,
-            product: { select: { name: true } },
+            product: { select: { name: true, isServiceable: true } },
           },
         },
         partsOrders: {
@@ -99,17 +99,45 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       scheduledDate,
       servicedOrderItemId,
       partsOrderIds,
+      orderId,
+      recomputeServiceDue,
     } = body
 
     // Get current service request to check for linked order
     const currentRequest = await prisma.serviceRequest.findUnique({
       where: { id },
-      select: { orderId: true, status: true },
+      select: { orderId: true, status: true, completedAt: true },
     })
 
     if (!currentRequest) {
       return NextResponse.json({ error: 'Service request not found' }, { status: 404 })
     }
+
+    // Resolve the main linked order if the admin is changing it. Accept a full
+    // UUID or the 8-char short code, or an empty value / null to unlink.
+    let newOrderId: string | null | undefined = undefined // undefined = unchanged
+    if (orderId !== undefined) {
+      const value = String(orderId ?? '').trim()
+      if (!value) {
+        newOrderId = null
+      } else {
+        const order = await prisma.order.findFirst({
+          where: { id: { startsWith: value.toLowerCase() } },
+          select: { id: true },
+        })
+        if (!order) {
+          return NextResponse.json(
+            { error: `Order ID not found: ${value}` },
+            { status: 400 }
+          )
+        }
+        newOrderId = order.id
+      }
+    }
+
+    // The order this request will be linked to after this update.
+    const effectiveOrderId =
+      newOrderId !== undefined ? newOrderId : currentRequest.orderId
 
     // Resolve pasted parts-order identifiers (accept full UUID or the 8-char
     // short code shown in the admin UI) to real order IDs. Reject unknowns so
@@ -140,16 +168,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       resolvedPartsOrderIds = Array.from(resolved)
     }
 
-    // Validate the serviced order item belongs to the linked order.
+    // Validate the serviced order item belongs to the (effective) linked order.
     if (servicedOrderItemId) {
-      if (!currentRequest.orderId) {
+      if (!effectiveOrderId) {
         return NextResponse.json(
           { error: 'Cannot set a serviced product: this request has no linked order.' },
           { status: 400 }
         )
       }
       const item = await prisma.orderItem.findFirst({
-        where: { id: servicedOrderItemId, orderId: currentRequest.orderId },
+        where: { id: servicedOrderItemId, orderId: effectiveOrderId },
         select: { id: true },
       })
       if (!item) {
@@ -163,8 +191,23 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const updateData: Record<string, unknown> = {}
 
     if (status) {
+      // A completed request is locked: its status cannot be changed again.
+      // (Backs up the UI lock; also prevents re-stamping completedAt.)
+      if (currentRequest.status === 'COMPLETED' && status !== 'COMPLETED') {
+        return NextResponse.json(
+          { error: 'This request is already completed and its status can no longer be changed.' },
+          { status: 400 }
+        )
+      }
       updateData.status = status as ServiceRequestStatus
-      if (status === 'COMPLETED') {
+      // Stamp completedAt only on the first transition into COMPLETED, and never
+      // overwrite an existing value — re-saving a completed request must keep
+      // the original service-completion date.
+      if (
+        status === 'COMPLETED' &&
+        currentRequest.status !== 'COMPLETED' &&
+        !currentRequest.completedAt
+      ) {
         updateData.completedAt = new Date()
       }
     }
@@ -174,6 +217,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (resolution !== undefined) updateData.resolution = resolution
     if (servicedOrderItemId !== undefined) {
       updateData.servicedOrderItemId = servicedOrderItemId || null
+    }
+    if (newOrderId !== undefined) {
+      updateData.orderId = newOrderId
+      // The old serviced product belonged to the previous order; clear it unless
+      // a new one is being set in this same request.
+      if (servicedOrderItemId === undefined) {
+        updateData.servicedOrderItemId = null
+      }
     }
     if (scheduledDate !== undefined) {
       updateData.scheduledDate = scheduledDate ? new Date(scheduledDate) : null
@@ -209,39 +260,78 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // If status changed to COMPLETED and there's a linked order, update service due date
-    if (status === 'COMPLETED' && currentRequest.status !== 'COMPLETED' && currentRequest.orderId) {
-      // Get the order with its items and products to find max service tenure
-      const order = await prisma.order.findUnique({
-        where: { id: currentRequest.orderId },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: { serviceTenureMonths: true, isServiceable: true },
+    // Recompute the linked order's service-due date.
+    //
+    // Fires when any of these is true:
+    //   - the request is transitioning into COMPLETED (the normal case)
+    //   - the admin explicitly asked to recompute (recomputeServiceDue) — lets
+    //     an already-COMPLETED request be reset after fixing a mis-linked order
+    //   - the linked order was changed on this request
+    //
+    // The due date is based on the max serviceable tenure of the EFFECTIVE
+    // linked order; consumable-only orders yield no service window (blank).
+    // Base date is the service completion date when known, else now.
+    const isCompletingNow =
+      status === 'COMPLETED' && currentRequest.status !== 'COMPLETED'
+    const orderChanged =
+      newOrderId !== undefined && newOrderId !== currentRequest.orderId
+    const shouldRecompute =
+      isCompletingNow || recomputeServiceDue === true || orderChanged
+
+    // Outcome reported back to the client for a clear toast message.
+    let serviceDueResult:
+      | { set: true; date: string; orderShort: string }
+      | { set: false; reason: 'no-order' | 'consumable-only' }
+      | null = null
+
+    if (shouldRecompute) {
+      if (!effectiveOrderId) {
+        serviceDueResult = { set: false, reason: 'no-order' }
+      } else {
+        const order = await prisma.order.findUnique({
+          where: { id: effectiveOrderId },
+          include: {
+            items: {
+              include: {
+                product: {
+                  select: { serviceTenureMonths: true, isServiceable: true },
+                },
               },
             },
           },
-        },
-      })
+        })
 
-      if (order) {
-        // Use only serviceable items — consumables (filter kits, spare parts)
-        // must not create or extend a service window.
-        const maxTenure = maxServiceableTenure(
-          order.items.map((item) => ({
-            serviceTenureMonths: item.product.serviceTenureMonths,
-            isServiceable: item.product.isServiceable,
-          }))
-        )
+        if (order) {
+          // Use only serviceable items — consumables (filter kits, spare parts)
+          // must not create or extend a service window.
+          const maxTenure = maxServiceableTenure(
+            order.items.map((item) => ({
+              serviceTenureMonths: item.product.serviceTenureMonths,
+              isServiceable: item.product.isServiceable,
+            }))
+          )
 
-        // Only reset the due date when the order has serviceable items.
-        if (maxTenure != null) {
-          const newServiceDueDate = addMonths(new Date(), maxTenure)
-          await prisma.order.update({
-            where: { id: currentRequest.orderId },
-            data: { serviceDueDate: newServiceDueDate },
-          })
+          if (maxTenure != null) {
+            // Base the next service-due date on the actual completion date, not
+            // "now": prefer an existing completedAt, then any value stamped in
+            // this request, and only fall back to now if neither exists.
+            const base =
+              currentRequest.completedAt ??
+              (updateData.completedAt as Date | undefined) ??
+              new Date()
+            const newServiceDueDate = addMonths(base, maxTenure)
+            await prisma.order.update({
+              where: { id: effectiveOrderId },
+              data: { serviceDueDate: newServiceDueDate },
+            })
+            serviceDueResult = {
+              set: true,
+              date: newServiceDueDate.toISOString(),
+              orderShort: order.id.slice(0, 8).toUpperCase(),
+            }
+          } else {
+            serviceDueResult = { set: false, reason: 'consumable-only' }
+          }
         }
       }
     }
@@ -260,7 +350,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
               select: {
                 id: true,
                 quantity: true,
-                product: { select: { name: true } },
+                product: { select: { name: true, isServiceable: true } },
               },
             },
           },
@@ -269,7 +359,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           select: {
             id: true,
             quantity: true,
-            product: { select: { name: true } },
+            product: { select: { name: true, isServiceable: true } },
           },
         },
         partsOrders: {
@@ -282,7 +372,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       },
     })
 
-    return NextResponse.json(updated)
+    return NextResponse.json({ ...updated, _serviceDue: serviceDueResult })
   } catch (error) {
     console.error('Error updating service request:', error)
     return NextResponse.json(

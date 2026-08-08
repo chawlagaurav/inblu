@@ -698,6 +698,9 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                     <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
                       Order
                     </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-900">
+                      Order Items
+                    </th>
                     <th
                       className="text-left py-3 px-4 text-sm font-semibold text-slate-900 cursor-pointer select-none hover:text-blue-600"
                       onClick={() => handleSort('customer')}
@@ -782,6 +785,18 @@ export function OrdersList({ orders, statCounts, currentStatus, currentSearch }:
                             </Badge>
                           )}
                         </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <ul className="text-sm text-slate-700 space-y-0.5">
+                          {order.items.map((item) => (
+                            <li key={item.id}>
+                              {item.product.name}
+                              {item.quantity > 1 && (
+                                <span className="text-slate-400"> × {item.quantity}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       </td>
                       <td className="py-3 px-4">
                         <p className="text-sm font-medium text-slate-900">

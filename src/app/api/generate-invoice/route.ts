@@ -196,8 +196,7 @@ export async function POST(request: NextRequest) {
                 Thank you for your order. Please find your invoice attached to this email.
               </p>
               <p style="color: #475569;">
-                <strong>Order Total:</strong> $${Number(order.totalAmount).toFixed(2)}<br>
-                <strong>Due Date:</strong> ${formatInvoiceDate(dueDate)}
+                <strong>Order Total:</strong> $${Number(order.totalAmount).toFixed(2)}
               </p>
               <p style="color: #475569;">
                 If you have any questions, please don't hesitate to contact us.

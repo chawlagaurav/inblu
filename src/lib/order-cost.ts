@@ -112,11 +112,14 @@ export function costAsOf(
 }
 
 /**
- * Resolves a product's purchase unit cost through the fallback chain:
- *   1. PO cost as-of the order date   (source 'po-asof')
- *   2. product's most recent PO cost  (source 'po-latest')
- *   3. manual Product.costPrice       (source 'manual')
- *   4. none                           (source 'none', cost null)
+ * Resolves a product's purchase unit cost from the admin-maintained cost-price
+ * column (`Product.costPrice`) only.
+ *
+ * Per client request, purchase price is driven solely by `costPrice` — the PO
+ * history is no longer used as a fallback. The `history` and `orderDate`
+ * parameters are retained for signature compatibility with existing callers.
+ *   - costPrice present → source 'manual'
+ *   - costPrice absent  → source 'none', cost null
  */
 export function resolveUnitCost(
   history: Map<string, CostPoint[]>,
@@ -124,15 +127,8 @@ export function resolveUnitCost(
   productId: string,
   orderDate: Date
 ): { cost: number | null; source: CostSource } {
-  const asOf = costAsOf(history, productId, orderDate)
-  if (asOf != null) return { cost: asOf, source: 'po-asof' }
-
-  const points = history.get(productId)
-  if (points && points.length > 0) {
-    // points are ascending by createdAt → last is the most recent PO cost.
-    return { cost: points[points.length - 1].unitCost, source: 'po-latest' }
-  }
-
+  void history
+  void orderDate
   const manual = costPriceMap.get(productId)
   if (manual != null) return { cost: manual, source: 'manual' }
 
@@ -153,7 +149,7 @@ export function computeOrderCost(
   sellingTotal: number
 ): OrderCostResult {
   let purchasePrice = 0
-  let worst: CostSource = 'po-asof'
+  let worst: CostSource = 'manual'
   for (const item of items) {
     const { cost, source } = resolveUnitCost(history, costPriceMap, item.productId, orderDate)
     if (SOURCE_RANK[source] > SOURCE_RANK[worst]) worst = source

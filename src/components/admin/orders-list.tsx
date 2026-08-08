@@ -102,14 +102,14 @@ interface OrdersListProps {
 const COST_SOURCE_LABEL: Record<Order['costSource'], string> = {
   'po-asof': 'PO cost',
   'po-latest': 'latest PO',
-  manual: 'manual cost',
+  manual: '',
   none: '',
 }
 const COST_SOURCE_TOOLTIP: Record<Order['costSource'], string> = {
   'po-asof': 'Purchase-order unit cost as of the order date',
   'po-latest': 'Most recent purchase-order unit cost (order predates PO history)',
-  manual: 'Manually set product cost price (no PO cost available)',
-  none: 'No cost available',
+  manual: 'Product cost price',
+  none: 'No cost price set',
 }
 
 function formatCurrency(amount: number): string {

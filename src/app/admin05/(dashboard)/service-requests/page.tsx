@@ -36,6 +36,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FadeIn } from '@/components/motion'
 import { toast } from 'sonner'
 
+interface OrderItemLite {
+  id: string
+  quantity: number
+  product: { name: string }
+}
+
 interface ServiceRequest {
   id: string
   ticketNumber: string
@@ -44,7 +50,15 @@ interface ServiceRequest {
     id: string
     customerName: string
     serviceDueDate: string | null
+    items?: OrderItemLite[]
   } | null
+  servicedOrderItemId: string | null
+  servicedOrderItem: OrderItemLite | null
+  partsOrders: {
+    id: string
+    orderId: string
+    order: { id: string; customerName: string; totalAmount: string | number } | null
+  }[]
   name: string
   email: string
   phone: string
@@ -125,7 +139,11 @@ export default function AdminServiceRequestsPage() {
     scheduledDate: '',
     internalNotes: '',
     resolution: '',
+    servicedOrderItemId: '',
+    partsOrderIds: [] as string[],
   })
+  // Draft value for the "add parts order" input (before it's added to the list)
+  const [partsOrderDraft, setPartsOrderDraft] = useState('')
 
   useEffect(() => {
     fetchRequests()
@@ -194,7 +212,10 @@ export default function AdminServiceRequestsPage() {
       scheduledDate: request.scheduledDate ? request.scheduledDate.split('T')[0] : '',
       internalNotes: request.internalNotes || '',
       resolution: request.resolution || '',
+      servicedOrderItemId: request.servicedOrderItemId || '',
+      partsOrderIds: (request.partsOrders || []).map((p) => p.orderId),
     })
+    setPartsOrderDraft('')
     setExpandedId(request.id)
   }
 
@@ -213,13 +234,32 @@ export default function AdminServiceRequestsPage() {
         setEditingId(null)
         toast.success('Service request updated')
       } else {
-        toast.error('Failed to update service request')
+        const data = await res.json().catch(() => null)
+        toast.error(data?.error || 'Failed to update service request')
       }
     } catch {
       toast.error('Failed to update service request')
     } finally {
       setSaving(false)
     }
+  }
+
+  const addPartsOrder = () => {
+    const value = partsOrderDraft.trim()
+    if (!value) return
+    setEditForm(prev =>
+      prev.partsOrderIds.includes(value)
+        ? prev
+        : { ...prev, partsOrderIds: [...prev.partsOrderIds, value] }
+    )
+    setPartsOrderDraft('')
+  }
+
+  const removePartsOrder = (value: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      partsOrderIds: prev.partsOrderIds.filter((v) => v !== value),
+    }))
   }
 
   const handleDelete = async (id: string) => {
@@ -665,6 +705,83 @@ export default function AdminServiceRequestsPage() {
                                     />
                                   </div>
 
+                                  {/* Serviced product — which item in the linked
+                                      order this service is for (multi-item orders).
+                                      Traceability only; does not affect due date. */}
+                                  {request.order && (request.order.items?.length ?? 0) > 0 && (
+                                    <div>
+                                      <Label>Serviced Product</Label>
+                                      <Select
+                                        value={editForm.servicedOrderItemId || 'none'}
+                                        onValueChange={(v) =>
+                                          setEditForm(prev => ({ ...prev, servicedOrderItemId: v === 'none' ? '' : v }))
+                                        }
+                                      >
+                                        <SelectTrigger className="mt-1">
+                                          <SelectValue placeholder="Select product from order..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="none">Not specified</SelectItem>
+                                          {request.order.items?.map((item) => (
+                                            <SelectItem key={item.id} value={item.id}>
+                                              {item.product.name}
+                                              {item.quantity > 1 ? ` × ${item.quantity}` : ''}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <p className="text-xs text-slate-500 mt-1">
+                                        Which product in the linked order this service is for.
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* Parts orders — orders where the customer bought
+                                      the replacement parts used in this service. */}
+                                  <div>
+                                    <Label>Parts Orders</Label>
+                                    <p className="text-xs text-slate-500 mt-1 mb-2">
+                                      Order ID(s) where the customer bought the parts used
+                                      (paste the ID or its first 8 characters).
+                                    </p>
+                                    <div className="flex gap-2">
+                                      <Input
+                                        value={partsOrderDraft}
+                                        onChange={(e) => setPartsOrderDraft(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault()
+                                            addPartsOrder()
+                                          }
+                                        }}
+                                        placeholder="e.g., A1B2C3D4"
+                                        className="font-mono"
+                                      />
+                                      <Button type="button" variant="outline" onClick={addPartsOrder}>
+                                        Add
+                                      </Button>
+                                    </div>
+                                    {editForm.partsOrderIds.length > 0 && (
+                                      <div className="flex flex-wrap gap-2 mt-2">
+                                        {editForm.partsOrderIds.map((oid) => (
+                                          <span
+                                            key={oid}
+                                            className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-mono"
+                                          >
+                                            {oid.slice(0, 8).toUpperCase()}
+                                            <button
+                                              type="button"
+                                              onClick={() => removePartsOrder(oid)}
+                                              className="hover:text-blue-900"
+                                            >
+                                              <X className="h-3 w-3" />
+                                            </button>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+
                                   <div className="flex gap-2 pt-2">
                                     <Button
                                       onClick={() => handleSave(request.id)}
@@ -718,6 +835,39 @@ export default function AdminServiceRequestsPage() {
                                     <p className="text-sm text-green-600">
                                       Completed: {formatDate(request.completedAt)}
                                     </p>
+                                  )}
+
+                                  {request.servicedOrderItem && (
+                                    <p className="text-sm">
+                                      <span className="text-slate-500">Serviced product:</span>{' '}
+                                      <span className="font-medium">
+                                        {request.servicedOrderItem.product.name}
+                                        {request.servicedOrderItem.quantity > 1
+                                          ? ` × ${request.servicedOrderItem.quantity}`
+                                          : ''}
+                                      </span>
+                                    </p>
+                                  )}
+                                  {request.partsOrders?.length > 0 && (
+                                    <div className="text-sm">
+                                      <p className="text-slate-500 mb-1">Parts orders:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {request.partsOrders.map((p) => (
+                                          <a
+                                            key={p.id}
+                                            href={`/admin05/orders/${p.orderId}`}
+                                            className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-mono hover:bg-blue-100"
+                                          >
+                                            #{p.orderId.slice(0, 8).toUpperCase()}
+                                            {p.order?.customerName ? (
+                                              <span className="font-sans text-blue-500">
+                                                · {p.order.customerName}
+                                              </span>
+                                            ) : null}
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
                                   )}
 
                                   <div className="flex gap-2 pt-2">

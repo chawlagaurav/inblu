@@ -45,6 +45,27 @@ export async function GET(request: NextRequest) {
             id: true,
             customerName: true,
             serviceDueDate: true,
+            items: {
+              select: {
+                id: true,
+                quantity: true,
+                product: { select: { name: true } },
+              },
+            },
+          },
+        },
+        servicedOrderItem: {
+          select: {
+            id: true,
+            quantity: true,
+            product: { select: { name: true } },
+          },
+        },
+        partsOrders: {
+          include: {
+            order: {
+              select: { id: true, customerName: true, totalAmount: true },
+            },
           },
         },
       },

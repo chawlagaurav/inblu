@@ -109,6 +109,7 @@ model Order {
   updatedAt           DateTime      @updatedAt @map("updated_at")
   items               OrderItem[]
   serviceRequests     ServiceRequest[]
+  servicePartsLinks   ServiceRequestPartsOrder[]
 
   @@map("orders")
 }
@@ -122,6 +123,7 @@ model OrderItem {
   quantity  Int
   price     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now()) @map("created_at")
+  servicedRequests ServiceRequest[]
 
   @@map("order_items")
 }
@@ -325,6 +327,15 @@ model ServiceRequest {
   postcode        String?
   serviceType     ServiceType          @map("service_type")
   productName     String?              @map("product_name")
+  // Which specific item in the linked order this service is for (multi-item
+  // orders). Traceability only — does NOT affect the due-date recalculation,
+  // which still uses the max serviceable tenure across the whole order.
+  servicedOrderItemId String?          @map("serviced_order_item_id")
+  servicedOrderItem   OrderItem?       @relation(fields: [servicedOrderItemId], references: [id])
+  // Orders where the customer bought the replacement parts used in this
+  // service. Traceability only; the parts were purchased/billed via those
+  // orders' normal flow (no inventory or billing effect here).
+  partsOrders     ServiceRequestPartsOrder[]
   purchaseDate    DateTime?            @map("purchase_date")
   issueDescription String              @map("issue_description")
   preferredDate   DateTime?            @map("preferred_date")
@@ -339,6 +350,22 @@ model ServiceRequest {
   updatedAt       DateTime             @updatedAt @map("updated_at")
 
   @@map("service_requests")
+}
+
+// Links a service request to one or more orders in which the customer bought
+// the replacement parts used during the service. Many-to-many so a single
+// service can reference parts from several purchases.
+model ServiceRequestPartsOrder {
+  id               String         @id @default(uuid())
+  serviceRequestId String         @map("service_request_id")
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  orderId          String         @map("order_id")
+  order            Order          @relation(fields: [orderId], references: [id])
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@unique([serviceRequestId, orderId])
+  @@index([orderId])
+  @@map("service_request_parts_orders")
 }
 
 model Category {

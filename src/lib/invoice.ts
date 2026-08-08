@@ -120,6 +120,6 @@ export const COMPANY_DETAILS = {
 export const DEFAULT_BANK_DETAILS = {
   bankName: 'Commonwealth Bank',
   accountName: 'Inblu Pty Ltd',
-  accountNumber: '12345678',
-  bsb: '062-000',
+  accountNumber: '10204102',
+  bsb: '062704',
 }

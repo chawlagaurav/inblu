@@ -27,7 +27,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
   // Pull the active Category master in parallel with products so the list can
   // resolve raw slugs (e.g. legacy "ro-purifier") to canonical labels and skip
   // anything that no longer exists in the master.
-  const [products, activeCategories, soldAgg] = await Promise.all([
+  const [products, activeCategories] = await Promise.all([
     prisma.product.findMany({
       where: {
         ...(searchQuery ? {
@@ -47,21 +47,15 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
       where: { isActive: true },
       select: { value: true, label: true },
     }),
-    prisma.orderItem.groupBy({
-      by: ['productId'],
-      _sum: { quantity: true },
-    }),
   ])
-
-  const soldMap = new Map(soldAgg.map((r) => [r.productId, r._sum.quantity ?? 0]))
 
   const totalProducts = products.length
   const activeProducts = products.filter(p => p.isActive).length
   const lowStockProducts = products.filter(p => p.stock <= 10).length
-  // Total units sold across all products (all-time). soldAgg is workspace-wide,
-  // not filtered — a search/status filter narrows the list but "Sold" always
-  // reflects the full catalog's lifetime units.
-  const totalSold = soldAgg.reduce((sum, r) => sum + (r._sum.quantity ?? 0), 0)
+  // Total units sold across the listed products. "Sold" is now a stored counter
+  // on each product (Product.unitsSold), seeded to correct figures and
+  // incremented on each new paid/manual order — no longer derived from orders.
+  const totalSold = products.reduce((sum, p) => sum + p.unitsSold, 0)
 
   return (
     <div className="space-y-6">
@@ -186,7 +180,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                 isActive: p.isActive,
                 isBestSeller: p.isBestSeller,
                 displayOrder: p.displayOrder,
-                unitsSold: soldMap.get(p.id) ?? 0,
+                unitsSold: p.unitsSold,
               }))}
               activeCategories={activeCategories}
             />

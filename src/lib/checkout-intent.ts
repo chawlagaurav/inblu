@@ -170,11 +170,14 @@ async function finalizePaidOrder(orderId: string, payload: CheckoutPayload) {
   })
   if (!order) return
 
-  // Decrement stock
+  // Decrement stock and bump the lifetime sold counter
   for (const item of order.items) {
     await prisma.product.update({
       where: { id: item.productId },
-      data: { stock: { decrement: item.quantity } },
+      data: {
+        stock: { decrement: item.quantity },
+        unitsSold: { increment: item.quantity },
+      },
     })
   }
 

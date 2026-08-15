@@ -109,7 +109,10 @@ export async function POST(request: NextRequest) {
         for (const item of order.items) {
           await prisma.product.update({
             where: { id: item.productId },
-            data: { stock: { decrement: item.quantity } },
+            data: {
+              stock: { decrement: item.quantity },
+              unitsSold: { increment: item.quantity },
+            },
           })
         }
 

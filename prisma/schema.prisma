@@ -64,6 +64,10 @@ model Product {
   salePrice    Decimal?    @db.Decimal(10, 2) @map("sale_price")
   excludeFromCoupons Boolean @default(false) @map("exclude_from_coupons")
   displayOrder Int         @default(0) @map("display_order")
+  // Stored lifetime units-sold counter (was previously derived by summing
+  // OrderItem.quantity). Now authoritative for the admin "Sold" column: seeded
+  // to correct figures and incremented on each new paid/manual order.
+  unitsSold    Int         @default(0) @map("units_sold")
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   orderItems   OrderItem[]

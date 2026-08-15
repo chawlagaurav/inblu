@@ -108,6 +108,15 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Bump the lifetime sold counter for each item. Manual orders don't touch
+    // stock, but they do count toward "Sold" on the admin products page.
+    for (const item of order.items) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: { unitsSold: { increment: item.quantity } },
+      })
+    }
+
     return NextResponse.json(order, { status: 201 })
   } catch (error) {
     console.error('Error creating manual order:', error)

@@ -5,6 +5,7 @@ import { Header } from './header'
 import { Footer } from './footer'
 import { AnnouncementBar } from './announcement-bar'
 import { DiscountPopup } from '@/components/discount-popup'
+import { FloatingCallButton } from './floating-call-button'
 
 /**
  * Renders the full store chrome (announcement bar, nav header, footer, promos)
@@ -27,6 +28,7 @@ export function StoreChrome({ children }: { children: React.ReactNode }) {
       <main className="min-h-screen">{children}</main>
       <Footer />
       <DiscountPopup />
+      <FloatingCallButton />
     </>
   )
 }

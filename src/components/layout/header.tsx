@@ -152,8 +152,8 @@ export function Header() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-blue-100">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 sm:py-2 lg:px-8 h-16 overflow-visible">
+    <header className="sticky top-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 sm:py-2 lg:px-8 h-16 overflow-visible rounded-3xl border border-white/40 bg-white/60 shadow-lg shadow-blue-900/5 ring-1 ring-black/5 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-white/50">
         {/* Mobile: Hamburger (left) */}
         <div className="flex lg:hidden">
           <button

@@ -65,6 +65,7 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <Image src="/inblutextlogo.png" alt="Inblu" width={320} height={128} className="h-32 w-auto" />
+              <span className="mt-1 block text-2xl font-bold text-slate-900">Inblu</span>
             </Link>
             <p className="text-sm text-slate-600 max-w-xs">
               Premium quality products delivered across Australia. Experience excellence with every purchase.
